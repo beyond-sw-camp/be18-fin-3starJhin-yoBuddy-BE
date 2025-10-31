@@ -15,8 +15,8 @@ import com.j3s.yobuddy.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/users")
 public class UserController {
 
 	private final UserService userService;
