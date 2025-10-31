@@ -1,9 +1,19 @@
+app:
+  jwt:
+    secret: ${JWT_SECRET_BASE64}
+    issuer: yobuddy
+    access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}      
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:1209600000}
+
 spring:
   config:
     import: optional:file:.env[.properties]
 
+  cors:
+    allowed-origins: "프론트 주소 (추후 추가)"
+
   datasource:
-    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:mariadb://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
