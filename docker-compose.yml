@@ -15,7 +15,7 @@ services:
 
       # Redis
       SPRING_REDIS_HOST: ${REDIS_HOST}
-      SPRING_REDIS_PORT: ${REDIS_PORT}
+      SPRING_REDIS_PORT: ${REDIS_PORT:-6379}
       SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD}
 
     networks:
