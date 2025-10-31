@@ -16,7 +16,10 @@ pipeline {
         stage('프로젝트 빌드') {
             steps {
                 echo 'Gradle로 프로젝트를 빌드합니다...'
-                sh './gradlew clean build -x test'
+                sh '''
+                chmod +x ./gradlew
+                ./gradlew clean build -x test
+                '''
             }
         }
 
@@ -34,14 +37,9 @@ pipeline {
             steps {
                 echo '애플리케이션 상태를 점검합니다...'
                 sh '''
-                echo "서버가 시작될 때까지 20초 대기..."
+                echo "서버 시작 대기중 (20초)..."
                 sleep 20
-                if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                    echo "✅ 헬스 체크 성공"
-                else
-                    echo "❌ 헬스 체크 실패"
-                    exit 1
-                fi
+                curl -f http://localhost:8080/actuator/health || exit 1
                 '''
             }
         }
@@ -51,18 +49,22 @@ pipeline {
         success {
             withCredentials([string(credentialsId: 'DISCORD_WEBHOOK', variable: 'WEBHOOK_URL')]) {
                 sh '''
-                curl -H "Content-Type: application/json" \
-                     -d "{\"content\": \"✅ YoBuddy 서버 배포 성공 🎉\\n상태: 정상 완료\\n시간: $(date '+%Y-%m-%d %H:%M:%S')\"}" \
-                     $WEBHOOK_URL
+                cat <<EOF | curl -H "Content-Type: application/json" -d @- $WEBHOOK_URL
+                {
+                  "content": "✅ YoBuddy 서버 배포 성공 🎉\\n상태: 정상 완료\\n시간: $(date '+%Y-%m-%d %H:%M:%S')"
+                }
+                EOF
                 '''
             }
         }
         failure {
             withCredentials([string(credentialsId: 'DISCORD_WEBHOOK', variable: 'WEBHOOK_URL')]) {
                 sh '''
-                curl -H "Content-Type: application/json" \
-                     -d "{\"content\": \"❌ YoBuddy 서버 배포 실패 ⚠️\\n상태: 오류 발생\\n시간: $(date '+%Y-%m-%d %H:%M:%S')\\n확인: Jenkins 로그 참고\"}" \
-                     $WEBHOOK_URL
+                cat <<EOF | curl -H "Content-Type: application/json" -d @- $WEBHOOK_URL
+                {
+                  "content": "❌ YoBuddy 서버 배포 실패 ⚠️\\n상태: 오류 발생\\n시간: $(date '+%Y-%m-%d %H:%M:%S')\\n확인: Jenkins 로그 참고"
+                }
+                EOF
                 '''
             }
         }
