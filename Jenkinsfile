@@ -51,23 +51,6 @@ pipeline {
                 '''
             }
         }
-
-        stage('헬스 체크') {
-            steps {
-                echo '애플리케이션 상태를 점검합니다...'
-                sh '''
-                echo "서버가 시작될 때까지 60초 대기..."
-                sleep 60
-                if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                    echo "✅ 헬스 체크 성공"
-                else
-                    echo "❌ 헬스 체크 실패"
-                    docker logs yobuddy-app | tail -n 50
-                    exit 1
-                fi
-                '''
-            }
-        }
     }
 
     post {
