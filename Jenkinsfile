@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         SPRING_PROFILES_ACTIVE = "default"
-        DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1428195972617605312/V160D67nwFsb-mQnyawkpQ1arTLCvzTUBYs3SiHbKczq02vkzHr5ZHhdVQ47dQXvMk_O"
+        DISCORD_WEBHOOK = credentials('DISCORD_WEBHOOK')
     }
 
     stages {
@@ -44,22 +44,39 @@ pipeline {
 
     post {
         success {
-            powershell """
-            \$webhook = '${DISCORD_WEBHOOK}'
-            \$payload = @{
-                content = "✅ YoBuddy 서버 배포 성공 🎉`n프로젝트: YoBuddy`n상태: 정상 완료`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-            } | ConvertTo-Json
-            Invoke-RestMethod -Uri \$webhook -Method Post -Body \$payload -ContentType 'application/json'
-            """
+            powershell '''
+            $ErrorActionPreference = "Stop"
+            try {
+                $webhook = "${DISCORD_WEBHOOK}"
+                $payload = @{
+                    content = "✅ YoBuddy 서버 배포 성공 🎉`n프로젝트: YoBuddy`n상태: 정상 완료`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+                } | ConvertTo-Json
+
+                Invoke-RestMethod -Uri $webhook -Method Post -Body $payload -ContentType "application/json"
+                Write-Host "✅ 디스코드 알림 전송 성공"
+            }
+            catch {
+                Write-Host "❌ 디스코드 알림 전송 실패: $($_.Exception.Message)"
+            }
+            '''
         }
+
         failure {
-            powershell """
-            \$webhook = '${DISCORD_WEBHOOK}'
-            \$payload = @{
-                content = "❌ YoBuddy 서버 배포 실패 ⚠️`n프로젝트: YoBuddy`n상태: 오류 발생`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`n확인: Jenkins 로그 참고"
-            } | ConvertTo-Json
-            Invoke-RestMethod -Uri \$webhook -Method Post -Body \$payload -ContentType 'application/json'
-            """
+            powershell '''
+            $ErrorActionPreference = "Stop"
+            try {
+                $webhook = "${DISCORD_WEBHOOK}"
+                $payload = @{
+                    content = "❌ YoBuddy 서버 배포 실패 ⚠️`n프로젝트: YoBuddy`n상태: 오류 발생`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`n확인: Jenkins 로그 참고"
+                } | ConvertTo-Json
+
+                Invoke-RestMethod -Uri $webhook -Method Post -Body $payload -ContentType "application/json"
+                Write-Host "✅ 디스코드 알림 전송 성공"
+            }
+            catch {
+                Write-Host "❌ 디스코드 알림 전송 실패: $($_.Exception.Message)"
+            }
+            '''
         }
     }
 }
