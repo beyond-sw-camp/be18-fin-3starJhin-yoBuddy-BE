@@ -33,7 +33,7 @@ pipeline {
                 echo '애플리케이션 상태를 점검합니다...'
                 bat '''
                 ping 127.0.0.1 -n 10 >nul
-                curl -f http://localhost:8080/actuator/health >nul 2>&1 || (
+                curl -f http://192.168.0.111:8080/actuator/health >nul 2>&1 || (
                     echo 애플리케이션 헬스 체크 실패.
                     exit 1
                 )
@@ -43,40 +43,43 @@ pipeline {
     }
 
     post {
-        success {
-            powershell '''
-            $ErrorActionPreference = "Stop"
-            try {
-                $webhook = "${DISCORD_WEBHOOK}"
-                $payload = @{
-                    content = "✅ YoBuddy 서버 배포 성공 🎉`n프로젝트: YoBuddy`n상태: 정상 완료`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-                } | ConvertTo-Json
+            success {
+                withCredentials([string(credentialsId: 'DISCORD_WEBHOOK', variable: 'WEBHOOK_URL')]) {
+                    powershell '''
+                    $ErrorActionPreference = "Stop"
+                    try {
+                        $payload = @{
+                            content = "✅ YoBuddy 서버 배포 성공 🎉`n프로젝트: YoBuddy`n상태: 정상 완료`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+                        } | ConvertTo-Json
 
-                Invoke-RestMethod -Uri $webhook -Method Post -Body $payload -ContentType "application/json"
-                Write-Host "✅ 디스코드 알림 전송 성공"
+                        Invoke-RestMethod -Uri "$env:WEBHOOK_URL" -Method Post -Body $payload -ContentType "application/json"
+                        Write-Host "✅ 디스코드 알림 전송 성공"
+                    }
+                    catch {
+                        Write-Host "❌ 디스코드 알림 전송 실패: $($_.Exception.Message)"
+                    }
+                    '''
+                }
             }
-            catch {
-                Write-Host "❌ 디스코드 알림 전송 실패: $($_.Exception.Message)"
-            }
-            '''
-        }
 
-        failure {
-            powershell '''
-            $ErrorActionPreference = "Stop"
-            try {
-                $webhook = "${DISCORD_WEBHOOK}"
-                $payload = @{
-                    content = "❌ YoBuddy 서버 배포 실패 ⚠️`n프로젝트: YoBuddy`n상태: 오류 발생`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`n확인: Jenkins 로그 참고"
-                } | ConvertTo-Json
+            failure {
+                withCredentials([string(credentialsId: 'DISCORD_WEBHOOK', variable: 'WEBHOOK_URL')]) {
+                    powershell '''
+                    $ErrorActionPreference = "Stop"
+                    try {
+                        $payload = @{
+                            content = "❌ YoBuddy 서버 배포 실패 ⚠️`n프로젝트: YoBuddy`n상태: 오류 발생`n시간: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`n확인: Jenkins 로그 참고"
+                        } | ConvertTo-Json
 
-                Invoke-RestMethod -Uri $webhook -Method Post -Body $payload -ContentType "application/json"
-                Write-Host "✅ 디스코드 알림 전송 성공"
+                        Invoke-RestMethod -Uri "$env:WEBHOOK_URL" -Method Post -Body $payload -ContentType "application/json"
+                        Write-Host "✅ 디스코드 알림 전송 성공"
+                    }
+                    catch {
+                        Write-Host "❌ 디스코드 알림 전송 실패: $($_.Exception.Message)"
+                    }
+                    '''
+                }
             }
-            catch {
-                Write-Host "❌ 디스코드 알림 전송 실패: $($_.Exception.Message)"
-            }
-            '''
         }
     }
 }
