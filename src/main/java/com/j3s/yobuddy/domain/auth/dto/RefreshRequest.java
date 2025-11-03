@@ -1,10 +1,12 @@
 package com.j3s.yobuddy.domain.auth.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
+@Builder
 @Getter
-@Setter
+@AllArgsConstructor
 public class RefreshRequest {
-    private String refreshToken;
+    private final String refreshToken;
 }

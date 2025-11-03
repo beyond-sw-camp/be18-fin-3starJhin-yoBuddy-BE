@@ -1,13 +1,13 @@
 package com.j3s.yobuddy.domain.user.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+@Builder
 @Getter
-@Setter
-@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterRequest {
-    private String email;
-    private String password;
+    private final String email;
+    private final String password;
 }

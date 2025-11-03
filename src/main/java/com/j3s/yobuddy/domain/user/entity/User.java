@@ -4,26 +4,24 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@Getter
+@AllArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK 깅
+    private Long id; // PK 
 
     @Column(nullable = false, unique = true)
-    private String email; // 로그인 아이디 깙
+    private String email; // 로그인 아이디
 
     @Column(nullable = false)
-    private String password; // BCrypt로 암호화 저장 깙
+    private String password; // BCrypt로 암호화 저장
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role; // USER / ADMIN 구분 깙
+    private Role role; // USER / ADMIN 구분
 
-    private boolean enabled = true; // 계정 활성화 여부 깙
+    private boolean enabled = true; // 계정 활성화 여부
 }
