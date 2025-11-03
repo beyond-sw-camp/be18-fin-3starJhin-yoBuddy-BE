@@ -8,4 +8,8 @@ public interface DepartmentService {
     List<DepartmentResponse> getDepartments();
 
     void createDepartment(String name);
+
+    void updateDepartment(Long departmentId, String name);
+
+    void deleteDepartment(Long departmentId);
 }

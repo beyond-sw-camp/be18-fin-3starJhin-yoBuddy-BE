@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface DepartmentRepository extends JpaRepository<Departments, Long> {
 
     List<Departments> findAllByIsDeletedFalse();
+
+    Departments findByDepartmentId(Long departmentId);
 }
