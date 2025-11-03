@@ -1,10 +1,13 @@
 package com.j3s.yobuddy.domain.user.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
+import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
 import com.j3s.yobuddy.domain.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,14 +28,28 @@ public class UserController {
 	private final UserService userService;
 
 	@PostMapping
-	public ResponseEntity<Void> register(@RequestBody List<RegisterRequest> reqs) {
+	public ResponseEntity<Map<String, Object>> register(@RequestBody List<RegisterRequest> reqs) {
 		userService.register(reqs);
-		return ResponseEntity.status(HttpStatus.CREATED).build();
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(successResponse(HttpStatus.CREATED, "사용자가 성공적으로 등록되었습니다."));
+	}
+
+	@PatchMapping("/{userId}")
+	public ResponseEntity<Map<String, Object>> update(@PathVariable Long userId, @RequestBody UpdateUserRequest req) {
+		userService.update(userId, req);
+		return ResponseEntity.ok(successResponse(HttpStatus.OK, "사용자 정보가 성공적으로 수정되었습니다."));
 	}
 
 	@DeleteMapping("/{userId}")
-	public ResponseEntity<Void> delete(@PathVariable Long userId) {
+	public ResponseEntity<Map<String, Object>> delete(@PathVariable Long userId) {
 		userService.softDelete(userId);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok(successResponse(HttpStatus.OK, "사용자가 성공적으로 삭제되었습니다."));
+	}
+
+	private Map<String, Object> successResponse(HttpStatus status, String message) {
+		Map<String, Object> body = new HashMap<>();
+		body.put("status", status.value());
+		body.put("message", message);
+		return body;
 	}
 }

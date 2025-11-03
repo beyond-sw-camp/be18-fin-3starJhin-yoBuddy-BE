@@ -20,7 +20,8 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.j3s.yobuddy.domain.department.entity.Department;
+
+import com.j3s.yobuddy.domain.department.entity.Departments;
 
 @Entity
 @Table(name = "users") // 테이블 이름 명시 (대소문자 구분 피하려면 소문자 추천)
@@ -53,7 +54,7 @@ public class Users {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
-    private Department department; // 소속 부서 (FK)
+    private Departments department; // 소속 부서 (FK)
 
     @Column(name = "joined_at")
     private LocalDateTime joinedAt; // 입사일
@@ -91,6 +92,24 @@ public class Users {
         if (!isDeleted()) {
             this.isDeleted = true;
             this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    public void changePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void changeDepartment(Departments department) {
+        this.department = department;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void changeRole(Role role) {
+        if (role != null) {
+            this.role = role;
         }
     }
 }
