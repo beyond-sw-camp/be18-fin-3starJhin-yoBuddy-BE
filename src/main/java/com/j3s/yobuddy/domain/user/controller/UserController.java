@@ -24,6 +24,6 @@ public class UserController {
 	@PostMapping
 	public ResponseEntity<Void> register(@RequestBody RegisterRequest req) {
 		User saved = userService.register(req);
-		return ResponseEntity.created(URI.create("/api/users/" + saved.getId())).build();
+		return ResponseEntity.created(URI.create("/api/v1/users/" + saved.getId())).build();
 	}
 }
