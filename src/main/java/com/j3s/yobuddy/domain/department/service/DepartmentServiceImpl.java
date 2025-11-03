@@ -1,7 +1,9 @@
 package com.j3s.yobuddy.domain.department.service;
 
 import com.j3s.yobuddy.domain.department.dto.DepartmentResponse;
+import com.j3s.yobuddy.domain.department.entity.Departments;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,5 +25,17 @@ public class DepartmentServiceImpl implements DepartmentService {
                 department.getUpdatedAt()
             ))
             .toList();
+    }
+
+    @Override
+    public void createDepartment(String name) {
+
+        Departments department = Departments.builder()
+            .name(name)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+        departmentRepository.save(department);
     }
 }
