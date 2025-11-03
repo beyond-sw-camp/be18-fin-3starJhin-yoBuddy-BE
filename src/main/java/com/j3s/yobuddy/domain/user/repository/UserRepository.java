@@ -9,6 +9,6 @@ import com.j3s.yobuddy.domain.user.entity.Users;
 
 @Repository
 public interface UserRepository extends JpaRepository<Users, Long> {
-    Optional<Users> findByEmail(String email);
+    Optional<Users> findByEmailAndIsDeletedFalse(String email);
     Optional<Users> findByPhoneNumber(String phoneNumber);
 }

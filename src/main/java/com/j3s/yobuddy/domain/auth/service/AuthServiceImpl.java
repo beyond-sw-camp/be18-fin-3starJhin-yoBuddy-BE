@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public TokenResponse login(LoginRequest req) {
-        Users users = userRepository.findByEmail(req.getEmail())
+        Users users = userRepository.findByEmailAndIsDeletedFalse(req.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
         if (!passwordEncoder.matches(req.getPassword(), users.getPassword())) {

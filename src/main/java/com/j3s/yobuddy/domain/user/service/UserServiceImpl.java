@@ -1,5 +1,11 @@
 package com.j3s.yobuddy.domain.user.service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +26,39 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional
-	public Users register(RegisterRequest req) {
+	public List<Users> register(List<RegisterRequest> reqs) {
+		if (reqs == null || reqs.isEmpty()) {
+			throw new IllegalArgumentException("At least one user is required");
+		}
+
+		Set<String> emailsInBatch = new HashSet<>();
+		Set<String> phonesInBatch = new HashSet<>();
+		List<Users> toSave = new ArrayList<>(reqs.size());
+
+		for (RegisterRequest req : reqs) {
+			Users user = buildUser(req);
+
+			if (!emailsInBatch.add(user.getEmail())) {
+				throw new IllegalArgumentException("Duplicate email in batch: " + user.getEmail());
+			}
+			if (!phonesInBatch.add(user.getPhoneNumber())) {
+				throw new IllegalArgumentException("Duplicate phone number in batch: " + user.getPhoneNumber());
+			}
+
+			userRepository.findByEmail(user.getEmail()).ifPresent(u -> {
+				throw new IllegalArgumentException("Email already in use: " + user.getEmail());
+			});
+			userRepository.findByPhoneNumber(user.getPhoneNumber()).ifPresent(u -> {
+				throw new IllegalArgumentException("Phone number already in use: " + user.getPhoneNumber());
+			});
+
+			toSave.add(user);
+		}
+
+		return userRepository.saveAll(toSave);
+	}
+
+	private Users buildUser(RegisterRequest req) {
 		String name = req.getName();
 		if (name == null || name.isBlank()) {
 			throw new IllegalArgumentException("Name is required");
@@ -31,7 +69,8 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalArgumentException("Email is required");
 		}
 
-		if (req.getPassword() == null || req.getPassword().isBlank()) {
+		String password = req.getPassword();
+		if (password == null || password.isBlank()) {
 			throw new IllegalArgumentException("Password is required");
 		}
 
@@ -40,18 +79,10 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalArgumentException("Phone number is required");
 		}
 
-		userRepository.findByEmail(email).ifPresent(u -> {
-			throw new IllegalArgumentException("Email already in use");
-		});
+		Role role = Objects.requireNonNullElse(req.getRole(), Role.USER);
+		String encoded = passwordEncoder.encode(password);
 
-		userRepository.findByPhoneNumber(phoneNumber).ifPresent(u -> {
-			throw new IllegalArgumentException("Phone number already in use");
-		});
-
-		String encoded = passwordEncoder.encode(req.getPassword());
-		Role role = req.getRole() != null ? req.getRole() : Role.USER;
-
-		Users user = Users.builder()
+		return Users.builder()
 			.name(name)
 			.email(email)
 			.password(encoded)
@@ -59,7 +90,5 @@ public class UserServiceImpl implements UserService {
 			.role(role)
 			.joinedAt(req.getJoinedAt())
 			.build();
-
-		return userRepository.save(user);
 	}
 }
