@@ -1,8 +1,5 @@
 package com.j3s.yobuddy.common.exception;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -10,6 +7,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -38,21 +39,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
-    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status,
-        String message) {
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message) {
         return buildErrorResponse(status, message, null);
     }
 
-    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status,
-        String message, Object details) {
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message, Object details) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
         body.put("message", message);
-        if (details != null) {
-            body.put("details", details);
-        }
+        if (details != null) body.put("details", details);
         return ResponseEntity.status(status).body(body);
     }
 }

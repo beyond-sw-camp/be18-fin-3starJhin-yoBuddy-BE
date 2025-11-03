@@ -3,7 +3,6 @@ package com.j3s.yobuddy.common.exception;
 import org.springframework.http.HttpStatus;
 
 public abstract class BusinessException extends RuntimeException {
-
     private final HttpStatus status;
 
     protected BusinessException(String message, HttpStatus status) {
