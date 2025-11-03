@@ -20,4 +20,5 @@ public class RegisterRequest {
     private String phoneNumber;
     private Role role;
     private LocalDateTime joinedAt;
+    private Long departmentId;
 }

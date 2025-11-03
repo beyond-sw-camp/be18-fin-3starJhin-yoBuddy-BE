@@ -6,9 +6,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -17,7 +20,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-// import com.j3s.yobuddy.domain.department.entity.Department;
+import com.j3s.yobuddy.domain.department.entity.Department;
 
 @Entity
 @Table(name = "users") // 테이블 이름 명시 (대소문자 구분 피하려면 소문자 추천)
@@ -48,9 +51,9 @@ public class Users {
     @Column(length = 20, nullable = false)
     private Role role; // HR / USER / BUDDY
 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "department_id")
-    // private Department department; // 소속 부서 (FK)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department; // 소속 부서 (FK)
 
     @Column(name = "joined_at")
     private LocalDateTime joinedAt; // 입사일
