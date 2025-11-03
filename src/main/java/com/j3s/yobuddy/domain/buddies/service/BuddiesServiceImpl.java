@@ -13,7 +13,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class BuddiesServiceImpl implements BuddiesService {
 
     private final BuddiesRepository buddiesRepository;
@@ -33,6 +32,7 @@ public class BuddiesServiceImpl implements BuddiesService {
 
     // 버디 목록 조회
     @Override
+    @Transactional(readOnly = true)
     public List<Buddies> getBuddies(Long userId, String position) {
         if (userId != null) return buddiesRepository.findByUserIdAndIsDeletedFalse(userId);
         else if (position != null) return buddiesRepository.findByPositionAndIsDeletedFalse(position);
@@ -41,6 +41,7 @@ public class BuddiesServiceImpl implements BuddiesService {
 
     // 버디 상세 조회
     @Override
+    @Transactional(readOnly = true)
     public Buddies getBuddyById(Long buddyId) {
         return buddiesRepository.findById(buddyId)
             .filter(b -> !b.isDeleted())
