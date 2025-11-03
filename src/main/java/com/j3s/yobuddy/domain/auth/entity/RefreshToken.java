@@ -2,7 +2,7 @@ package com.j3s.yobuddy.domain.auth.entity;
 
 import java.time.Instant;
 
-import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.entity.Users;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +17,7 @@ import lombok.Setter;
 public class RefreshToken {
   @Id @GeneratedValue private Long id;
   @Column(nullable=false, unique=true) private String tokenId; // JWT jti 깅
-  @ManyToOne(fetch = FetchType.LAZY) private User user;
+  @ManyToOne(fetch = FetchType.LAZY) private Users user;
   private Instant expiresAt;
   private boolean revoked = false;
 }

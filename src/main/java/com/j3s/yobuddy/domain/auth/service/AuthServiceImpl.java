@@ -35,19 +35,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public TokenResponse login(LoginRequest req) {
-        Users user = userRepository.findByEmail(req.getEmail())
+        Users users = userRepository.findByEmail(req.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
-        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(req.getPassword(), users.getPassword())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String access = jwtTokenProvider.createAccessToken(user.getUserId(), user.getEmail(), user.getRole().name());
-        String refresh = jwtTokenProvider.createRefreshToken(user.getUserId());
+        String access = jwtTokenProvider.createAccessToken(users.getUserId(), users.getEmail(), users.getRole().name());
+        String refresh = jwtTokenProvider.createRefreshToken(users.getUserId());
 
         // store refresh in redis with expiration
         long ttlMs = jwtProperties.getRefreshExpirationMs();
-        redisTemplate.opsForValue().set(redisKeyFor(user.getUserId()), refresh, Duration.ofMillis(ttlMs));
+        redisTemplate.opsForValue().set(redisKeyFor(users.getUserId()), refresh, Duration.ofMillis(ttlMs));
 
         return new TokenResponse(access, refresh, jwtProperties.getAccessExpirationMs());
     }
@@ -68,11 +68,11 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Refresh token not recognized");
         }
 
-        Object user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Users users = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // issue new tokens (rotate refresh token)
-        String newAccess = jwtTokenProvider.createAccessToken(user.getUserId(), user.getEmail(), user.getRole().name());
-        String newRefresh = jwtTokenProvider.createRefreshToken(user.getUserId());
+        String newAccess = jwtTokenProvider.createAccessToken(users.getUserId(), users.getEmail(), users.getRole().name());
+        String newRefresh = jwtTokenProvider.createRefreshToken(users.getUserId());
 
         redisTemplate.opsForValue().set(key, newRefresh, Duration.ofMillis(jwtProperties.getRefreshExpirationMs()));
 
