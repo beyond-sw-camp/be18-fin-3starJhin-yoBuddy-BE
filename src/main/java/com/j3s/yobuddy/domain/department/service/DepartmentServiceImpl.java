@@ -46,6 +46,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional
     public DepartmentResponse updateDepartment(Long departmentId, String name) {
         Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
             departmentId).orElseThrow(() -> new DepartmentNotFoundException(departmentId));
@@ -63,6 +64,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional
     public void deleteDepartment(Long departmentId) {
 
         Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
