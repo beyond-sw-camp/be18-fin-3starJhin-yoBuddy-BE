@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,17 +24,33 @@ public class Departments {
     @Column(name = "department_id", nullable = false)
     private Long departmentId;
 
-    @Column
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
     private Boolean isDeleted = false;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(String name) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

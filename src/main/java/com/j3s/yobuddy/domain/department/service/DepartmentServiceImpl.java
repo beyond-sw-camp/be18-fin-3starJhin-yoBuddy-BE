@@ -2,6 +2,8 @@ package com.j3s.yobuddy.domain.department.service;
 
 import com.j3s.yobuddy.domain.department.dto.DepartmentResponse;
 import com.j3s.yobuddy.domain.department.entity.Departments;
+import com.j3s.yobuddy.domain.department.exception.DepartmentAlreadyDeletedException;
+import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +18,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<DepartmentResponse> getDepartments() {
         return departmentRepository.findAllByIsDeletedFalse()
             .stream()
@@ -36,37 +39,39 @@ public class DepartmentServiceImpl implements DepartmentService {
             .name(name)
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
+            .isDeleted(false)
             .build();
 
         departmentRepository.save(department);
     }
 
     @Override
-    @Transactional
-    public void updateDepartment(Long departmentId, String name) {
+    public DepartmentResponse updateDepartment(Long departmentId, String name) {
+        Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
+            departmentId).orElseThrow(() -> new DepartmentNotFoundException(departmentId));
 
-        Departments existing = departmentRepository.findByDepartmentId(departmentId);
+        department.update(name);
 
-        Departments updated = existing.toBuilder()
-            .departmentId(existing.getDepartmentId())
-            .name(name)
-            .createdAt(existing.getCreatedAt())
-            .updatedAt(LocalDateTime.now())
-            .isDeleted(existing.getIsDeleted())
+        departmentRepository.save(department);
+
+        return DepartmentResponse.builder()
+            .departmentId(department.getDepartmentId())
+            .name(department.getName())
+            .createdAt(department.getCreatedAt())
+            .updatedAt(department.getUpdatedAt())
             .build();
-        departmentRepository.save(updated);
     }
 
     @Override
-    @Transactional
     public void deleteDepartment(Long departmentId) {
 
-        Departments existing = departmentRepository.findByDepartmentId(departmentId);
+        Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
+            departmentId).orElseThrow(() -> new DepartmentNotFoundException(departmentId));
 
-        Departments updated = existing.toBuilder()
-            .updatedAt(LocalDateTime.now())
-            .isDeleted(true)
-            .build();
-        departmentRepository.save(updated);
+        if (department.getIsDeleted()) {
+            throw new DepartmentAlreadyDeletedException(departmentId);
+        }
+        department.softDelete();
+        departmentRepository.save(department);
     }
 }

@@ -9,7 +9,7 @@ public interface DepartmentService {
 
     void createDepartment(String name);
 
-    void updateDepartment(Long departmentId, String name);
+    DepartmentResponse updateDepartment(Long departmentId, String name);
 
     void deleteDepartment(Long departmentId);
 }
