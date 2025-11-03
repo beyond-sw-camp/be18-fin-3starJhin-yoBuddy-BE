@@ -11,7 +11,7 @@ import com.j3s.yobuddy.common.config.JwtProperties;
 import com.j3s.yobuddy.common.security.JwtTokenProvider;
 import com.j3s.yobuddy.domain.auth.dto.LoginRequest;
 import com.j3s.yobuddy.domain.auth.dto.TokenResponse;
-import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.entity.Users;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import io.jsonwebtoken.Claims;
@@ -35,19 +35,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public TokenResponse login(LoginRequest req) {
-        User user = userRepository.findByEmail(req.getEmail())
+        Users user = userRepository.findByEmail(req.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String access = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String refresh = jwtTokenProvider.createRefreshToken(user.getId());
+        String access = jwtTokenProvider.createAccessToken(user.getUserId(), user.getEmail(), user.getRole().name());
+        String refresh = jwtTokenProvider.createRefreshToken(user.getUserId());
 
         // store refresh in redis with expiration
         long ttlMs = jwtProperties.getRefreshExpirationMs();
-        redisTemplate.opsForValue().set(redisKeyFor(user.getId()), refresh, Duration.ofMillis(ttlMs));
+        redisTemplate.opsForValue().set(redisKeyFor(user.getUserId()), refresh, Duration.ofMillis(ttlMs));
 
         return new TokenResponse(access, refresh, jwtProperties.getAccessExpirationMs());
     }
@@ -68,11 +68,11 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Refresh token not recognized");
         }
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Object user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // issue new tokens (rotate refresh token)
-        String newAccess = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String newRefresh = jwtTokenProvider.createRefreshToken(user.getId());
+        String newAccess = jwtTokenProvider.createAccessToken(user.getUserId(), user.getEmail(), user.getRole().name());
+        String newRefresh = jwtTokenProvider.createRefreshToken(user.getUserId());
 
         redisTemplate.opsForValue().set(key, newRefresh, Duration.ofMillis(jwtProperties.getRefreshExpirationMs()));
 

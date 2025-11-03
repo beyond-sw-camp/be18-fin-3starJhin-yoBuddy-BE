@@ -1,8 +1,8 @@
 package com.j3s.yobuddy.domain.user.service;
 
 import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
-import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.entity.Users;
 
 public interface UserService {
-	User register(RegisterRequest req);
+	Users register(RegisterRequest req);
 }
