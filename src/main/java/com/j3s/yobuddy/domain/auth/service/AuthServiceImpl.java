@@ -68,7 +68,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Refresh token not recognized");
         }
 
-        Users users = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Users users = userRepository.findByUserIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // issue new tokens (rotate refresh token)
         String newAccess = jwtTokenProvider.createAccessToken(users.getUserId(), users.getEmail(), users.getRole().name());

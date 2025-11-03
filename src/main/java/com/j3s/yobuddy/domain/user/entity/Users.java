@@ -79,4 +79,15 @@ public class Users {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public boolean isDeleted() {
+        return Boolean.TRUE.equals(this.isDeleted);
+    }
+
+    public void softDelete() {
+        if (!isDeleted()) {
+            this.isDeleted = true;
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
 }

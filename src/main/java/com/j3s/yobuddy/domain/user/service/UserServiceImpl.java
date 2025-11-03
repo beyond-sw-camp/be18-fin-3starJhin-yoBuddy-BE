@@ -13,6 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.Users;
+import com.j3s.yobuddy.domain.user.exception.InvalidUserRequestException;
+import com.j3s.yobuddy.domain.user.exception.UserAlreadyDeletedException;
+import com.j3s.yobuddy.domain.user.exception.UserEmailAlreadyExistsException;
+import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
+import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +33,7 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public List<Users> register(List<RegisterRequest> reqs) {
 		if (reqs == null || reqs.isEmpty()) {
-			throw new IllegalArgumentException("At least one user is required");
+			throw new InvalidUserRequestException("등록할 사용자는 최소 1명 이상이어야 합니다.");
 		}
 
 		Set<String> emailsInBatch = new HashSet<>();
@@ -39,17 +44,17 @@ public class UserServiceImpl implements UserService {
 			Users user = buildUser(req);
 
 			if (!emailsInBatch.add(user.getEmail())) {
-				throw new IllegalArgumentException("Duplicate email in batch: " + user.getEmail());
+				throw new InvalidUserRequestException("요청 내에서 중복된 이메일입니다. (email=" + user.getEmail() + ")");
 			}
 			if (!phonesInBatch.add(user.getPhoneNumber())) {
-				throw new IllegalArgumentException("Duplicate phone number in batch: " + user.getPhoneNumber());
+				throw new InvalidUserRequestException("요청 내에서 중복된 연락처입니다. (phoneNumber=" + user.getPhoneNumber() + ")");
 			}
 
 			userRepository.findByEmail(user.getEmail()).ifPresent(u -> {
-				throw new IllegalArgumentException("Email already in use: " + user.getEmail());
+				throw new UserEmailAlreadyExistsException(user.getEmail());
 			});
 			userRepository.findByPhoneNumber(user.getPhoneNumber()).ifPresent(u -> {
-				throw new IllegalArgumentException("Phone number already in use: " + user.getPhoneNumber());
+				throw new UserPhoneAlreadyExistsException(user.getPhoneNumber());
 			});
 
 			toSave.add(user);
@@ -58,25 +63,39 @@ public class UserServiceImpl implements UserService {
 		return userRepository.saveAll(toSave);
 	}
 
+	@Override
+	@Transactional
+	public void softDelete(Long userId) {
+		Users user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserNotFoundException(userId));
+
+		if (user.isDeleted()) {
+			throw new UserAlreadyDeletedException(userId);
+		}
+
+		user.softDelete();
+		userRepository.save(user);
+	}
+
 	private Users buildUser(RegisterRequest req) {
 		String name = req.getName();
 		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException("Name is required");
+			throw new InvalidUserRequestException("이름은 필수 값입니다.");
 		}
 
 		String email = req.getEmail();
 		if (email == null || email.isBlank()) {
-			throw new IllegalArgumentException("Email is required");
+			throw new InvalidUserRequestException("이메일은 필수 값입니다.");
 		}
 
 		String password = req.getPassword();
 		if (password == null || password.isBlank()) {
-			throw new IllegalArgumentException("Password is required");
+			throw new InvalidUserRequestException("비밀번호는 필수 값입니다.");
 		}
 
 		String phoneNumber = req.getPhoneNumber();
 		if (phoneNumber == null || phoneNumber.isBlank()) {
-			throw new IllegalArgumentException("Phone number is required");
+			throw new InvalidUserRequestException("연락처는 필수 값입니다.");
 		}
 
 		Role role = Objects.requireNonNullElse(req.getRole(), Role.USER);
