@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.onboarding.controller;
+package com.j3s.yobuddy.api.admin;
 
 import java.net.URI;
 import java.util.List;
@@ -17,7 +17,7 @@ import com.j3s.yobuddy.domain.onboarding.dto.request.OnboardingCreateRequest;
 import com.j3s.yobuddy.domain.onboarding.dto.request.OnboardingUpdateRequest;
 import com.j3s.yobuddy.domain.onboarding.dto.response.OnboardingProgramListResponse;
 import com.j3s.yobuddy.domain.onboarding.dto.response.OnboardingProgramResponse;
-import com.j3s.yobuddy.domain.onboarding.entity.OnboardingPrograms;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.service.OnboardingProgramService;
 
 import jakarta.validation.Valid;
@@ -25,15 +25,15 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/onboarding")
-public class OnboardingController {
+@RequestMapping("/api/v1/admin/programs")
+public class AdminOnboardingController {
     private final OnboardingProgramService onboardingProgramService;
 
     @PostMapping
     public ResponseEntity<Void> createProgram(@Valid @RequestBody OnboardingCreateRequest request) {
-        OnboardingPrograms created = onboardingProgramService.createOnboardingPrograms(request);
+        OnboardingProgram created = onboardingProgramService.createOnboardingPrograms(request);
         return ResponseEntity
-            .created(URI.create("/api/v1/onboarding/" + created.getProgramId()))
+            .created(URI.create("/api/v1/admin/programs/" + created.getProgramId()))
             .build();
     }
 

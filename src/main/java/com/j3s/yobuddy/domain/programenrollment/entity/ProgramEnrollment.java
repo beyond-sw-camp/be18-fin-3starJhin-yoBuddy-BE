@@ -1,6 +1,6 @@
 package com.j3s.yobuddy.domain.programenrollment.entity;
 
-import com.j3s.yobuddy.domain.onboarding.entity.OnboardingPrograms;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.user.entity.Users;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ public class ProgramEnrollment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_id", nullable = false)
-    private OnboardingPrograms program;
+    private OnboardingProgram program;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
