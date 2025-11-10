@@ -41,9 +41,9 @@ public class AdminDepartmentController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<DepartmentResponse>> searchDepartmentsByName(
+    public ResponseEntity<List<DepartmentListResponse>> searchDepartmentsByName(
         @RequestParam(required = false) String name) {
-        List<DepartmentResponse> body = departmentService.searchDepartmentsByName(name);
+        List<DepartmentListResponse> body = departmentService.searchDepartmentsByName(name);
 
         return ResponseEntity.ok(body);
     }

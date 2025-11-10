@@ -16,8 +16,8 @@ public class DepartmentListResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static DepartmentResponse from(Department e) {
-        return DepartmentResponse.builder()
+    public static DepartmentListResponse from(Department e) {
+        return DepartmentListResponse.builder()
             .departmentId(e.getDepartmentId())
             .name(e.getName())
             .createdAt(e.getCreatedAt())

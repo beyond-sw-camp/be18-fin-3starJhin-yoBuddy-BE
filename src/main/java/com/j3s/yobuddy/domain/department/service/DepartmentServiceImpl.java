@@ -90,14 +90,14 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     @Transactional
-    public List<DepartmentResponse> searchDepartmentsByName(String name) {
+    public List<DepartmentListResponse> searchDepartmentsByName(String name) {
         List<Department> result =
             (name == null || name.isBlank())
                 ? departmentRepository.findAllByIsDeletedFalse()
                 : departmentRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(name);
 
         return result.stream()
-            .map(DepartmentResponse::from)
+            .map(DepartmentListResponse::from)
             .toList();
     }
 }

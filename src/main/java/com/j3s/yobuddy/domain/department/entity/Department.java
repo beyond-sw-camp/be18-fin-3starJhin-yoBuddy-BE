@@ -1,6 +1,5 @@
 package com.j3s.yobuddy.domain.department.entity;
 
-import com.j3s.yobuddy.domain.user.entity.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -44,7 +43,7 @@ public class Department {
     private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
-    private List<Users> users = new ArrayList<>();
+    private List<User> users = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
