@@ -1,15 +1,18 @@
 package com.j3s.yobuddy.domain.department.service;
 
-import com.j3s.yobuddy.domain.department.dto.DepartmentResponse;
+import com.j3s.yobuddy.domain.department.dto.response.DepartmentListResponse;
+import com.j3s.yobuddy.domain.department.dto.response.DepartmentResponse;
 import java.util.List;
 
 public interface DepartmentService {
 
-    List<DepartmentResponse> getDepartments();
+    List<DepartmentListResponse> getDepartments();
 
     void createDepartment(String name);
 
-    DepartmentResponse updateDepartment(Long departmentId, String name);
+    DepartmentListResponse updateDepartment(Long departmentId, String name);
 
     void deleteDepartment(Long departmentId);
+
+    DepartmentResponse getDepartmentById(Long departmentId);
 }
