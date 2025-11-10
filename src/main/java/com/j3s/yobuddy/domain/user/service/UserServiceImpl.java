@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,14 +19,15 @@ import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
 import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
 import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
+import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.Users;
 import com.j3s.yobuddy.domain.user.exception.InvalidUserRequestException;
 import com.j3s.yobuddy.domain.user.exception.UserAlreadyDeletedException;
 import com.j3s.yobuddy.domain.user.exception.UserEmailAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
-import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.exception.UserPasswordMismatchException;
+import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,24 @@ public class UserServiceImpl implements UserService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final DepartmentRepository departmentRepository;
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<Users> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
+		return userRepository.searchUsers(
+			searchRequest.getName(),
+			searchRequest.getEmail(),
+			searchRequest.getRole(),
+			pageable
+		);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Users getUserById(Long userId) {
+		return userRepository.findById(userId)
+			.orElseThrow(() -> new UserNotFoundException(userId));
+	}
 
 	@Override
 	@Transactional
