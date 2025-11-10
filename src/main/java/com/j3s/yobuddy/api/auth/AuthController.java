@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.auth.controller;
+package com.j3s.yobuddy.api.auth;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

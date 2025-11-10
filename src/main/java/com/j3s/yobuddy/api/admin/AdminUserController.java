@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.user.controller;
+package com.j3s.yobuddy.api.admin;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +22,8 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users")
-public class UserController {
+@RequestMapping("/api/v1/admin/users")
+public class AdminUserController {
 
 	private final UserService userService;
 
