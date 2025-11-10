@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.j3s.yobuddy.domain.department.entity.Departments;
+import com.j3s.yobuddy.domain.department.entity.Department;
 import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
 import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
@@ -29,17 +29,8 @@ import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
 import com.j3s.yobuddy.domain.user.exception.UserPasswordMismatchException;
 import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -77,10 +68,10 @@ public class UserServiceImpl implements UserService {
 		Set<String> emailsInBatch = new HashSet<>();
 		Set<String> phonesInBatch = new HashSet<>();
 		List<Users> toSave = new ArrayList<>(reqs.size());
-		Map<Long, Departments> departmentCache = new HashMap<>();
+		Map<Long, Department> departmentCache = new HashMap<>();
 
 		for (RegisterRequest req : reqs) {
-			Departments department = resolveDepartment(req.getDepartmentId(), departmentCache);
+			Department department = resolveDepartment(req.getDepartmentId(), departmentCache);
 			Users user = buildUser(req, department);
 
 			if (!emailsInBatch.add(user.getEmail())) {
@@ -145,7 +136,7 @@ public class UserServiceImpl implements UserService {
 		}
 
 		if (req.getDepartmentId() != null) {
-			Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(req.getDepartmentId())
+			Department department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(req.getDepartmentId())
 				.orElseThrow(() -> new DepartmentNotFoundException(req.getDepartmentId()));
 			user.changeDepartment(department);
 		}
@@ -167,7 +158,7 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-	private Departments resolveDepartment(Long departmentId, Map<Long, Departments> cache) {
+	private Department resolveDepartment(Long departmentId, Map<Long, Department> cache) {
 		if (departmentId == null) {
 			return null;
 		}
@@ -178,7 +169,7 @@ public class UserServiceImpl implements UserService {
 		);
 	}
 
-	private Users buildUser(RegisterRequest req, Departments department) {
+	private Users buildUser(RegisterRequest req, Department department) {
 		String name = req.getName();
 		if (name == null || name.isBlank()) {
 			throw new InvalidUserRequestException("이름은 필수 값입니다.");
