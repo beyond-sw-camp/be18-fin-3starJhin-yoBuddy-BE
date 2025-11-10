@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.department.dto;
+package com.j3s.yobuddy.domain.department.dto.response;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class DepartmentResponse {
+public class DepartmentListResponse {
 
     private final Long departmentId;
     private final String name;

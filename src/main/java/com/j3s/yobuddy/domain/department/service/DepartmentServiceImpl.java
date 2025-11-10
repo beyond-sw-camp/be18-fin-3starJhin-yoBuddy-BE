@@ -1,7 +1,8 @@
 package com.j3s.yobuddy.domain.department.service;
 
-import com.j3s.yobuddy.domain.department.dto.DepartmentResponse;
-import com.j3s.yobuddy.domain.department.entity.Departments;
+import com.j3s.yobuddy.domain.department.dto.response.DepartmentListResponse;
+import com.j3s.yobuddy.domain.department.dto.response.DepartmentResponse;
+import com.j3s.yobuddy.domain.department.entity.Department;
 import com.j3s.yobuddy.domain.department.exception.DepartmentAlreadyDeletedException;
 import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
@@ -19,10 +20,10 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DepartmentResponse> getDepartments() {
+    public List<DepartmentListResponse> getDepartments() {
         return departmentRepository.findAllByIsDeletedFalse()
             .stream()
-            .map(department -> new DepartmentResponse(
+            .map(department -> new DepartmentListResponse(
                 department.getDepartmentId(),
                 department.getName(),
                 department.getCreatedAt(),
@@ -35,7 +36,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional
     public void createDepartment(String name) {
 
-        Departments department = Departments.builder()
+        Department department = Department.builder()
             .name(name)
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
@@ -47,15 +48,15 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     @Transactional
-    public DepartmentResponse updateDepartment(Long departmentId, String name) {
-        Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
+    public DepartmentListResponse updateDepartment(Long departmentId, String name) {
+        Department department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
             departmentId).orElseThrow(() -> new DepartmentNotFoundException(departmentId));
 
         department.update(name);
 
         departmentRepository.save(department);
 
-        return DepartmentResponse.builder()
+        return DepartmentListResponse.builder()
             .departmentId(department.getDepartmentId())
             .name(department.getName())
             .createdAt(department.getCreatedAt())
@@ -67,7 +68,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional
     public void deleteDepartment(Long departmentId) {
 
-        Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
+        Department department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
             departmentId).orElseThrow(() -> new DepartmentNotFoundException(departmentId));
 
         if (department.getIsDeleted()) {
@@ -75,5 +76,14 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         department.softDelete();
         departmentRepository.save(department);
+    }
+
+    @Override
+    public DepartmentResponse getDepartmentById(Long departmentId) {
+
+        Department department = departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new DepartmentNotFoundException(departmentId));
+
+        return DepartmentResponse.from(department);
     }
 }

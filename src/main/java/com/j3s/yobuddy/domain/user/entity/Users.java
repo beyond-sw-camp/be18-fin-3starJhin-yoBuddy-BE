@@ -1,7 +1,6 @@
 package com.j3s.yobuddy.domain.user.entity;
 
-import java.time.LocalDateTime;
-
+import com.j3s.yobuddy.domain.department.entity.Department;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,13 +14,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import com.j3s.yobuddy.domain.department.entity.Departments;
 
 @Entity
 @Table(name = "users") // 테이블 이름 명시 (대소문자 구분 피하려면 소문자 추천)
@@ -54,7 +52,7 @@ public class Users {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
-    private Departments department; // 소속 부서 (FK)
+    private Department department; // 소속 부서 (FK)
 
     @Column(name = "joined_at")
     private LocalDateTime joinedAt; // 입사일
@@ -99,7 +97,7 @@ public class Users {
         this.phoneNumber = phoneNumber;
     }
 
-    public void changeDepartment(Departments department) {
+    public void changeDepartment(Department department) {
         this.department = department;
     }
 

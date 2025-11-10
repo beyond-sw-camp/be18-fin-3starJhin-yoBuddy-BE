@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.department.dto;
+package com.j3s.yobuddy.domain.department.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

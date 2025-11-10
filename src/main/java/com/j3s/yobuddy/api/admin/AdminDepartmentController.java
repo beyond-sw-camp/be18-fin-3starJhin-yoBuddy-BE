@@ -1,7 +1,11 @@
 package com.j3s.yobuddy.api.admin;
 
+import com.j3s.yobuddy.domain.department.dto.request.DepartmentRequest;
+import com.j3s.yobuddy.domain.department.dto.response.DepartmentListResponse;
+import com.j3s.yobuddy.domain.department.dto.response.DepartmentResponse;
+import com.j3s.yobuddy.domain.department.service.DepartmentService;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,12 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.j3s.yobuddy.domain.department.dto.DepartmentRequest;
-import com.j3s.yobuddy.domain.department.dto.DepartmentResponse;
-import com.j3s.yobuddy.domain.department.service.DepartmentService;
-
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/admin/departments")
@@ -27,10 +25,18 @@ public class AdminDepartmentController {
     private final DepartmentService departmentService;
 
     @GetMapping
-    public ResponseEntity<List<DepartmentResponse>> getDepartments() {
-        List<DepartmentResponse> departments = departmentService.getDepartments();
+    public ResponseEntity<List<DepartmentListResponse>> getDepartments() {
+        List<DepartmentListResponse> departments = departmentService.getDepartments();
 
         return ResponseEntity.ok(departments);
+    }
+
+    @GetMapping("{departmentId}")
+    public ResponseEntity<DepartmentResponse> getDepartmentById(
+        @PathVariable("departmentId") Long departmentId) {
+        DepartmentResponse department = departmentService.getDepartmentById(departmentId);
+
+        return ResponseEntity.ok(department);
     }
 
     @PostMapping
