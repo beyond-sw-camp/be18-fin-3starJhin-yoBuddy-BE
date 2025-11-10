@@ -1,19 +1,29 @@
-package com.j3s.yobuddy.domain.programenrollment.controller;
+package com.j3s.yobuddy.api.admin;
+
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
 import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentResponse;
 import com.j3s.yobuddy.domain.programenrollment.service.ProgramEnrollmentService;
+
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/enrollments")
-public class ProgramEnrollmentController {
+@RequestMapping("/api/v1/admin/enrollments")
+public class AdminProgramEnrollmentController {
 
     private final ProgramEnrollmentService enrollmentService;
 
