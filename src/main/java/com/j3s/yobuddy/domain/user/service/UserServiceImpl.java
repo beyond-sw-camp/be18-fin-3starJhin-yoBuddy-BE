@@ -1,10 +1,25 @@
 package com.j3s.yobuddy.domain.user.service;
 
-import com.j3s.yobuddy.domain.department.entity.Department;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.j3s.yobuddy.domain.department.entity.Departments;
 import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
 import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
 import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
+import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.Users;
 import com.j3s.yobuddy.domain.user.exception.InvalidUserRequestException;
@@ -30,157 +45,171 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final DepartmentRepository departmentRepository;
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final DepartmentRepository departmentRepository;
 
-    @Override
-    @Transactional
-    public List<Users> register(List<RegisterRequest> reqs) {
-        if (reqs == null || reqs.isEmpty()) {
-            throw new InvalidUserRequestException("등록할 사용자는 최소 1명 이상이어야 합니다.");
-        }
+	@Override
+	@Transactional(readOnly = true)
+	public Page<Users> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
+		return userRepository.searchUsers(
+			searchRequest.getName(),
+			searchRequest.getEmail(),
+			searchRequest.getRole(),
+			pageable
+		);
+	}
 
-        Set<String> emailsInBatch = new HashSet<>();
-        Set<String> phonesInBatch = new HashSet<>();
-        List<Users> toSave = new ArrayList<>(reqs.size());
-        Map<Long, Department> departmentCache = new HashMap<>();
+	@Override
+	@Transactional(readOnly = true)
+	public Users getUserById(Long userId) {
+		return userRepository.findById(userId)
+			.orElseThrow(() -> new UserNotFoundException(userId));
+	}
 
-        for (RegisterRequest req : reqs) {
-            Department department = resolveDepartment(req.getDepartmentId(), departmentCache);
-            Users user = buildUser(req, department);
+	@Override
+	@Transactional
+	public List<Users> register(List<RegisterRequest> reqs) {
+		if (reqs == null || reqs.isEmpty()) {
+			throw new InvalidUserRequestException("등록할 사용자는 최소 1명 이상이어야 합니다.");
+		}
 
-            if (!emailsInBatch.add(user.getEmail())) {
-                throw new InvalidUserRequestException(
-                    "요청 내에서 중복된 이메일입니다. (email=" + user.getEmail() + ")");
-            }
-            if (!phonesInBatch.add(user.getPhoneNumber())) {
-                throw new InvalidUserRequestException(
-                    "요청 내에서 중복된 연락처입니다. (phoneNumber=" + user.getPhoneNumber() + ")");
-            }
+		Set<String> emailsInBatch = new HashSet<>();
+		Set<String> phonesInBatch = new HashSet<>();
+		List<Users> toSave = new ArrayList<>(reqs.size());
+		Map<Long, Departments> departmentCache = new HashMap<>();
 
-            userRepository.findByEmail(user.getEmail()).ifPresent(u -> {
-                throw new UserEmailAlreadyExistsException(user.getEmail());
-            });
-            userRepository.findByPhoneNumber(user.getPhoneNumber()).ifPresent(u -> {
-                throw new UserPhoneAlreadyExistsException(user.getPhoneNumber());
-            });
+		for (RegisterRequest req : reqs) {
+			Departments department = resolveDepartment(req.getDepartmentId(), departmentCache);
+			Users user = buildUser(req, department);
 
-            toSave.add(user);
-        }
+			if (!emailsInBatch.add(user.getEmail())) {
+				throw new InvalidUserRequestException("요청 내에서 중복된 이메일입니다. (email=" + user.getEmail() + ")");
+			}
+			if (!phonesInBatch.add(user.getPhoneNumber())) {
+				throw new InvalidUserRequestException("요청 내에서 중복된 연락처입니다. (phoneNumber=" + user.getPhoneNumber() + ")");
+			}
 
-        return userRepository.saveAll(toSave);
-    }
+			userRepository.findByEmail(user.getEmail()).ifPresent(u -> {
+				throw new UserEmailAlreadyExistsException(user.getEmail());
+			});
+			userRepository.findByPhoneNumber(user.getPhoneNumber()).ifPresent(u -> {
+				throw new UserPhoneAlreadyExistsException(user.getPhoneNumber());
+			});
 
-    @Override
-    @Transactional
-    public void softDelete(Long userId) {
-        Users user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
+			toSave.add(user);
+		}
 
-        if (user.isDeleted()) {
-            throw new UserAlreadyDeletedException(userId);
-        }
+		return userRepository.saveAll(toSave);
+	}
 
-        user.softDelete();
-        userRepository.save(user);
-    }
+	@Override
+	@Transactional
+	public void softDelete(Long userId) {
+		Users user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserNotFoundException(userId));
 
-    @Override
-    @Transactional
-    public void update(Long userId, UpdateUserRequest req) {
-        if (req == null) {
-            throw new InvalidUserRequestException("수정할 정보를 입력하세요.");
-        }
+		if (user.isDeleted()) {
+			throw new UserAlreadyDeletedException(userId);
+		}
 
-        Users user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
+		user.softDelete();
+		userRepository.save(user);
+	}
 
-        if (user.isDeleted()) {
-            throw new UserAlreadyDeletedException(userId);
-        }
+	@Override
+	@Transactional
+	public void update(Long userId, UpdateUserRequest req) {
+		if (req == null) {
+			throw new InvalidUserRequestException("수정할 정보를 입력하세요.");
+		}
 
-        if (req.getPhoneNumber() != null) {
-            String phone = req.getPhoneNumber().trim();
-            if (phone.isEmpty()) {
-                throw new InvalidUserRequestException("연락처는 비어 있을 수 없습니다.");
-            }
-            userRepository.findByPhoneNumber(phone).ifPresent(existing -> {
-                if (!existing.getUserId().equals(user.getUserId())) {
-                    throw new UserPhoneAlreadyExistsException(phone);
-                }
-            });
-            user.changePhoneNumber(phone);
-        }
+		Users user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserNotFoundException(userId));
 
-        if (req.getDepartmentId() != null) {
-            Department department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
-                    req.getDepartmentId())
-                .orElseThrow(() -> new DepartmentNotFoundException(req.getDepartmentId()));
-            user.changeDepartment(department);
-        }
+		if (user.isDeleted()) {
+			throw new UserAlreadyDeletedException(userId);
+		}
 
-        if (req.getRole() != null) {
-            user.changeRole(req.getRole());
-        }
+		if (req.getPhoneNumber() != null) {
+			String phone = req.getPhoneNumber().trim();
+			if (phone.isEmpty()) {
+				throw new InvalidUserRequestException("연락처는 비어 있을 수 없습니다.");
+			}
+			userRepository.findByPhoneNumber(phone).ifPresent(existing -> {
+				if (!existing.getUserId().equals(user.getUserId())) {
+					throw new UserPhoneAlreadyExistsException(phone);
+				}
+			});
+			user.changePhoneNumber(phone);
+		}
 
-        boolean currentProvided =
-            req.getCurrentPassword() != null && !req.getCurrentPassword().isBlank();
-        boolean newProvided = req.getNewPassword() != null && !req.getNewPassword().isBlank();
-        if (currentProvided || newProvided) {
-            if (!currentProvided || !newProvided) {
-                throw new InvalidUserRequestException("비밀번호를 변경하려면 현재/새 비밀번호를 모두 입력해야 합니다.");
-            }
-            if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
-                throw new UserPasswordMismatchException();
-            }
-            user.changePassword(passwordEncoder.encode(req.getNewPassword()));
-        }
-    }
+		if (req.getDepartmentId() != null) {
+			Departments department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(req.getDepartmentId())
+				.orElseThrow(() -> new DepartmentNotFoundException(req.getDepartmentId()));
+			user.changeDepartment(department);
+		}
 
-    private Department resolveDepartment(Long departmentId, Map<Long, Department> cache) {
-        if (departmentId == null) {
-            return null;
-        }
+		if (req.getRole() != null) {
+			user.changeRole(req.getRole());
+		}
 
-        return cache.computeIfAbsent(departmentId, id ->
-            departmentRepository.findByDepartmentIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new DepartmentNotFoundException(id))
-        );
-    }
+		boolean currentProvided = req.getCurrentPassword() != null && !req.getCurrentPassword().isBlank();
+		boolean newProvided = req.getNewPassword() != null && !req.getNewPassword().isBlank();
+		if (currentProvided || newProvided) {
+			if (!currentProvided || !newProvided) {
+				throw new InvalidUserRequestException("비밀번호를 변경하려면 현재/새 비밀번호를 모두 입력해야 합니다.");
+			}
+			if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
+				throw new UserPasswordMismatchException();
+			}
+			user.changePassword(passwordEncoder.encode(req.getNewPassword()));
+		}
+	}
 
-    private Users buildUser(RegisterRequest req, Department department) {
-        String name = req.getName();
-        if (name == null || name.isBlank()) {
-            throw new InvalidUserRequestException("이름은 필수 값입니다.");
-        }
+	private Departments resolveDepartment(Long departmentId, Map<Long, Departments> cache) {
+		if (departmentId == null) {
+			return null;
+		}
 
-        String email = req.getEmail();
-        if (email == null || email.isBlank()) {
-            throw new InvalidUserRequestException("이메일은 필수 값입니다.");
-        }
+		return cache.computeIfAbsent(departmentId, id ->
+			departmentRepository.findByDepartmentIdAndIsDeletedFalse(id)
+				.orElseThrow(() -> new DepartmentNotFoundException(id))
+		);
+	}
 
-        String password = req.getPassword();
-        if (password == null || password.isBlank()) {
-            throw new InvalidUserRequestException("비밀번호는 필수 값입니다.");
-        }
+	private Users buildUser(RegisterRequest req, Departments department) {
+		String name = req.getName();
+		if (name == null || name.isBlank()) {
+			throw new InvalidUserRequestException("이름은 필수 값입니다.");
+		}
 
-        String phoneNumber = req.getPhoneNumber();
-        if (phoneNumber == null || phoneNumber.isBlank()) {
-            throw new InvalidUserRequestException("연락처는 필수 값입니다.");
-        }
+		String email = req.getEmail();
+		if (email == null || email.isBlank()) {
+			throw new InvalidUserRequestException("이메일은 필수 값입니다.");
+		}
 
-        Role role = Objects.requireNonNullElse(req.getRole(), Role.USER);
-        String encoded = passwordEncoder.encode(password);
+		String password = req.getPassword();
+		if (password == null || password.isBlank()) {
+			throw new InvalidUserRequestException("비밀번호는 필수 값입니다.");
+		}
 
-        return Users.builder()
-            .name(name)
-            .email(email)
-            .password(encoded)
-            .phoneNumber(phoneNumber)
-            .role(role)
-            .joinedAt(req.getJoinedAt())
-            .department(department)
-            .build();
-    }
+		String phoneNumber = req.getPhoneNumber();
+		if (phoneNumber == null || phoneNumber.isBlank()) {
+			throw new InvalidUserRequestException("연락처는 필수 값입니다.");
+		}
+
+		Role role = Objects.requireNonNullElse(req.getRole(), Role.USER);
+		String encoded = passwordEncoder.encode(password);
+
+		return Users.builder()
+			.name(name)
+			.email(email)
+			.password(encoded)
+			.phoneNumber(phoneNumber)
+			.role(role)
+			.joinedAt(req.getJoinedAt())
+			.department(department)
+			.build();
+	}
 }
