@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.department.entity;
 
+import com.j3s.yobuddy.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
