@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/admin/departments")
-    public class AdminDepartmentController {
+public class AdminDepartmentController {
+
     private final DepartmentService departmentService;
 
     @GetMapping
@@ -36,6 +38,14 @@ import org.springframework.web.bind.annotation.RestController;
         DepartmentResponse department = departmentService.getDepartmentById(departmentId);
 
         return ResponseEntity.ok(department);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<DepartmentListResponse>> searchDepartmentsByName(
+        @RequestParam(required = false) String name) {
+        List<DepartmentListResponse> body = departmentService.searchDepartmentsByName(name);
+
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping

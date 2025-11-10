@@ -79,11 +79,25 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DepartmentResponse getDepartmentById(Long departmentId) {
 
         Department department = departmentRepository.findById(departmentId)
             .orElseThrow(() -> new DepartmentNotFoundException(departmentId));
 
         return DepartmentResponse.from(department);
+    }
+
+    @Override
+    @Transactional
+    public List<DepartmentListResponse> searchDepartmentsByName(String name) {
+        List<Department> result =
+            (name == null || name.isBlank())
+                ? departmentRepository.findAllByIsDeletedFalse()
+                : departmentRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(name);
+
+        return result.stream()
+            .map(DepartmentListResponse::from)
+            .toList();
     }
 }
