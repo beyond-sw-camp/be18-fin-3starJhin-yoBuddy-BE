@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.department.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.j3s.yobuddy.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,6 +44,7 @@ public class Department {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 

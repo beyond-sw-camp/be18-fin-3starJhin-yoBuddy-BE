@@ -1,14 +1,9 @@
 package com.j3s.yobuddy.api.admin;
 
-import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
-import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
-import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
-import com.j3s.yobuddy.domain.user.entity.User;
-import com.j3s.yobuddy.domain.user.service.UserService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,6 +20,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
+import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
+import com.j3s.yobuddy.domain.user.dto.UserResponse;
+import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
+import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.service.UserService;
+
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/users")
@@ -33,15 +37,18 @@ public class AdminUserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<Page<User>> getAllUsers(
+    public ResponseEntity<Page<UserResponse>> getAllUsers(
         @ModelAttribute UserSearchRequest searchRequest,
         @PageableDefault(size = 10, sort = "userId", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(userService.getAllUsers(searchRequest, pageable));
+        Page<User> page = userService.getAllUsers(searchRequest, pageable);
+        Page<UserResponse> dtoPage = page.map(UserResponse::from);
+        return ResponseEntity.ok(dtoPage);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getUserById(userId));
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+        return ResponseEntity.ok(UserResponse.from(user));
     }
 
     @PostMapping
