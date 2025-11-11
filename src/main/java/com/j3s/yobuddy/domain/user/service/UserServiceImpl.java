@@ -1,5 +1,7 @@
 package com.j3s.yobuddy.domain.user.service;
 
+import com.j3s.yobuddy.domain.mentor.entity.Mentor;
+import com.j3s.yobuddy.domain.mentor.repository.MentorRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
+    private final MentorRepository mentorRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -93,7 +96,23 @@ public class UserServiceImpl implements UserService {
             toSave.add(user);
         }
 
-        return userRepository.saveAll(toSave);
+        List<User> savedUsers = userRepository.saveAll(toSave);
+
+        for (int i = 0; i < savedUsers.size(); i++) {
+            User user = savedUsers.get(i);
+            RegisterRequest req = reqs.get(i);
+
+            if (user.getRole() == Role.MENTOR) {
+                String position = (req.getPosition() != null && !req.getPosition()
+                    .isBlank())
+                    ? req.getPosition()
+                    : "신규 멘토";
+
+                Mentor mentor = Mentor.create(user, position);
+                mentorRepository.save(mentor);
+            }
+        }
+        return savedUsers;
     }
 
     @Override
