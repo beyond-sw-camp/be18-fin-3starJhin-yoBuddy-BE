@@ -26,26 +26,19 @@ public class AdminDepartmentController {
     private final DepartmentService departmentService;
 
     @GetMapping
-    public ResponseEntity<List<DepartmentListResponse>> getDepartments() {
-        List<DepartmentListResponse> departments = departmentService.getDepartments();
+    public ResponseEntity<List<DepartmentListResponse>> getDepartments(
+        @RequestParam(required = false) String name) {
+        List<DepartmentListResponse> departments = departmentService.getDepartments(name);
 
         return ResponseEntity.ok(departments);
     }
 
-    @GetMapping("{departmentId}")
+    @GetMapping("/{departmentId}")
     public ResponseEntity<DepartmentResponse> getDepartmentById(
         @PathVariable("departmentId") Long departmentId) {
         DepartmentResponse department = departmentService.getDepartmentById(departmentId);
 
         return ResponseEntity.ok(department);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<DepartmentListResponse>> searchDepartmentsByName(
-        @RequestParam(required = false) String name) {
-        List<DepartmentListResponse> body = departmentService.searchDepartmentsByName(name);
-
-        return ResponseEntity.ok(body);
     }
 
     @PostMapping
