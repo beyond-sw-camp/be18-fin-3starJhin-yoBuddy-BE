@@ -19,5 +19,5 @@
 <img width="1582" height="744" alt="image" src="" />
 
 
-## [🎯API 명세서]([https://ber5f1ykpv.apidog.io/](https://www.notion.so/playdatacademy/API-ver-2a2d943bcac28000994de975fb626d1e?source=copy_link))
+## [🎯API 명세서](https://www.notion.so/playdatacademy/API-ver-2a2d943bcac28000994de975fb626d1e?source=copy_link)
 <img width="1445" height="1082" alt="image" src="" />
