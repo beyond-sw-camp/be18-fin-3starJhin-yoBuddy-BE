@@ -46,6 +46,7 @@ public class Department {
 
     @JsonIgnore
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
+    @Builder.Default
     private List<User> users = new ArrayList<>();
 
     @PrePersist
