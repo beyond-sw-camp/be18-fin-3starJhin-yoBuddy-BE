@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface DepartmentService {
 
-    List<DepartmentListResponse> getDepartments();
+    List<DepartmentListResponse> getDepartments(String name);
 
     void createDepartment(String name);
 
@@ -15,6 +15,4 @@ public interface DepartmentService {
     void deleteDepartment(Long departmentId);
 
     DepartmentResponse getDepartmentById(Long departmentId);
-
-    List<DepartmentListResponse> searchDepartmentsByName(String name);
 }
