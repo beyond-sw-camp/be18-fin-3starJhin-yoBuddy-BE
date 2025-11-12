@@ -13,8 +13,8 @@
 ## [📋요구사항 명세서](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
 <img width="1527" height="648" alt="image" src="https://github.com/user-attachments/assets/0a837e99-055b-4527-b15a-73cc7e781cb3" />
 
-## [🪧ERD](https://www.erdcloud.com/d/o3Rw59nNEN7DCzJXg)
-<img width="3090" height="1472" alt="yobuddy public" src="https://github.com/user-attachments/assets/2e38a0d2-8cfd-411c-accd-99be5280c4c2" />
+## [🪧ERD](https://www.erdcloud.com/d/E6Smb2iEPXFg33XoN)
+<img width="3090" height="1642" alt="yobuddy public v2" src="https://github.com/user-attachments/assets/06f5bad5-90a6-4b02-ab85-c521fbd2ceac" />
 
 ## [🗃️테이블 명세서](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
 <img width="1853" height="647" alt="image" src="https://github.com/user-attachments/assets/0ef2a92d-ac31-4908-965b-30e8436658e4" />
