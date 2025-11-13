@@ -62,4 +62,4 @@ jobs:
             -Uri "${{ secrets.DISCORD_WEBHOOK }}" `
             -Method POST `
             -ContentType "application/json" `
-            -Body "{""content"": ""[YoBuddy QA] 배포 완료: ${{ job.status }}""}"          
+            -Body "{""content"": ""[YoBuddy QA] 배포 완료: ${{ job.status }}""}"              
