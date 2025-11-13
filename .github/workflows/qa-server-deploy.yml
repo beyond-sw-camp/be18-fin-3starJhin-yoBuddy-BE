@@ -37,8 +37,6 @@ jobs:
           context: .
           push: true
           tags: iiijong/yobuddy:qa
-          cache-from: type=registry,ref=iiijong/yobuddy:qa
-          cache-to: type=registry,ref=iiijong/yobuddy:qa,mode=max
 
   deploy:
     needs: build
@@ -53,13 +51,3 @@ jobs:
         run: |
           docker compose down
           docker compose up -d
-
-      - name: Discord Notification
-        if: always()
-        shell: powershell
-        run: |
-          Invoke-WebRequest `
-            -Uri "${{ secrets.DISCORD_WEBHOOK }}" `
-            -Method POST `
-            -ContentType "application/json" `
-            -Body "{""content"": ""[YoBuddy QA] 배포 완료: ${{ job.status }}""}"              
