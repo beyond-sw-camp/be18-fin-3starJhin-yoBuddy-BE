@@ -31,59 +31,17 @@ jobs:
           context: .
           push: true
           tags: iiijong/yobuddy:qa
-          cache-from: type=registry,ref=iiijong/yobuddy:qa
-          cache-to: type=registry,ref=iiijong/yobuddy:qa,mode=max
 
   deploy:
     needs: build
     runs-on: self-hosted
-    timeout-minutes: 10
 
     steps:
-      - name: Pull New Image
+      - name: Docker Pull New Image
         run: docker pull iiijong/yobuddy:qa
 
-      - name: Backup previous image tag
-        run: |
-          docker inspect yobuddy-app --format='{{.Image}}' > C:\Users\Playdata\Desktop\prev_image.txt 2>$null || echo "none" > C:\Users\Playdata\Desktop\prev_image.txt
-
-      - name: Compose Down
+      - name: Restart Docker Compose
         working-directory: C:\Users\Playdata\Desktop
-        run: docker compose down
-
-      - name: Compose Up
-        working-directory: C:\Users\Playdata\Desktop
-        run: docker compose up -d
-
-      - name: Health Check
-        shell: pwsh
         run: |
-          Start-Sleep -Seconds 7
-          try {
-            $res = Invoke-WebRequest -Uri "http://localhost:8080/health" -UseBasicParsing -TimeoutSec 5
-            if ($res.StatusCode -ne 200) { exit 1 }
-          } catch {
-            exit 1
-          }
-
-      - name: Rollback on failure
-        if: failure()
-        shell: pwsh
-        run: |
-          Write-Host "Health Check 실패 → 롤백 시작"
-          $prev = Get-Content C:\Users\Playdata\Desktop\prev_image.txt
-          if ($prev -ne "none") {
-            docker pull $prev
-            docker compose down
-            docker run -d -p 8080:8080 --name yobuddy-app $prev
-            Write-Host "Rollback 완료"
-          } else {
-            Write-Host "이전 이미지 없음 → rollback 불가능"
-          }
-
-      - name: Discord Notification
-        if: always()
-        run: |
-          curl -H "Content-Type: application/json" \
-            -d "{\"content\": \"QA 배포 완료: ${{ job.status }}\"}" \
-            ${{ secrets.DISCORD_WEBHOOK }}
+          docker compose down
+          docker compose up -d
