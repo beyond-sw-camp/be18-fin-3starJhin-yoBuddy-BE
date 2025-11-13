@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,13 +26,14 @@ public class AdminDepartmentController {
     private final DepartmentService departmentService;
 
     @GetMapping
-    public ResponseEntity<List<DepartmentListResponse>> getDepartments() {
-        List<DepartmentListResponse> departments = departmentService.getDepartments();
+    public ResponseEntity<List<DepartmentListResponse>> getDepartments(
+        @RequestParam(required = false) String name) {
+        List<DepartmentListResponse> departments = departmentService.getDepartments(name);
 
         return ResponseEntity.ok(departments);
     }
 
-    @GetMapping("{departmentId}")
+    @GetMapping("/{departmentId}")
     public ResponseEntity<DepartmentResponse> getDepartmentById(
         @PathVariable("departmentId") Long departmentId) {
         DepartmentResponse department = departmentService.getDepartmentById(departmentId);

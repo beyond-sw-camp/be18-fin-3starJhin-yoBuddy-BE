@@ -10,7 +10,7 @@ import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.Enrollm
 import com.j3s.yobuddy.domain.programenrollment.exception.DuplicateEnrollmentException;
 import com.j3s.yobuddy.domain.programenrollment.exception.EnrollmentNotFoundException;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
-import com.j3s.yobuddy.domain.user.entity.Users;
+import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,85 +29,87 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
     @Override
     @Transactional
     public ProgramEnrollmentResponse enroll(ProgramEnrollmentRequest request) {
-        if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(request.getUserId(), request.getProgramId())) {
+        if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(request.getUserId(),
+            request.getProgramId())) {
             throw new DuplicateEnrollmentException(request.getUserId(), request.getProgramId());
         }
 
-        Users user = userRepository.findById(request.getUserId())
-                                  .orElseThrow(() -> new EnrollmentNotFoundException(request.getUserId()));
+        User user = userRepository.findById(request.getUserId())
+            .orElseThrow(() -> new EnrollmentNotFoundException(request.getUserId()));
         OnboardingProgram program = programRepository.findById(request.getProgramId())
-                                                     .orElseThrow(() -> new EnrollmentNotFoundException(request.getProgramId()));
+            .orElseThrow(() -> new EnrollmentNotFoundException(request.getProgramId()));
 
         ProgramEnrollment enrollment = ProgramEnrollment.builder()
-                                                        .user(user)
-                                                        .program(program)
-                                                        .status(EnrollmentStatus.ACTIVE)
-                                                        .build();
+            .user(user)
+            .program(program)
+            .status(EnrollmentStatus.ACTIVE)
+            .build();
 
         ProgramEnrollment saved = enrollmentRepository.save(enrollment);
 
         return ProgramEnrollmentResponse.builder()
-                                        .enrollmentId(saved.getEnrollmentId())
-                                        .programId(program.getProgramId())
-                                        .userId(user.getUserId())
-                                        .status(saved.getStatus())
-                                        .enrolledAt(saved.getEnrolledAt())
-                                        .build();
+            .enrollmentId(saved.getEnrollmentId())
+            .programId(program.getProgramId())
+            .userId(user.getUserId())
+            .status(saved.getStatus())
+            .enrolledAt(saved.getEnrolledAt())
+            .build();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProgramEnrollmentResponse> getByProgram(Long programId) {
         return enrollmentRepository.findByProgram_ProgramId(programId)
-                                   .stream()
-                                   .map(e -> ProgramEnrollmentResponse.builder()
-                                                                      .enrollmentId(e.getEnrollmentId())
-                                                                      .programId(e.getProgram().getProgramId())
-                                                                      .userId(e.getUser().getUserId())
-                                                                      .status(e.getStatus())
-                                                                      .enrolledAt(e.getEnrolledAt())
-                                                                      .build())
-                                   .collect(Collectors.toList());
+            .stream()
+            .map(e -> ProgramEnrollmentResponse.builder()
+                .enrollmentId(e.getEnrollmentId())
+                .programId(e.getProgram().getProgramId())
+                .userId(e.getUser().getUserId())
+                .status(e.getStatus())
+                .enrolledAt(e.getEnrolledAt())
+                .build())
+            .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProgramEnrollmentResponse> getByUser(Long userId) {
         return enrollmentRepository.findByUser_UserId(userId)
-                                   .stream()
-                                   .map(e -> ProgramEnrollmentResponse.builder()
-                                                                      .enrollmentId(e.getEnrollmentId())
-                                                                      .programId(e.getProgram().getProgramId())
-                                                                      .userId(e.getUser().getUserId())
-                                                                      .status(e.getStatus())
-                                                                      .enrolledAt(e.getEnrolledAt())
-                                                                      .build())
-                                   .collect(Collectors.toList());
+            .stream()
+            .map(e -> ProgramEnrollmentResponse.builder()
+                .enrollmentId(e.getEnrollmentId())
+                .programId(e.getProgram().getProgramId())
+                .userId(e.getUser().getUserId())
+                .status(e.getStatus())
+                .enrolledAt(e.getEnrolledAt())
+                .build())
+            .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public ProgramEnrollmentResponse updateEnrollment(Long id, ProgramEnrollmentUpdateRequest request) {
+    public ProgramEnrollmentResponse updateEnrollment(Long id,
+        ProgramEnrollmentUpdateRequest request) {
         ProgramEnrollment enrollment = enrollmentRepository.findById(id)
-                                                           .orElseThrow(() -> new EnrollmentNotFoundException(id));
+            .orElseThrow(() -> new EnrollmentNotFoundException(id));
 
         enrollment.updateStatus(EnrollmentStatus.valueOf(request.getStatus()));
         enrollmentRepository.save(enrollment);
 
         return ProgramEnrollmentResponse.builder()
-                                        .enrollmentId(enrollment.getEnrollmentId())
-                                        .programId(enrollment.getProgram().getProgramId())
-                                        .userId(enrollment.getUser().getUserId())
-                                        .status(enrollment.getStatus())
-                                        .enrolledAt(enrollment.getEnrolledAt())
-                                        .build();
+            .enrollmentId(enrollment.getEnrollmentId())
+            .programId(enrollment.getProgram().getProgramId())
+            .userId(enrollment.getUser().getUserId())
+            .status(enrollment.getStatus())
+            .enrolledAt(enrollment.getEnrolledAt())
+            .build();
     }
 
     @Override
     @Transactional
     public void withdraw(Long id) {
         ProgramEnrollment enrollment = enrollmentRepository.findById(id)
-                                                           .orElseThrow(() -> new EnrollmentNotFoundException(id));
+            .orElseThrow(() -> new EnrollmentNotFoundException(id));
 
         enrollment.updateStatus(EnrollmentStatus.WITHDRAWN);
         enrollmentRepository.save(enrollment);

@@ -21,4 +21,5 @@ public class RegisterRequest {
     private Role role;
     private LocalDateTime joinedAt;
     private Long departmentId;
+    private String position;
 }

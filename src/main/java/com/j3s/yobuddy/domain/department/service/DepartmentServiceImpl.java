@@ -20,15 +20,14 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DepartmentListResponse> getDepartments() {
-        return departmentRepository.findAllByIsDeletedFalse()
-            .stream()
-            .map(department -> new DepartmentListResponse(
-                department.getDepartmentId(),
-                department.getName(),
-                department.getCreatedAt(),
-                department.getUpdatedAt()
-            ))
+    public List<DepartmentListResponse> getDepartments(String name) {
+        List<Department> result =
+            (name == null || name.isBlank())
+                ? departmentRepository.findAllByIsDeletedFalse()
+                : departmentRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(name);
+
+        return result.stream()
+            .map(DepartmentListResponse::from)
             .toList();
     }
 
@@ -79,6 +78,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DepartmentResponse getDepartmentById(Long departmentId) {
 
         Department department = departmentRepository.findById(departmentId)

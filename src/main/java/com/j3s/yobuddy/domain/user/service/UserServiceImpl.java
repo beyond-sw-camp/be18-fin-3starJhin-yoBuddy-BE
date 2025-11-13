@@ -1,19 +1,7 @@
 package com.j3s.yobuddy.domain.user.service;
 
-import com.j3s.yobuddy.domain.department.entity.Department;
-import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
-import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
-import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
-import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
-import com.j3s.yobuddy.domain.user.entity.Role;
-import com.j3s.yobuddy.domain.user.entity.Users;
-import com.j3s.yobuddy.domain.user.exception.InvalidUserRequestException;
-import com.j3s.yobuddy.domain.user.exception.UserAlreadyDeletedException;
-import com.j3s.yobuddy.domain.user.exception.UserEmailAlreadyExistsException;
-import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
-import com.j3s.yobuddy.domain.user.exception.UserPasswordMismatchException;
-import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
-import com.j3s.yobuddy.domain.user.repository.UserRepository;
+import com.j3s.yobuddy.domain.mentor.entity.Mentor;
+import com.j3s.yobuddy.domain.mentor.repository.MentorRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,10 +9,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.j3s.yobuddy.domain.department.entity.Department;
+import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
+import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
+import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
+import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
+import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
+import com.j3s.yobuddy.domain.user.entity.Role;
+import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.exception.InvalidUserRequestException;
+import com.j3s.yobuddy.domain.user.exception.UserAlreadyDeletedException;
+import com.j3s.yobuddy.domain.user.exception.UserEmailAlreadyExistsException;
+import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
+import com.j3s.yobuddy.domain.user.exception.UserPasswordMismatchException;
+import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
+import com.j3s.yobuddy.domain.user.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -33,22 +41,41 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
+    private final MentorRepository mentorRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<User> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
+        return userRepository.searchUsers(
+            searchRequest.getName(),
+            searchRequest.getEmail(),
+            searchRequest.getRole(),
+            pageable
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+    }
 
     @Override
     @Transactional
-    public List<Users> register(List<RegisterRequest> reqs) {
+    public List<User> register(List<RegisterRequest> reqs) {
         if (reqs == null || reqs.isEmpty()) {
             throw new InvalidUserRequestException("등록할 사용자는 최소 1명 이상이어야 합니다.");
         }
 
         Set<String> emailsInBatch = new HashSet<>();
         Set<String> phonesInBatch = new HashSet<>();
-        List<Users> toSave = new ArrayList<>(reqs.size());
+        List<User> toSave = new ArrayList<>(reqs.size());
         Map<Long, Department> departmentCache = new HashMap<>();
 
         for (RegisterRequest req : reqs) {
             Department department = resolveDepartment(req.getDepartmentId(), departmentCache);
-            Users user = buildUser(req, department);
+            User user = buildUser(req, department);
 
             if (!emailsInBatch.add(user.getEmail())) {
                 throw new InvalidUserRequestException(
@@ -69,13 +96,29 @@ public class UserServiceImpl implements UserService {
             toSave.add(user);
         }
 
-        return userRepository.saveAll(toSave);
+        List<User> savedUsers = userRepository.saveAll(toSave);
+
+        for (int i = 0; i < savedUsers.size(); i++) {
+            User user = savedUsers.get(i);
+            RegisterRequest req = reqs.get(i);
+
+            if (user.getRole() == Role.MENTOR) {
+                String position = (req.getPosition() != null && !req.getPosition()
+                    .isBlank())
+                    ? req.getPosition()
+                    : "신규 멘토";
+
+                Mentor mentor = Mentor.create(user, position);
+                mentorRepository.save(mentor);
+            }
+        }
+        return savedUsers;
     }
 
     @Override
     @Transactional
     public void softDelete(Long userId) {
-        Users user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
 
         if (user.isDeleted()) {
@@ -93,7 +136,7 @@ public class UserServiceImpl implements UserService {
             throw new InvalidUserRequestException("수정할 정보를 입력하세요.");
         }
 
-        Users user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
 
         if (user.isDeleted()) {
@@ -149,7 +192,7 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-    private Users buildUser(RegisterRequest req, Department department) {
+    private User buildUser(RegisterRequest req, Department department) {
         String name = req.getName();
         if (name == null || name.isBlank()) {
             throw new InvalidUserRequestException("이름은 필수 값입니다.");
@@ -173,7 +216,7 @@ public class UserServiceImpl implements UserService {
         Role role = Objects.requireNonNullElse(req.getRole(), Role.USER);
         String encoded = passwordEncoder.encode(password);
 
-        return Users.builder()
+        return User.builder()
             .name(name)
             .email(email)
             .password(encoded)

@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.department.dto.response;
 
+import com.j3s.yobuddy.domain.department.entity.Department;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,4 +15,13 @@ public class DepartmentListResponse {
     private final String name;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+
+    public static DepartmentListResponse from(Department e) {
+        return DepartmentListResponse.builder()
+            .departmentId(e.getDepartmentId())
+            .name(e.getName())
+            .createdAt(e.getCreatedAt())
+            .updatedAt(e.getUpdatedAt())
+            .build();
+    }
 }

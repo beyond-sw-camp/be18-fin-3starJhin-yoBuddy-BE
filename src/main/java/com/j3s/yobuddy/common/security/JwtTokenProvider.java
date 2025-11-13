@@ -2,9 +2,15 @@ package com.j3s.yobuddy.common.security;
 
 import java.security.Key;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.j3s.yobuddy.common.config.JwtProperties;
@@ -79,6 +85,26 @@ public class JwtTokenProvider {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    /**
+     * Build Authentication object from JWT token. It extracts subject (userId) and role claim.
+     */
+    public Authentication getAuthentication(String token) {
+        Jws<Claims> jws = parseClaims(token);
+        Claims body = jws.getBody();
+        String sub = body.getSubject();
+        String role = body.get("role", String.class);
+
+        Collection<GrantedAuthority> authorities = Collections.emptyList();
+        if (role != null && !role.isBlank()) {
+            // ensure role has no ROLE_ prefix duplication
+            String roleName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+            authorities = Collections.singletonList(new SimpleGrantedAuthority(roleName));
+        }
+
+        Object principal = sub != null ? sub : "anonymous";
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
 }
