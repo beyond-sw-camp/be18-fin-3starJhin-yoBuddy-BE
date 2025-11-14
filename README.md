@@ -22,4 +22,6 @@
 ## 🔧시스템 아키텍쳐
 <img width="1256" height="611" alt="image" src="https://github.com/user-attachments/assets/ee0793d2-cc7a-4e06-a036-1e1ee91a5f58" />
 
+## [화면 설계서](https://www.figma.com/design/pGnHO9qPyDx64xwkiXwLjx/Wireframe?node-id=0-1&t=yPTFtFJGBj23rCRX-1)
+
 ## [🎯API 명세서](https://www.notion.so/playdatacademy/API-ver-2a2d943bcac28000994de975fb626d1e?source=copy_link)
