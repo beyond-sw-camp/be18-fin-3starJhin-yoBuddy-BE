@@ -1,6 +1,6 @@
 package com.j3s.yobuddy.domain.programenrollment.service;
 
-import com.j3s.yobuddy.domain.onboarding.entity.OnboardingPrograms;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
@@ -36,7 +36,7 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
 
         User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new EnrollmentNotFoundException(request.getUserId()));
-        OnboardingPrograms program = programRepository.findById(request.getProgramId())
+        OnboardingProgram program = programRepository.findById(request.getProgramId())
             .orElseThrow(() -> new EnrollmentNotFoundException(request.getProgramId()));
 
         ProgramEnrollment enrollment = ProgramEnrollment.builder()

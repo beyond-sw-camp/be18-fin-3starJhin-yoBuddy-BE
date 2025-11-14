@@ -2,6 +2,7 @@ package com.j3s.yobuddy.domain.user.service;
 
 import com.j3s.yobuddy.domain.mentor.entity.Mentor;
 import com.j3s.yobuddy.domain.mentor.repository.MentorRepository;
+import com.j3s.yobuddy.domain.user.dto.UserProfileResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +60,22 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    @Override
+    public UserProfileResponse getUserProfile(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return UserProfileResponse.builder()
+            .userId(user.getUserId())
+            .name(user.getName())
+            .email(user.getEmail())
+            .role(user.getRole().name())
+            .joinedAt(user.getJoinedAt().toString())
+            .createdAt(user.getCreatedAt().toString())
+            .updatedAt(user.getUpdatedAt().toString())
+            .departmentId(user.getDepartment().getDepartmentId())
+            .departmentName(user.getDepartment().getName())
+            .build();
     }
 
     @Override

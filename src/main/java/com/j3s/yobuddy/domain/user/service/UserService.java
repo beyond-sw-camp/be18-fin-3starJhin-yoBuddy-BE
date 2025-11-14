@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.user.service;
 
+import com.j3s.yobuddy.domain.user.dto.UserProfileResponse;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -21,4 +22,5 @@ public interface UserService {
     Page<User> getAllUsers(UserSearchRequest searchRequest, Pageable pageable);
 
     User getUserById(Long userId);
+    UserProfileResponse getUserProfile(Long userId);
 }
