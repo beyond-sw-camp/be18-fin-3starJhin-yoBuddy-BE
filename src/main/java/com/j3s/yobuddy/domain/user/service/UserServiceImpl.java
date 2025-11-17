@@ -1,7 +1,5 @@
 package com.j3s.yobuddy.domain.user.service;
 
-import com.j3s.yobuddy.domain.mentor.entity.Mentor;
-import com.j3s.yobuddy.domain.mentor.repository.MentorRepository;
 import com.j3s.yobuddy.domain.user.dto.UserProfileResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +40,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
-    private final MentorRepository mentorRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -96,11 +93,11 @@ public class UserServiceImpl implements UserService {
 
             if (!emailsInBatch.add(user.getEmail())) {
                 throw new InvalidUserRequestException(
-                    "요청 내에서 중복된 이메일입니다. (email=" + user.getEmail() + ")");
+                    "요청 내 중복된 이메일입니다. (email=" + user.getEmail() + ")");
             }
             if (!phonesInBatch.add(user.getPhoneNumber())) {
                 throw new InvalidUserRequestException(
-                    "요청 내에서 중복된 연락처입니다. (phoneNumber=" + user.getPhoneNumber() + ")");
+                    "요청 내 중복된 연락처입니다. (phone=" + user.getPhoneNumber() + ")");
             }
 
             userRepository.findByEmail(user.getEmail()).ifPresent(u -> {
@@ -113,23 +110,7 @@ public class UserServiceImpl implements UserService {
             toSave.add(user);
         }
 
-        List<User> savedUsers = userRepository.saveAll(toSave);
-
-        for (int i = 0; i < savedUsers.size(); i++) {
-            User user = savedUsers.get(i);
-            RegisterRequest req = reqs.get(i);
-
-            if (user.getRole() == Role.MENTOR) {
-                String position = (req.getPosition() != null && !req.getPosition()
-                    .isBlank())
-                    ? req.getPosition()
-                    : "신규 멘토";
-
-                Mentor mentor = Mentor.create(user, position);
-                mentorRepository.save(mentor);
-            }
-        }
-        return savedUsers;
+        return userRepository.saveAll(toSave);
     }
 
     @Override
