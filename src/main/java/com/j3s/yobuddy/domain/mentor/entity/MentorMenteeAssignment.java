@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
     name = "mentor_mentee_assignments",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"mentee_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"mentee_user_id"})
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -34,19 +34,17 @@ public class MentorMenteeAssignment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mentor_id", nullable = false)
-    private Mentor mentor;
+    @JoinColumn(name = "mentor_user_id", nullable = false)
+    private User mentor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mentee_id", nullable = false)
+    @JoinColumn(name = "mentee_user_id", nullable = false)
     private User mentee;
-
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
-    public void deleteAssignment() {
-
+    public void softDelete() {
         this.deleted = true;
     }
 }

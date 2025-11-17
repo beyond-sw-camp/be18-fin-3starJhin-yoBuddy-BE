@@ -3,5 +3,9 @@ package com.j3s.yobuddy.domain.user.entity;
 public enum Role {
     USER,
     ADMIN,
-    MENTOR
+    MENTOR;
+
+    public boolean isMentor() {
+        return this == MENTOR;
+    }
 }
