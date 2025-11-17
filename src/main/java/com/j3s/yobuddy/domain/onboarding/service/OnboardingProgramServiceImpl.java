@@ -10,6 +10,7 @@ import com.j3s.yobuddy.domain.onboarding.dto.response.OnboardingProgramResponse;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.exception.ProgramAlreadyDeletedException;
 import com.j3s.yobuddy.domain.onboarding.exception.ProgramNotFoundException;
+import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramQueryRepository;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OnboardingProgramServiceImpl implements OnboardingProgramService {
     private final OnboardingProgramRepository onboardingProgramRepository;
+    private final OnboardingProgramQueryRepository onboardingProgramQueryRepository;
     private final DepartmentRepository departmentRepository;
 
     @Override
@@ -46,21 +48,7 @@ public class OnboardingProgramServiceImpl implements OnboardingProgramService {
     @Override
     @Transactional(readOnly = true)
     public List<OnboardingProgramListResponse> getAllPrograms() {
-
-        return onboardingProgramRepository.findAllByDeletedFalse()
-                                          .stream()
-                                          .map(program -> OnboardingProgramListResponse.builder()
-                                                                                       .programId(
-                                                                                           program.getProgramId())
-                                                                                       .name(
-                                                                                           program.getName())
-                                                                                       .startDate(
-                                                                                           program.getStartDate())
-                                                                                       .endDate(
-                                                                                           program.getEndDate())
-                                                                                       .build()
-                                          )
-                                          .toList();
+        return onboardingProgramQueryRepository.findProgramList();
     }
 
     @Override

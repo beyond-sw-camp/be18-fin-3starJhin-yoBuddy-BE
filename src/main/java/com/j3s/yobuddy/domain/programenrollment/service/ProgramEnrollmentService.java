@@ -6,9 +6,14 @@ import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentRe
 import java.util.List;
 
 public interface ProgramEnrollmentService {
-    ProgramEnrollmentResponse enroll(ProgramEnrollmentRequest request);
+
+    ProgramEnrollmentResponse enroll(Long programId, ProgramEnrollmentRequest request);
+
     List<ProgramEnrollmentResponse> getByProgram(Long programId);
+
     List<ProgramEnrollmentResponse> getByUser(Long userId);
-    ProgramEnrollmentResponse updateEnrollment(Long id, ProgramEnrollmentUpdateRequest request);
-    void withdraw(Long id);
+
+    ProgramEnrollmentResponse updateEnrollment(Long programId, Long enrollmentId, ProgramEnrollmentUpdateRequest request);
+
+    void withdraw(Long userId);
 }

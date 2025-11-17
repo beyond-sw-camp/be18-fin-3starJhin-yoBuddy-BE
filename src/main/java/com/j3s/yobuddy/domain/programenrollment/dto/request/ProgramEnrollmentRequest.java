@@ -10,9 +10,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ProgramEnrollmentRequest {
 
-    @NotNull(message = "프로그램 ID는 필수입니다.")
-    private Long programId;
-
     @NotNull(message = "사용자 ID는 필수입니다.")
     private Long userId;
 }
