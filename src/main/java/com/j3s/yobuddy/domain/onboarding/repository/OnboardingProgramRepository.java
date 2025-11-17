@@ -8,6 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OnboardingProgramRepository extends JpaRepository<OnboardingProgram, Long> {
-    List<OnboardingProgram> findAllByDeletedFalse();
     Optional<OnboardingProgram> findByProgramIdAndDeletedFalse(Long programId);
 }

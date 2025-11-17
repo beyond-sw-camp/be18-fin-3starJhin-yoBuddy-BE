@@ -1,7 +1,12 @@
 package com.j3s.yobuddy.api.admin;
 
+import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
+import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
+import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentResponse;
+import com.j3s.yobuddy.domain.programenrollment.service.ProgramEnrollmentService;
+import jakarta.validation.Valid;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,48 +17,43 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
-import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
-import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentResponse;
-import com.j3s.yobuddy.domain.programenrollment.service.ProgramEnrollmentService;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin/enrollments")
+@RequestMapping("/api/v1/admin/programs/{programId}/enrollments")
 public class AdminProgramEnrollmentController {
 
     private final ProgramEnrollmentService enrollmentService;
 
     @PostMapping
-    public ResponseEntity<ProgramEnrollmentResponse> enroll(@Valid @RequestBody ProgramEnrollmentRequest request) {
-        return ResponseEntity.ok(enrollmentService.enroll(request));
+    public ResponseEntity<ProgramEnrollmentResponse> enroll(
+        @PathVariable Long programId,
+        @Valid @RequestBody ProgramEnrollmentRequest request
+    ) {
+        return ResponseEntity.ok(enrollmentService.enroll(programId, request));
     }
 
-    @GetMapping("/program/{programId}")
-    public ResponseEntity<List<ProgramEnrollmentResponse>> getByProgram(@PathVariable Long programId) {
+    @GetMapping
+    public ResponseEntity<List<ProgramEnrollmentResponse>> getByProgram(
+        @PathVariable Long programId
+    ) {
         return ResponseEntity.ok(enrollmentService.getByProgram(programId));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ProgramEnrollmentResponse>> getByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(enrollmentService.getByUser(userId));
-    }
-
-    @PatchMapping("/{id}")
+    @PatchMapping("/{enrollmentId}")
     public ResponseEntity<ProgramEnrollmentResponse> updateEnrollment(
-        @PathVariable Long id,
+        @PathVariable Long programId,
+        @PathVariable Long enrollmentId,
         @Valid @RequestBody ProgramEnrollmentUpdateRequest request
     ) {
-        ProgramEnrollmentResponse response = enrollmentService.updateEnrollment(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(enrollmentService.updateEnrollment(programId, enrollmentId, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> withdraw(@PathVariable Long id) {
-        enrollmentService.withdraw(id);
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> withdraw(
+        @PathVariable Long programId,
+        @PathVariable Long userId
+    ) {
+        enrollmentService.withdraw(userId);
         return ResponseEntity.noContent().build();
     }
 }
