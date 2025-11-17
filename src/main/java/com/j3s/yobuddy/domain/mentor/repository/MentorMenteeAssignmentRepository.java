@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MentorMenteeAssignmentRepository extends JpaRepository<MentorMenteeAssignment, Long> {
-    List<MentorMenteeAssignment> findByMentorMentorIdAndDeletedFalse(Long mentorId);
+public interface MentorMenteeAssignmentRepository
+    extends JpaRepository<MentorMenteeAssignment, Long> {
+
+    boolean existsByMenteeUserIdAndDeletedFalse(Long menteeId);
 
     Optional<MentorMenteeAssignment> findByMenteeUserIdAndDeletedFalse(Long menteeId);
 
-    boolean existsByMenteeUserIdAndDeletedFalse(Long menteeId);
+    List<MentorMenteeAssignment> findByMentorUserIdAndDeletedFalse(Long mentorId);
 }
