@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.user.dto;
+package com.j3s.yobuddy.domain.user.dto.response;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +9,6 @@ import com.j3s.yobuddy.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
