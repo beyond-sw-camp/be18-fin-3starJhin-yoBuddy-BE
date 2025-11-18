@@ -117,9 +117,6 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         return TrainingResponse.from(saved);
     }
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Transactional
     public TrainingResponse updateTraining(Long trainingId, TrainingUpdateRequest request) {
 
@@ -148,10 +145,6 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             training.updateDescription(request.getDescription());
         }
 
-        // TODO: fileIds 로 Files 연동은 추후
-
-        entityManager.flush();
-        entityManager.refresh(training);
 
         return TrainingResponse.from(training);
     }
