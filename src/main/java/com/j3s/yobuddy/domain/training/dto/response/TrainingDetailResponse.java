@@ -18,7 +18,6 @@ public class TrainingDetailResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final List<AssignedProgramResponse> assignedPrograms;
-    private final List<TrainingFileResponse> attachedFiles;
 
     public static TrainingDetailResponse of(
         Training training,
@@ -32,7 +31,6 @@ public class TrainingDetailResponse {
             .createdAt(training.getCreatedAt())
             .updatedAt(training.getUpdatedAt())
             .assignedPrograms(assignedPrograms)
-            .attachedFiles(List.of())
             .build();
     }
 }

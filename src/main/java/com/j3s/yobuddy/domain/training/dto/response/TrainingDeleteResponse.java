@@ -8,6 +8,6 @@ import lombok.Getter;
 @AllArgsConstructor(staticName = "of")
 public class TrainingDeleteResponse {
 
-    private Long trainingId;
-    private LocalDateTime deletedAt;
+    private final Long trainingId;
+    private final LocalDateTime deletedAt;
 }

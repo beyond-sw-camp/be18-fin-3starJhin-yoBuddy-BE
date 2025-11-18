@@ -7,9 +7,9 @@ import lombok.Getter;
 @Builder
 public class TrainingAttachedFileResponse {
 
-    private Long fileId;
-    private String filename;
-    private String filepath;
+    private final Long fileId;
+    private final String filename;
+    private final String filepath;
 
     public static TrainingAttachedFileResponse of(Long fileId, String filename, String filepath) {
         return TrainingAttachedFileResponse.builder()
