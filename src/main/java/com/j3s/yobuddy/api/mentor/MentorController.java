@@ -1,6 +1,8 @@
 package com.j3s.yobuddy.api.mentor;
 
 import com.j3s.yobuddy.domain.mentor.dto.request.AssignMenteeRequest;
+import com.j3s.yobuddy.domain.mentor.dto.response.MenteeCandidateResponse;
+import com.j3s.yobuddy.domain.mentor.dto.response.MenteeDetailResponse;
 import com.j3s.yobuddy.domain.mentor.dto.response.MenteeListResponse;
 import com.j3s.yobuddy.domain.mentor.service.MentorService;
 import java.util.List;
@@ -49,5 +51,18 @@ public class MentorController {
         mentorService.removeMentee(mentorId, menteeId);
         return ResponseEntity.noContent()
                              .build();
+    }
+
+    @GetMapping("/{mentorId}/department-newbies")
+    public List<MenteeCandidateResponse> getNewbies(@PathVariable Long mentorId) {
+        return mentorService.getDepartmentNewbies(mentorId);
+    }
+
+    @GetMapping("/{mentorId}/mentees/{menteeId}")
+    public ResponseEntity<MenteeDetailResponse> getMenteeDetail(
+        @PathVariable Long mentorId,
+        @PathVariable Long menteeId) {
+
+        return ResponseEntity.ok(mentorService.getMenteeDetail(mentorId, menteeId));
     }
 }

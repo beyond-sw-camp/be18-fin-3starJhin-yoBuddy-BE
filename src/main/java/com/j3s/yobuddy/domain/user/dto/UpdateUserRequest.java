@@ -9,12 +9,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class UpdateUserRequest {
-	private String phoneNumber;
-	private Long departmentId;
-	private String currentPassword;
-	private String newPassword;
-	private Role role;
+	private final String phoneNumber;
+	private final Long departmentId;
+	private final String currentPassword;
+	private final String newPassword;
+	private final Role role;
 }

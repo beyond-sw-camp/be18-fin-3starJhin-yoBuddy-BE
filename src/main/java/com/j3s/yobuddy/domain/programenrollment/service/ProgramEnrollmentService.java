@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ProgramEnrollmentService {
 
-    ProgramEnrollmentResponse enroll(Long programId, ProgramEnrollmentRequest request);
+    List<ProgramEnrollmentResponse> enroll(Long programId, ProgramEnrollmentRequest request);
 
     List<ProgramEnrollmentResponse> getByProgram(Long programId);
 
