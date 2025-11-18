@@ -11,5 +11,5 @@ public interface ProgramEnrollmentRepository extends JpaRepository<ProgramEnroll
     List<ProgramEnrollment> findByProgram_ProgramId(Long programId);
     List<ProgramEnrollment> findByUser_UserId(Long userId);
     boolean existsByUser_UserIdAndProgram_ProgramId(Long userId, Long programId);
-    Optional<ProgramEnrollment> findByEnrollmentId(Long id);
+    Optional<ProgramEnrollment> findByUser_UserIdAndStatus(Long userId, ProgramEnrollment.EnrollmentStatus status);
 }

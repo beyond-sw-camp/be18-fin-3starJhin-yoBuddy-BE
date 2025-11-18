@@ -238,7 +238,6 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             .orElseThrow(() ->
                 new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
 
-        // ✅ 완료된 프로그램이면 해제 불가 → 새로운 예외 사용
         if (program.getStatus() == ProgramStatus.COMPLETED) {
             throw new ProgramAlreadyCompletedException(programId);
         }
