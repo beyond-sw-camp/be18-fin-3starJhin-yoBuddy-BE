@@ -1,5 +1,9 @@
 package com.j3s.yobuddy.domain.onboarding.repository;
 
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
 import com.j3s.yobuddy.domain.department.entity.QDepartment;
 import com.j3s.yobuddy.domain.onboarding.dto.response.OnboardingProgramListResponse;
 import com.j3s.yobuddy.domain.onboarding.entity.QOnboardingProgram;
@@ -7,9 +11,8 @@ import com.j3s.yobuddy.domain.programenrollment.entity.QProgramEnrollment;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
