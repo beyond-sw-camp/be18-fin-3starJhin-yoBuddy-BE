@@ -1,13 +1,26 @@
 package com.j3s.yobuddy.domain.department.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willAnswer;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.never;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.j3s.yobuddy.domain.department.dto.response.DepartmentListResponse;
 import com.j3s.yobuddy.domain.department.dto.response.DepartmentResponse;
@@ -15,18 +28,6 @@ import com.j3s.yobuddy.domain.department.entity.Department;
 import com.j3s.yobuddy.domain.department.exception.DepartmentAlreadyDeletedException;
 import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
