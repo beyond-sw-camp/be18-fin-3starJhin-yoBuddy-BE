@@ -5,18 +5,16 @@ import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
 public class KpiResultsRequest {
 
-    private BigDecimal achievedValue;
-    private BigDecimal score;
-    private LocalDateTime evaluatedAt;
-    private Long kpiGoalId;
-    private Long userId;
-    private Long departmentId;
+    private final BigDecimal achievedValue;
+    private final BigDecimal score;
+    private final LocalDateTime evaluatedAt;
+    private final Long kpiGoalId;
+    private final Long userId;
+    private final Long departmentId;
 
 }

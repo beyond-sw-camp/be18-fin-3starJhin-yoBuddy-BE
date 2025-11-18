@@ -12,15 +12,15 @@ import lombok.Getter;
 @Builder
 public class KpiResultsListResponse {
 
-    private Long kpiResultId;
-    private BigDecimal achievedValue;
-    private BigDecimal score;
-    private LocalDateTime evaluatedAt;
-    private Long kpiGoalId;
-    private Long userId;
-    private Long departmentId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final Long kpiResultId;
+    private final BigDecimal achievedValue;
+    private final BigDecimal score;
+    private final LocalDateTime evaluatedAt;
+    private final Long kpiGoalId;
+    private final Long userId;
+    private final Long departmentId;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     public static KpiResultsListResponse from(KpiResults r) {
         return KpiResultsListResponse.builder()

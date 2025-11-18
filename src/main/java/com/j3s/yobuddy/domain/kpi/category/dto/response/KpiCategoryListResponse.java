@@ -11,10 +11,10 @@ import lombok.Getter;
 @Builder
 public class KpiCategoryListResponse {
 
-    private Long kpiCategoryId;
-    private String name;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final Long kpiCategoryId;
+    private final String name;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     public static KpiCategoryListResponse from(KpiCategory category) {
         return KpiCategoryListResponse.builder()

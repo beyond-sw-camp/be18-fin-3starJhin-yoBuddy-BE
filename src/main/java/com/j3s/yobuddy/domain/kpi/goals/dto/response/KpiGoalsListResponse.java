@@ -12,14 +12,14 @@ import lombok.Getter;
 @Builder
 public class KpiGoalsListResponse {
 
-    private Long kpiGoalId;
-    private Long programId;
-    private String description;
-    private Integer targetValue;
-    private BigDecimal weight;
-    private Long kpiCategoryId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final Long kpiGoalId;
+    private final Long programId;
+    private final String description;
+    private final Integer targetValue;
+    private final BigDecimal weight;
+    private final Long kpiCategoryId;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     public static KpiGoalsListResponse from(KpiGoals g) {
         return KpiGoalsListResponse.builder()

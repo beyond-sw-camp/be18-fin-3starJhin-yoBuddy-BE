@@ -4,17 +4,15 @@ import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
 public class KpiGoalsRequest {
 
-    private Long programId;
-    private String description;
-    private Integer targetValue;
-    private BigDecimal weight;
-    private Long kpiCategoryId;
+    private final Long programId;
+    private final String description;
+    private final Integer targetValue;
+    private final BigDecimal weight;
+    private final Long kpiCategoryId;
 
 }
