@@ -9,5 +9,6 @@ import lombok.Getter;
 public class MentoringSessionCreateRequest {
     private final Long mentorId;
     private final Long menteeId;
+    private final String description;
     private final LocalDateTime scheduledAt;
 }

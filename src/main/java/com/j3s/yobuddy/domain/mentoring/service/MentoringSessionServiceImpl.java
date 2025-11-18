@@ -5,22 +5,23 @@ import com.j3s.yobuddy.domain.mentoring.dto.request.MentoringSessionCreateReques
 import com.j3s.yobuddy.domain.mentoring.dto.request.MentoringSessionUpdateRequest;
 import com.j3s.yobuddy.domain.mentoring.dto.response.MentoringSessionResponse;
 import com.j3s.yobuddy.domain.mentoring.entity.MentoringSession;
+import com.j3s.yobuddy.domain.mentoring.entity.MentoringStatus;
 import com.j3s.yobuddy.domain.mentoring.exception.MenteeNotFoundException;
 import com.j3s.yobuddy.domain.mentoring.exception.MentoringSessionNotFoundException;
 import com.j3s.yobuddy.domain.mentoring.repository.MentoringSessionRepository;
-import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
-import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus;
 import com.j3s.yobuddy.domain.programenrollment.exception.ProgramEnrollmentNotFoundException;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
-import java.time.LocalDateTime;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,6 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
 
     private final MentoringSessionRepository sessionRepository;
     private final UserRepository userRepository;
-    private final OnboardingProgramRepository programRepository;
     private final ProgramEnrollmentRepository enrollmentRepository;
 
     @Override
@@ -45,14 +45,13 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             .findByUser_UserIdAndStatus(mentee.getUserId(), EnrollmentStatus.ACTIVE)
             .orElseThrow(() -> new ProgramEnrollmentNotFoundException(mentee.getUserId()));
 
-        OnboardingProgram program = enrollment.getProgram();
-
         MentoringSession session = MentoringSession.builder()
             .mentor(mentor)
             .mentee(mentee)
-            .program(program)
+            .program(enrollment.getProgram())
+            .description(req.getDescription())
             .scheduledAt(req.getScheduledAt())
-            .attended(false)
+            .status(MentoringStatus.SCHEDULED)   // 기본 상태
             .feedback(null)
             .deleted(false)
             .build();
@@ -75,21 +74,27 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     @Transactional(readOnly = true)
     public List<MentoringSessionResponse> getByMentor(Long mentorId) {
         return sessionRepository.findByMentor_UserIdAndDeletedFalse(mentorId)
-            .stream().map(this::toResponse).toList();
+            .stream()
+            .map(this::toResponse)
+            .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<MentoringSessionResponse> getByMentee(Long menteeId) {
         return sessionRepository.findByMentee_UserIdAndDeletedFalse(menteeId)
-            .stream().map(this::toResponse).toList();
+            .stream()
+            .map(this::toResponse)
+            .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<MentoringSessionResponse> getByProgram(Long programId) {
         return sessionRepository.findByProgram_ProgramIdAndDeletedFalse(programId)
-            .stream().map(this::toResponse).toList();
+            .stream()
+            .map(this::toResponse)
+            .toList();
     }
 
     @Override
@@ -103,8 +108,17 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             ? LocalDateTime.parse(req.getScheduledAt())
             : null;
 
-        session.update(schedule, req.getAttended(), req.getFeedback());
+        MentoringStatus status = null;
+        if (req.getStatus() != null) {
+            status = MentoringStatus.valueOf(String.valueOf(req.getStatus()));
+        }
 
+        session.update(
+            schedule,
+            status,
+            req.getFeedback(),
+            req.getDescription()
+        );
         return toResponse(session);
     }
 
@@ -125,11 +139,13 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             .mentorId(s.getMentor().getUserId())
             .menteeId(mentee.getUserId())
             .programId(s.getProgram().getProgramId())
+            .mentorName(s.getMentor().getName())
             .menteeName(mentee.getName())
             .menteeEmail(mentee.getEmail())
             .menteePhoneNumber(mentee.getPhoneNumber())
             .scheduledAt(s.getScheduledAt())
-            .attended(s.getAttended())
+            .description(s.getDescription())
+            .status(s.getStatus())
             .feedback(s.getFeedback())
             .createdAt(s.getCreatedAt())
             .updatedAt(s.getUpdatedAt())
@@ -145,5 +161,3 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             .toList();
     }
 }
-
-
