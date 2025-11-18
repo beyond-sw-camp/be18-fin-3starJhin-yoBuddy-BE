@@ -6,10 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
 public class ProgramEnrollmentUpdateRequest {
 
     @NotBlank(message = "상태 값은 필수입니다.")
-    private String status;
+    private final String status;
 }

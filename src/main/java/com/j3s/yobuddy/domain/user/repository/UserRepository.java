@@ -33,4 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Param("email") String email,
         @Param("role") Role role,
         Pageable pageable);
+
+    List<User> findByDepartment_DepartmentIdAndRole(Long departmentId, Role role);
 }

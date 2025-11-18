@@ -13,20 +13,19 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    private Long userId;
-    private String name;
-    private String email;
-    private String phoneNumber;
-    private Role role;
-    private Long departmentId;
-    private String departmentName;
-    private LocalDateTime joinedAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private Boolean isDeleted;
+    private final Long userId;
+    private final String name;
+    private final String email;
+    private final String phoneNumber;
+    private final Role role;
+    private final Long departmentId;
+    private final String departmentName;
+    private final LocalDateTime joinedAt;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
+    private final Boolean isDeleted;
 
     public static UserResponse from(User u) {
         if (u == null) return null;
