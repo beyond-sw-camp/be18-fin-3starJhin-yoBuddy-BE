@@ -1,8 +1,16 @@
 package com.j3s.yobuddy.domain.training.service;
 
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
+import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
+import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingAssignRequest;
 import com.j3s.yobuddy.domain.training.dto.request.TrainingCreateRequest;
 import com.j3s.yobuddy.domain.training.dto.request.TrainingUpdateRequest;
 import com.j3s.yobuddy.domain.training.dto.response.AssignedProgramResponse;
+import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingAssignResponse;
+import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingItemResponse;
+import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingUnassignResponse;
+import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingsResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingDeleteResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingListItemResponse;
@@ -12,12 +20,12 @@ import com.j3s.yobuddy.domain.training.entity.Training;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingUpdateDataException;
+import com.j3s.yobuddy.domain.training.exception.ProgramAlreadyCompletedException;
 import com.j3s.yobuddy.domain.training.exception.TrainingInUseException;
 import com.j3s.yobuddy.domain.training.exception.TrainingNotFoundException;
+import com.j3s.yobuddy.domain.training.repository.ProgramTrainingQueryRepository;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
 import com.j3s.yobuddy.domain.training.repository.TrainingRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +43,8 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
 
     private final TrainingRepository trainingRepository;
     private final ProgramTrainingRepository programTrainingRepository;
+    private final OnboardingProgramRepository onboardingProgramRepository;
+    private final ProgramTrainingQueryRepository programTrainingQueryRepository;
 
     @Transactional(readOnly = true)
     public Page<TrainingListItemResponse> getTrainingList(
@@ -145,7 +155,6 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             training.updateDescription(request.getDescription());
         }
 
-
         return TrainingResponse.from(training);
     }
 
@@ -169,5 +178,123 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         trainingRepository.save(training);
 
         return TrainingDeleteResponse.of(training.getTrainingId(), deletedAt);
+    }
+
+    @Override
+    public ProgramTrainingAssignResponse assignTrainingToProgram(
+        Long programId,
+        Long trainingId,
+        ProgramTrainingAssignRequest request
+    ) {
+        OnboardingProgram program = onboardingProgramRepository.findById(programId)
+            .orElseThrow(() ->
+                new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
+
+        Training training = trainingRepository.findById(trainingId)
+            .orElseThrow(() ->
+                new TrainingNotFoundException(trainingId));
+
+        boolean alreadyAssigned =
+            programTrainingRepository.existsByProgram_ProgramIdAndTraining_TrainingId(programId,
+                trainingId);
+
+        if (alreadyAssigned) {
+            throw new InvalidTrainingDataException(
+                "이미 해당 프로그램에 연결된 교육입니다. programId=" + programId + ", trainingId=" + trainingId
+            );
+        }
+
+        LocalDateTime effectiveAssignedAt =
+            (request != null && request.getAssignedAt() != null)
+                ? request.getAssignedAt()
+                : LocalDateTime.now();
+
+        ProgramTraining programTraining = ProgramTraining.builder()
+            .program(program)
+            .training(training)
+            .assignedAt(effectiveAssignedAt)
+            .scheduledAt(request != null ? request.getScheduledAt() : null)
+            .startDate(request != null ? request.getStartDate() : null)
+            .endDate(request != null ? request.getEndDate() : null)
+            .build();
+
+        programTrainingRepository.save(programTraining);
+
+        return new ProgramTrainingAssignResponse(
+            program.getProgramId(),
+            training.getTrainingId(),
+            training.getTitle(),
+            training.getType().name(),
+            effectiveAssignedAt
+        );
+    }
+
+    @Override
+    public ProgramTrainingUnassignResponse unassignTrainingFromProgram(
+        Long programId,
+        Long trainingId
+    ) {
+        OnboardingProgram program = onboardingProgramRepository.findById(programId)
+            .orElseThrow(() ->
+                new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
+
+        // ✅ 완료된 프로그램이면 해제 불가 → 새로운 예외 사용
+        if (program.getStatus() == ProgramStatus.COMPLETED) {
+            throw new ProgramAlreadyCompletedException(programId);
+        }
+
+        ProgramTraining programTraining = programTrainingRepository
+            .findByProgram_ProgramIdAndTraining_TrainingId(programId, trainingId)
+            .orElseThrow(() ->
+                new TrainingNotFoundException(trainingId));
+
+        String title = programTraining.getTraining().getTitle();
+
+        programTrainingRepository.delete(programTraining);
+
+        LocalDateTime unassignedAt = LocalDateTime.now();
+
+        return new ProgramTrainingUnassignResponse(
+            programId,
+            trainingId,
+            title,
+            unassignedAt
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProgramTrainingsResponse getProgramTrainings(
+        Long programId,
+        Boolean includeUnassigned,
+        String type
+    ) {
+        OnboardingProgram program = onboardingProgramRepository.findById(programId)
+            .orElseThrow(() ->
+                new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
+
+        TrainingType trainingType = null;
+        if (type != null) {
+            try {
+                trainingType = TrainingType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidTrainingDataException("지원하지 않는 교육 유형입니다. type=" + type);
+            }
+        }
+
+        boolean include = Boolean.TRUE.equals(includeUnassigned);
+
+        List<ProgramTrainingItemResponse> trainings =
+            programTrainingQueryRepository.findProgramTrainings(programId, trainingType, include);
+
+        return new ProgramTrainingsResponse(
+            program.getProgramId(),
+            program.getName(),
+            program.getDescription(),
+            program.getStartDate(),
+            program.getEndDate(),
+            trainings,
+            trainings.size()
+        );
     }
 }
