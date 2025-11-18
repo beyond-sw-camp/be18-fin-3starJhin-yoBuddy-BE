@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/admin/kpi-category")
+@RequestMapping("api/v1/admin/kpi/category")
 public class AdminKptCategoryController {
 
     private final KpiCategoryService kptCategoryService;

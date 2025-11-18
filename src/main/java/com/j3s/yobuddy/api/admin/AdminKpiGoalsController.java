@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/admin/kpi-goals")
+@RequestMapping("api/v1/admin/kpi/goals")
 public class AdminKpiGoalsController {
 
     private final KpiGoalsService kpiGoalsService;
