@@ -11,9 +11,9 @@
     <td>조원석</td>
   </tr>
   <tr align="center">
-    <td><a target="_blank" href="https://github.com/IIIjong"><img src="https://avatars.githubusercontent.com/u/88065770?v=4" width="100px"><br>@IIIjong</a></td>
-    <td><a target="_blank" href="https://github.com/sonhyee"><img src="https://avatars.githubusercontent.com/u/106606736?v=4" width="100px"><br>@sonhyee</a> </td>
-    <td><a target="_blank" href="https://github.com/Jintory"><img src="https://avatars.githubusercontent.com/u/174857452?v=4" width="100px"><br>@Jintory</a> </td>
+    <td><a target="_blank" href="https://github.com/IIIjong"><img src="https://avatars.githubusercontent.com/u/101960311?v=4" width="100px"><br>@IIIjong</a></td>
+    <td><a target="_blank" href="https://github.com/sonhyee"><img src="https://avatars.githubusercontent.com/u/165750994?v=4" width="100px"><br>@sonhyee</a> </td>
+    <td><a target="_blank" href="https://github.com/Jintory"><img src="https://avatars.githubusercontent.com/u/127931297?v=4" width="100px"><br>@Jintory</a> </td>
     <td><a target="_blank" href="https://github.com/baechuking"><img src="https://avatars.githubusercontent.com/u/215663014?v=4" width="100px"><br>@baechuking</a>  </td>
     <td><a target="_blank" href="https://github.com/jws020501"><img src="https://avatars.githubusercontent.com/u/59154288?v=4" width="100px"><br>@jws020501</a>  </td>
   </tr>
