@@ -48,9 +48,9 @@ public class AdminTrainingController {
         return trainingAdminService.getTrainingList(trainingType, programId, keyword, pageable);
     }
 
-    @GetMapping("/{training-id}")
+    @GetMapping("/{trainingId}")
     public TrainingDetailResponse getTrainingDetail(
-        @PathVariable("training-id") Long trainingId
+        @PathVariable("trainingId") Long trainingId
     ) {
         return trainingAdminService.getTrainingDetail(trainingId);
     }

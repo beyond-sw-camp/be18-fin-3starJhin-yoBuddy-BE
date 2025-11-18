@@ -186,17 +186,19 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         Long trainingId,
         ProgramTrainingAssignRequest request
     ) {
+        // 1) 프로그램 존재 여부 확인
         OnboardingProgram program = onboardingProgramRepository.findById(programId)
             .orElseThrow(() ->
                 new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
 
+        // 2) 교육 존재 여부 확인
         Training training = trainingRepository.findById(trainingId)
             .orElseThrow(() ->
                 new TrainingNotFoundException(trainingId));
 
+        // 3) 이미 해당 프로그램에 연결되어 있는지 확인
         boolean alreadyAssigned =
-            programTrainingRepository.existsByProgram_ProgramIdAndTraining_TrainingId(programId,
-                trainingId);
+            programTrainingRepository.existsByProgram_ProgramIdAndTraining_TrainingId(programId, trainingId);
 
         if (alreadyAssigned) {
             throw new InvalidTrainingDataException(
@@ -204,11 +206,49 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             );
         }
 
+        // 4) 교육 유형별 필수값 검증
+        TrainingType trainingType = training.getType();
+        if (trainingType == null) {
+            throw new InvalidTrainingDataException(
+                "교육 유형(type)이 설정되지 않은 교육입니다. trainingId=" + trainingId
+            );
+        }
+
+        // ONLINE 교육: startDate, endDate 필수
+        if (trainingType == TrainingType.ONLINE) {
+            if (request == null
+                || request.getStartDate() == null
+                || request.getEndDate() == null) {
+                throw new InvalidTrainingDataException(
+                    "온라인 교육은 startDate와 endDate가 모두 필요합니다. trainingId=" + trainingId
+                );
+            }
+
+            if (request.getStartDate().isAfter(request.getEndDate())) {
+                throw new InvalidTrainingDataException(
+                    "온라인 교육의 startDate는 endDate보다 이후일 수 없습니다. "
+                        + "(startDate=" + request.getStartDate()
+                        + ", endDate=" + request.getEndDate() + ")"
+                );
+            }
+        }
+
+        // OFFLINE 교육: scheduledAt 필수
+        if (trainingType == TrainingType.OFFLINE) {
+            if (request == null || request.getScheduledAt() == null) {
+                throw new InvalidTrainingDataException(
+                    "오프라인 교육은 scheduledAt이 필요합니다. trainingId=" + trainingId
+                );
+            }
+        }
+
+        // 5) assignedAt 기본값 설정 (요청 바디 없으면 현재 시각)
         LocalDateTime effectiveAssignedAt =
             (request != null && request.getAssignedAt() != null)
                 ? request.getAssignedAt()
                 : LocalDateTime.now();
 
+        // 6) ProgramTraining 생성 및 저장
         ProgramTraining programTraining = ProgramTraining.builder()
             .program(program)
             .training(training)
@@ -220,11 +260,12 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
 
         programTrainingRepository.save(programTraining);
 
+        // 7) 응답 DTO 생성
         return new ProgramTrainingAssignResponse(
             program.getProgramId(),
             training.getTrainingId(),
             training.getTitle(),
-            training.getType().name(),
+            trainingType.name(),
             effectiveAssignedAt
         );
     }
