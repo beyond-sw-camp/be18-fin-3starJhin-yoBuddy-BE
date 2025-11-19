@@ -13,6 +13,7 @@ public class KpiCategoryListResponse {
 
     private final Long kpiCategoryId;
     private final String name;
+    private final String description;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -20,6 +21,7 @@ public class KpiCategoryListResponse {
         return KpiCategoryListResponse.builder()
             .kpiCategoryId(category.getKpiCategoryId())
             .name(category.getName())
+            .description(category.getDescription())
             .createdAt(category.getCreatedAt())
             .updatedAt(category.getUpdatedAt())
             .build();
