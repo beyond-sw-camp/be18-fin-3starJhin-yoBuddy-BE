@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.api.mentor;
+package com.j3s.yobuddy.api.common;
 
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementListResponse;
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementResponse;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/mentors/announcements")
-public class MentorAnnouncementController {
+@RequestMapping("api/v1/announcements")
+public class AnnouncementController {
 
     private final AnnouncementService announcementService;
 
@@ -36,6 +36,5 @@ public class MentorAnnouncementController {
 
         return ResponseEntity.ok(announcement);
     }
-
 
 }
