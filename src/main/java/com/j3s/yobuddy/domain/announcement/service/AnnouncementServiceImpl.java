@@ -11,8 +11,9 @@ import com.j3s.yobuddy.domain.announcement.repository.AnnouncementRepository;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,15 +79,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AnnouncementListResponse> getAllAnnouncements(String title) {
-        List<Announcement> result =
+    public Page<AnnouncementListResponse> getAllAnnouncements(String title, Pageable pageable) {
+        Page<Announcement> result =
             (title == null || title.isBlank())
-                ? announcementRepository.findAllByIsDeletedFalse()
-                : announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title);
+                ? announcementRepository.findAllByIsDeletedFalse(pageable)
+                : announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title,
+                    pageable);
 
-        return result.stream()
-            .map(AnnouncementListResponse::from)
-            .toList();
+        return result.map(AnnouncementListResponse::from);
     }
 
     @Override
