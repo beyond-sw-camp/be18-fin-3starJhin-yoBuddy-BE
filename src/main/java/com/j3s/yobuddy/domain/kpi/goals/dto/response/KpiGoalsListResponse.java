@@ -18,6 +18,7 @@ public class KpiGoalsListResponse {
     private final Integer targetValue;
     private final BigDecimal weight;
     private final Long kpiCategoryId;
+    private final Long departmentId;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -27,6 +28,7 @@ public class KpiGoalsListResponse {
             .programId(g.getProgramId())
             .description(g.getDescription())
             .targetValue(g.getTargetValue())
+            .departmentId(g.getDepartmentId())
             .weight(g.getWeight())
             .kpiCategoryId(g.getKpiCategoryId())
             .createdAt(g.getCreatedAt())

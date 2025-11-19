@@ -14,39 +14,39 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.j3s.yobuddy.domain.kpi.category.dto.request.KptCategoryRequest;
-import com.j3s.yobuddy.domain.kpi.category.dto.response.KptCategoryListResponse;
-import com.j3s.yobuddy.domain.kpi.category.dto.response.KptCategoryResponse;
-import com.j3s.yobuddy.domain.kpi.category.service.KptCategoryService;
+import com.j3s.yobuddy.domain.kpi.category.dto.request.KpiCategoryRequest;
+import com.j3s.yobuddy.domain.kpi.category.dto.response.KpiCategoryListResponse;
+import com.j3s.yobuddy.domain.kpi.category.dto.response.KpiCategoryResponse;
+import com.j3s.yobuddy.domain.kpi.category.service.KpiCategoryService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/admin/kpi-category")
-public class AdminKptCategoryController {
+@RequestMapping("api/v1/admin/kpi/category")
+public class AdminKpiCategoryController {
 
-    private final KptCategoryService kptCategoryService;
+    private final KpiCategoryService kptCategoryService;
 
     @GetMapping
-    public ResponseEntity<List<KptCategoryListResponse>> getCategories(
+    public ResponseEntity<List<KpiCategoryListResponse>> getCategories(
         @RequestParam(required = false) String name) {
 
-        List<KptCategoryListResponse> categories = kptCategoryService.getCategories(name);
+        List<KpiCategoryListResponse> categories = kptCategoryService.getCategories(name);
 
         return ResponseEntity.ok(categories);
     }
 
     @GetMapping("/{kpiCategoryId}")
-    public ResponseEntity<KptCategoryResponse> getCategoryById(
+    public ResponseEntity<KpiCategoryResponse> getCategoryById(
         @PathVariable("kpiCategoryId") Long kpiCategoryId) {
-        KptCategoryResponse response = kptCategoryService.getCategoryById(kpiCategoryId);
+        KpiCategoryResponse response = kptCategoryService.getCategoryById(kpiCategoryId);
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<String> createCategory(@RequestBody KptCategoryRequest request) {
+    public ResponseEntity<String> createCategory(@RequestBody KpiCategoryRequest request) {
         kptCategoryService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body("KPI 카테고리가 성공적으로 생성되었습니다.");
@@ -54,7 +54,7 @@ public class AdminKptCategoryController {
 
     @PatchMapping("/{kpiCategoryId}")
     public ResponseEntity<String> updateCategory(@PathVariable("kpiCategoryId") Long kpiCategoryId,
-        @RequestBody KptCategoryRequest request) {
+        @RequestBody KpiCategoryRequest request) {
 
         kptCategoryService.updateCategory(kpiCategoryId, request);
         return ResponseEntity.ok("KPI 카테고리가 성공적으로 수정되었습니다.");

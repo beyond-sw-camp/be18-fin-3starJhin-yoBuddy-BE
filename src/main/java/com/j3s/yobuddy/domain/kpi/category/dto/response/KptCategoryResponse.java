@@ -2,23 +2,23 @@ package com.j3s.yobuddy.domain.kpi.category.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.j3s.yobuddy.domain.kpi.category.entity.KpiCategory;
+import com.j3s.yobuddy.domain.kpi.category.entity.KptCategory;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class KpiCategoryListResponse {
+public class KptCategoryResponse {
 
-    private final Long kpiCategoryId;
-    private final String name;
-    private final String description;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private Long kpiCategoryId;
+    private String name;
+    private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public static KpiCategoryListResponse from(KpiCategory category) {
-        return KpiCategoryListResponse.builder()
+    public static KptCategoryResponse from(KptCategory category) {
+        return KptCategoryResponse.builder()
             .kpiCategoryId(category.getKpiCategoryId())
             .name(category.getName())
             .description(category.getDescription())
