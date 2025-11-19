@@ -1,0 +1,104 @@
+package com.j3s.yobuddy.domain.announcement.service;
+
+import com.j3s.yobuddy.domain.announcement.dto.request.AnnouncementCreateRequest;
+import com.j3s.yobuddy.domain.announcement.dto.request.AnnouncementUpdateRequest;
+import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementListResponse;
+import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementResponse;
+import com.j3s.yobuddy.domain.announcement.entity.Announcement;
+import com.j3s.yobuddy.domain.announcement.exception.AnnouncementAlreadyDeletedException;
+import com.j3s.yobuddy.domain.announcement.exception.AnnouncementNotFoundException;
+import com.j3s.yobuddy.domain.announcement.repository.AnnouncementRepository;
+import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
+import com.j3s.yobuddy.domain.user.repository.UserRepository;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class AnnouncementServiceImpl implements AnnouncementService {
+
+    private final AnnouncementRepository announcementRepository;
+    private final UserRepository userRepository;
+
+    @Override
+    @Transactional
+    public Announcement createAnnouncement(Long userId, AnnouncementCreateRequest request) {
+
+        User admin = userRepository.findByUserIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        Announcement announcement = Announcement.builder()
+            .title(request.getTitle())
+            .type(request.getType())
+            .content(request.getContent())
+            .user(admin)
+            .build();
+
+        return announcementRepository.save(announcement);
+    }
+
+    @Override
+    @Transactional
+    public AnnouncementResponse updateAnnouncement(Long announcementId,
+        AnnouncementUpdateRequest request) {
+
+        Announcement announcement = announcementRepository.findByAnnouncementIdAndIsDeletedFalse(
+            announcementId).orElseThrow(() -> new AnnouncementNotFoundException(announcementId));
+
+        announcement.update(request.getTitle(), request.getType(), request.getContent());
+
+        announcementRepository.save(announcement);
+
+        return AnnouncementResponse.builder()
+            .announcementId(announcement.getAnnouncementId())
+            .title(announcement.getTitle())
+            .type(announcement.getType())
+            .content(announcement.getContent())
+            .author(announcement.getUser().getName())
+            .createdAt(announcement.getCreatedAt())
+            .updatedAt(announcement.getUpdatedAt())
+            .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteAnnouncement(Long announcementId) {
+        Announcement announcement = announcementRepository.findByAnnouncementIdAndIsDeletedFalse(
+            announcementId).orElseThrow(() -> new AnnouncementNotFoundException(announcementId));
+
+        if (announcement.isDeleted()) {
+            throw new AnnouncementAlreadyDeletedException(announcementId);
+        }
+        announcement.softDelete();
+        announcementRepository.save(announcement);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnnouncementListResponse> getAllAnnouncements(String title) {
+        List<Announcement> result =
+            (title == null || title.isBlank())
+                ? announcementRepository.findAllByIsDeletedFalse()
+                : announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title);
+
+        return result.stream()
+            .map(AnnouncementListResponse::from)
+            .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AnnouncementResponse getAnnouncementById(Long announcementId) {
+
+        Announcement announcement = announcementRepository.findByAnnouncementId(announcementId);
+
+        if (announcement.isDeleted()) {
+            throw new AnnouncementAlreadyDeletedException(announcementId);
+        }
+
+        return AnnouncementResponse.from(announcement);
+    }
+}
