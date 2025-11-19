@@ -42,6 +42,9 @@ public class Training {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "online_url", columnDefinition = "TEXT")
+    private String onlineUrl;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
@@ -74,11 +77,12 @@ public class Training {
         this.description = description;
     }
 
-    public static Training create(String title, TrainingType type, String description) {
+    public static Training create(String title, TrainingType type, String description, String onlineUrl) {
         Training training = new Training();
         training.title = title;
         training.type = type;
         training.description = description;
+        training.onlineUrl = onlineUrl;
         training.deleted = false;
         return training;
     }
@@ -86,5 +90,9 @@ public class Training {
     public void markDeleted(LocalDateTime deletedAt) {
         this.deleted = true;
         this.updatedAt = deletedAt;
+    }
+
+    public void updateOnlineUrl(String onlineUrl) {
+        this.onlineUrl = onlineUrl;
     }
 }

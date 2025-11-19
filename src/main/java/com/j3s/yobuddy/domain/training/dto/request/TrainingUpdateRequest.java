@@ -13,4 +13,5 @@ public class TrainingUpdateRequest {
     private final String title;
     private final TrainingType type;    // ONLINE / OFFLINE
     private final String description;
+    private final String onlineUrl;
 }

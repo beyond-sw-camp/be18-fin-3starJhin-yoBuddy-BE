@@ -14,6 +14,7 @@ public class TrainingResponse {
     private String title;
     private TrainingType type;
     private String description;
+    private String onlineUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isDeleted;
@@ -24,6 +25,7 @@ public class TrainingResponse {
             .title(training.getTitle())
             .type(training.getType())
             .description(training.getDescription())
+            .onlineUrl(training.getOnlineUrl())
             .createdAt(training.getCreatedAt())
             .updatedAt(training.getUpdatedAt())
             .isDeleted(training.isDeleted())
