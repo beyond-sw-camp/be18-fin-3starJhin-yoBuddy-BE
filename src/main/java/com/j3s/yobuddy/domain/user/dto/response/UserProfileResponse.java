@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.domain.user.dto;
+package com.j3s.yobuddy.domain.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
