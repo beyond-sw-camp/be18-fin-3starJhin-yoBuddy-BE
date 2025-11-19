@@ -15,6 +15,7 @@ public class TrainingListItemResponse {
     private final String title;
     private final TrainingType type;   // ONLINE / OFFLINE
     private final String description;
+    private final String onlineUrl;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final List<AssignedProgramResponse> assignedPrograms;
@@ -28,6 +29,7 @@ public class TrainingListItemResponse {
             .title(training.getTitle())
             .type(training.getType())
             .description(training.getDescription())
+            .onlineUrl(training.getOnlineUrl())
             .createdAt(training.getCreatedAt())
             .updatedAt(training.getUpdatedAt())
             .assignedPrograms(assignedPrograms)

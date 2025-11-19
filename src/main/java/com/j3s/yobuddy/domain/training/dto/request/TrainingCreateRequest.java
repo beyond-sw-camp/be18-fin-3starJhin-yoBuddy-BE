@@ -20,5 +20,7 @@ public class TrainingCreateRequest {
     @NotBlank(message = "교육 설명은 필수입니다.")
     private final String description;
 
+    private final String onlineUrl;
+
     private final List<Long> fileIds;
 }

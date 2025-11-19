@@ -31,6 +31,7 @@ public class ProgramTrainingQueryRepository {
                 t.title,
                 t.type.stringValue(),
                 t.description,
+                t.onlineUrl,
                 pt.assignedAt,
                 pt.scheduledAt,
                 pt.startDate,
