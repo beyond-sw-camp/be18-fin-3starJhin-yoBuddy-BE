@@ -1,10 +1,11 @@
 package com.j3s.yobuddy.domain.kpi.category.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.j3s.yobuddy.domain.kpi.category.entity.KptCategory;
+
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Getter
 public class KptCategoryResponse {
