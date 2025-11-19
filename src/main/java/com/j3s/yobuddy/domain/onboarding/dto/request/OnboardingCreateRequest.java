@@ -17,7 +17,7 @@ public class OnboardingCreateRequest {
 
     private final String description;
 
-    private Long departmentId;
+    private final Long departmentId;
 
     private final LocalDate startDate;
 

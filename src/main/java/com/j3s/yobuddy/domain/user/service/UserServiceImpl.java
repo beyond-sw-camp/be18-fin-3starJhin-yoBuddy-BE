@@ -1,6 +1,7 @@
 package com.j3s.yobuddy.domain.user.service;
 
-import com.j3s.yobuddy.domain.user.dto.UserProfileResponse;
+import com.j3s.yobuddy.domain.user.dto.request.UpdateProfileRequest;
+import com.j3s.yobuddy.domain.user.dto.response.UserProfileResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.j3s.yobuddy.domain.department.entity.Department;
 import com.j3s.yobuddy.domain.department.exception.DepartmentNotFoundException;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
-import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
-import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
-import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
+import com.j3s.yobuddy.domain.user.dto.request.RegisterRequest;
+import com.j3s.yobuddy.domain.user.dto.request.UpdateUserRequest;
+import com.j3s.yobuddy.domain.user.dto.request.UserSearchRequest;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.exception.InvalidUserRequestException;
@@ -73,6 +74,50 @@ public class UserServiceImpl implements UserService {
             .departmentId(user.getDepartment().getDepartmentId())
             .departmentName(user.getDepartment().getName())
             .build();
+    }
+
+    @Override
+    @Transactional
+    public void updateMyAccount(Long userId, UpdateProfileRequest req) {
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        if (user.isDeleted()) {
+            throw new UserAlreadyDeletedException(userId);
+        }
+
+        if (req.getPhoneNumber() != null) {
+            String phone = req.getPhoneNumber().trim();
+            if (phone.isEmpty()) {
+                throw new InvalidUserRequestException("연락처는 비어 있을 수 없습니다.");
+            }
+
+            userRepository.findByPhoneNumber(phone).ifPresent(existing -> {
+                if (!existing.getUserId().equals(user.getUserId())) {
+                    throw new UserPhoneAlreadyExistsException(phone);
+                }
+            });
+
+            user.changePhoneNumber(phone);
+        }
+
+        boolean currentProvided =
+            req.getCurrentPassword() != null && !req.getCurrentPassword().isBlank();
+        boolean newProvided =
+            req.getNewPassword() != null && !req.getNewPassword().isBlank();
+
+        if (currentProvided || newProvided) {
+            if (!currentProvided || !newProvided) {
+                throw new InvalidUserRequestException("비밀번호 변경 시 현재/새 비밀번호 모두 필요합니다.");
+            }
+
+            if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
+                throw new UserPasswordMismatchException();
+            }
+
+            user.changePassword(passwordEncoder.encode(req.getNewPassword()));
+        }
     }
 
     @Override

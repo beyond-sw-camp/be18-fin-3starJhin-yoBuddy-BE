@@ -12,6 +12,7 @@ import com.j3s.yobuddy.domain.programenrollment.exception.EnrollmentNotFoundExce
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -28,33 +29,42 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
 
     @Override
     @Transactional
-    public ProgramEnrollmentResponse enroll(Long programId, ProgramEnrollmentRequest request) {
+    public List<ProgramEnrollmentResponse> enroll(Long programId, ProgramEnrollmentRequest request) {
 
-        if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(request.getUserId(), programId)) {
-            throw new DuplicateEnrollmentException(request.getUserId(), programId);
+        List<ProgramEnrollmentResponse> result = new ArrayList<>();
+
+        for (Long userId : request.getUserIds()) {
+
+            if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(userId, programId)) {
+                throw new DuplicateEnrollmentException(userId, programId);
+            }
+
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EnrollmentNotFoundException(userId));
+
+            OnboardingProgram program = programRepository.findById(programId)
+                .orElseThrow(() -> new EnrollmentNotFoundException(programId));
+
+            ProgramEnrollment enrollment = ProgramEnrollment.builder()
+                .user(user)
+                .program(program)
+                .status(EnrollmentStatus.ACTIVE)
+                .build();
+
+            enrollmentRepository.save(enrollment);
+
+            result.add(
+                ProgramEnrollmentResponse.builder()
+                    .enrollmentId(enrollment.getEnrollmentId())
+                    .programId(programId)
+                    .userId(user.getUserId())
+                    .status(enrollment.getStatus())
+                    .enrolledAt(enrollment.getEnrolledAt())
+                    .build()
+            );
         }
 
-        User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new EnrollmentNotFoundException(request.getUserId()));
-
-        OnboardingProgram program = programRepository.findById(programId)
-            .orElseThrow(() -> new EnrollmentNotFoundException(programId));
-
-        ProgramEnrollment enrollment = ProgramEnrollment.builder()
-            .user(user)
-            .program(program)
-            .status(EnrollmentStatus.ACTIVE)
-            .build();
-
-        enrollmentRepository.save(enrollment);
-
-        return ProgramEnrollmentResponse.builder()
-            .enrollmentId(enrollment.getEnrollmentId())
-            .programId(programId)
-            .userId(user.getUserId())
-            .status(enrollment.getStatus())
-            .enrolledAt(enrollment.getEnrolledAt())
-            .build();
+        return result;
     }
 
     @Override

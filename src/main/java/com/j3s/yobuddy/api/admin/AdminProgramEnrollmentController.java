@@ -25,7 +25,7 @@ public class AdminProgramEnrollmentController {
     private final ProgramEnrollmentService enrollmentService;
 
     @PostMapping
-    public ResponseEntity<ProgramEnrollmentResponse> enroll(
+    public ResponseEntity<List<ProgramEnrollmentResponse>> enroll(
         @PathVariable Long programId,
         @Valid @RequestBody ProgramEnrollmentRequest request
     ) {
