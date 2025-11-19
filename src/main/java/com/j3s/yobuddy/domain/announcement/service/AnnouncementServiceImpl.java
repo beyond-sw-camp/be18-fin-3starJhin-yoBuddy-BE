@@ -5,6 +5,7 @@ import com.j3s.yobuddy.domain.announcement.dto.request.AnnouncementUpdateRequest
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementListResponse;
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementResponse;
 import com.j3s.yobuddy.domain.announcement.entity.Announcement;
+import com.j3s.yobuddy.domain.announcement.entity.AnnouncementType;
 import com.j3s.yobuddy.domain.announcement.exception.AnnouncementAlreadyDeletedException;
 import com.j3s.yobuddy.domain.announcement.exception.AnnouncementNotFoundException;
 import com.j3s.yobuddy.domain.announcement.repository.AnnouncementRepository;
@@ -79,12 +80,28 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AnnouncementListResponse> getAllAnnouncements(String title, Pageable pageable) {
-        Page<Announcement> result =
-            (title == null || title.isBlank())
-                ? announcementRepository.findAllByIsDeletedFalse(pageable)
-                : announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title,
-                    pageable);
+    public Page<AnnouncementListResponse> getAllAnnouncements(AnnouncementType type, String title,
+        Pageable pageable) {
+        Page<Announcement> result;
+
+        if (type == null && (title == null || title.isBlank())) {
+            // 전체 조회
+            result = announcementRepository.findAllByIsDeletedFalse(pageable);
+
+        } else if (type == null) {
+            // 타입 없이 제목 검색
+            result = announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title,
+                pageable);
+
+        } else if (title == null || title.isBlank()) {
+            // 타입만 필터
+            result = announcementRepository.findByTypeAndIsDeletedFalse(type, pageable);
+
+        } else {
+            // 타입 + 제목 검색
+            result = announcementRepository.findByTypeAndTitleContainingIgnoreCaseAndIsDeletedFalse(
+                type, title, pageable);
+        }
 
         return result.map(AnnouncementListResponse::from);
     }

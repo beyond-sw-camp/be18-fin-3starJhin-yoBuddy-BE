@@ -2,6 +2,7 @@ package com.j3s.yobuddy.api.common;
 
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementListResponse;
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementResponse;
+import com.j3s.yobuddy.domain.announcement.entity.AnnouncementType;
 import com.j3s.yobuddy.domain.announcement.service.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,10 +25,11 @@ public class AnnouncementController {
 
     @GetMapping
     public ResponseEntity<Page<AnnouncementListResponse>> getAllAnnouncements(
+        @RequestParam(required = false) AnnouncementType type,
         @RequestParam(required = false) String title,
         @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<AnnouncementListResponse> announcements = announcementService.getAllAnnouncements(
-            title, pageable);
+            type, title, pageable);
 
         return ResponseEntity.ok(announcements);
     }
