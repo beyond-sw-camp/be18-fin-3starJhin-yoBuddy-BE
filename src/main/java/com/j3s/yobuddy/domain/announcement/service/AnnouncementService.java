@@ -6,7 +6,8 @@ import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementListResponse
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementResponse;
 import com.j3s.yobuddy.domain.announcement.entity.Announcement;
 import jakarta.validation.Valid;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface AnnouncementService {
 
@@ -17,7 +18,7 @@ public interface AnnouncementService {
 
     void deleteAnnouncement(Long announcementId);
 
-    List<AnnouncementListResponse> getAllAnnouncements(String title);
+    Page<AnnouncementListResponse> getAllAnnouncements(String title, Pageable pageable);
 
     AnnouncementResponse getAnnouncementById(Long announcementId);
 }
