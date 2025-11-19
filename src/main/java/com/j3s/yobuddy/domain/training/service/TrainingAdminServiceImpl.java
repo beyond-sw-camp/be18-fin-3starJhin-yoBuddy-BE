@@ -150,23 +150,17 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             throw new InvalidTrainingUpdateDataException();
         }
 
-        // --- 🔍 ONLINE URL 필수 검증 ---
-        // 1) type 변경 요청이 들어와서 ONLINE으로 바뀌는 경우
         if (request.getType() == TrainingType.ONLINE) {
-            if (request.getOnlineUrl() == null || request.getOnlineUrl().isBlank()) {
-                throw new MissingOnlineUrlException(); // 새로 정의한 예외
+            if (request.getOnlineUrl() == null || request.getOnlineUrl().isBlank()) {// 새로 정의한 예외
             }
         }
 
-        // 2) type 변경은 없지만 이미 ONLINE 상태라면, onlineUrl 수정 요청이 올 때 검증
         if (request.getType() == null && training.getType() == TrainingType.ONLINE) {
             if (request.getOnlineUrl() != null && request.getOnlineUrl().isBlank()) {
                 throw new MissingOnlineUrlException();
             }
         }
-        // --- END 검증 ---
-
-        // 업데이트 로직
+        
         if (request.getTitle() != null && !request.getTitle().isBlank()) {
             training.updateTitle(request.getTitle());
         }
