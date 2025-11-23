@@ -26,16 +26,18 @@ public class AdminAnnouncementController {
     private final AnnouncementService announcementService;
 
     @PostMapping
-    public ResponseEntity<Void> createAnnouncement(
+    public ResponseEntity<AnnouncementResponse> createAnnouncement(
         @AuthenticationPrincipal String principal, @Valid @RequestBody
         AnnouncementCreateRequest request) {
 
         Long userId = Long.valueOf(principal);
 
         Announcement announcement = announcementService.createAnnouncement(userId, request);
+        AnnouncementResponse response = AnnouncementResponse.from(announcement);
 
-        return ResponseEntity.created(
-            URI.create("/api/v1/admin/announcements/" + announcement.getAnnouncementId())).build();
+        return ResponseEntity
+            .created(URI.create("/api/v1/admin/announcements/" + announcement.getAnnouncementId()))
+            .body(response);
     }
 
     @PatchMapping("/{announcementId}")
