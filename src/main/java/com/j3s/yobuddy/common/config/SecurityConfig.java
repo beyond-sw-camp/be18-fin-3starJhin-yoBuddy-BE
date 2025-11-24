@@ -1,9 +1,7 @@
 package com.j3s.yobuddy.common.config;
 
-import com.j3s.yobuddy.common.security.JwtAuthenticationFilter;
-import com.j3s.yobuddy.common.security.JwtTokenProvider;
 import java.util.Arrays;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +15,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.j3s.yobuddy.common.security.JwtAuthenticationFilter;
+import com.j3s.yobuddy.common.security.JwtTokenProvider;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +40,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/wiki/**").permitAll()
+                .requestMatchers("/api/v1/health/**").permitAll()
                 .requestMatchers("/api/v1/account/me").authenticated()
                 .requestMatchers("/api/v1/users/**").hasRole("USER")
                 .requestMatchers("/api/v1/mentors/**").hasRole("MENTOR")
