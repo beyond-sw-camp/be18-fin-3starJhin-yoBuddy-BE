@@ -1,12 +1,19 @@
 package com.j3s.yobuddy.api.auth;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.j3s.yobuddy.common.security.JwtTokenProvider;
 import com.j3s.yobuddy.domain.auth.dto.LoginRequest;
 import com.j3s.yobuddy.domain.auth.dto.TokenResponse;
 import com.j3s.yobuddy.domain.auth.service.AuthService;
+import com.j3s.yobuddy.domain.notification.sse.SseEmitterManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -14,48 +21,62 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SseEmitterManager sseEmitterManager;
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(@RequestBody LoginRequest req) {
         TokenResponse resp = authService.login(req);
 
+        ResponseCookie accessCookie = ResponseCookie.from("ACCESS_TOKEN", resp.getAccessToken())
+            .httpOnly(true).secure(false).sameSite("Lax")
+            .path("/").maxAge(resp.getAccessExpiresIn() / 1000).build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH_TOKEN", resp.getRefreshToken())
+            .httpOnly(true).secure(false).sameSite("Lax")
+            .path("/").maxAge(60 * 60 * 24 * 14).build();
+
         return ResponseEntity.ok()
-            .header("Authorization", "Bearer " + resp.getAccessToken())
-            .header("Refresh-Token", resp.getRefreshToken())
-            .header("Access-Token-Expires-In", String.valueOf(resp.getAccessExpiresIn()))
+            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
             .build();
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<Void> refresh(
-        @RequestHeader("Refresh-Token") String refreshToken) {
-
+    public ResponseEntity<?> refresh(@CookieValue("REFRESH_TOKEN") String refreshToken) {
         TokenResponse resp = authService.refresh(refreshToken);
 
+        ResponseCookie accessCookie = ResponseCookie.from("ACCESS_TOKEN", resp.getAccessToken())
+            .httpOnly(true).secure(false).sameSite("Lax")
+            .path("/").maxAge(resp.getAccessExpiresIn() / 1000).build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH_TOKEN", resp.getRefreshToken())
+            .httpOnly(true).secure(false).sameSite("Lax")
+            .path("/").maxAge(60 * 60 * 24 * 14).build();
+
         return ResponseEntity.ok()
-            .header("Authorization", "Bearer " + resp.getAccessToken())
-            .header("Refresh-Token", resp.getRefreshToken())
-            .header("Access-Token-Expires-In", String.valueOf(resp.getAccessExpiresIn()))
-            .build();
+            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+            .body("refresh success");
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-        @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<String> logout(@AuthenticationPrincipal String userId) {
 
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().build();
-        }
+        authService.logout(Long.valueOf(userId));
 
-        String token = authorization.substring(7);
-        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        sseEmitterManager.disconnect(Long.valueOf(userId));
 
-        if (userId == null) {
-            return ResponseEntity.badRequest().build();
-        }
+        ResponseCookie clearAccess = ResponseCookie.from("ACCESS_TOKEN", "")
+            .httpOnly(true).secure(false).sameSite("Lax")
+            .path("/").maxAge(0).build();
 
-        authService.logout(userId);
-        return ResponseEntity.noContent().build();
+        ResponseCookie clearRefresh = ResponseCookie.from("REFRESH_TOKEN", "")
+            .httpOnly(true).secure(false).sameSite("Lax")
+            .path("/").maxAge(0).build();
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, clearAccess.toString())
+            .header(HttpHeaders.SET_COOKIE, clearRefresh.toString())
+            .body("logout success");
     }
 }
