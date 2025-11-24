@@ -36,7 +36,6 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
     @Transactional
     public void createGoal(KpiGoalsRequest request) {
         KpiGoals g = KpiGoals.builder()
-            .programId(request.getProgramId())
             .description(request.getDescription())
             .targetValue(request.getTargetValue())
             .weight(request.getWeight())
@@ -63,7 +62,6 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
 
         return KpiGoalsListResponse.builder()
             .kpiGoalId(g.getKpiGoalId())
-            .programId(g.getProgramId())
             .description(g.getDescription())
             .targetValue(g.getTargetValue())
             .weight(g.getWeight())

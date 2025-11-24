@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.api.wiki;
+package com.j3s.yobuddy.api.common.wiki;
 
 
 import org.springframework.http.HttpStatus;
