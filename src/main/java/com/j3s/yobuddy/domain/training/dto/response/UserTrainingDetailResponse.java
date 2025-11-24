@@ -1,6 +1,6 @@
 package com.j3s.yobuddy.domain.training.dto.response;
 
-import com.j3s.yobuddy.domain.training.entity.FormResultStatus;
+import com.j3s.yobuddy.domain.formresult.entity.FormResultStatus;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import java.math.BigDecimal;
