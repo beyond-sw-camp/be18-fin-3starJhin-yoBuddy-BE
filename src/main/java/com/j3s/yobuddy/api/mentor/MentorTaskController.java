@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.api.task;
+package com.j3s.yobuddy.api.mentor;
 
 import com.j3s.yobuddy.domain.task.dto.request.TaskGradeRequest;
 import com.j3s.yobuddy.domain.task.dto.response.MentorMenteeTaskResponse;

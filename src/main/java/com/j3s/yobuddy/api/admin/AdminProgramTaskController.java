@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.api.task;
+package com.j3s.yobuddy.api.admin;
 
 import com.j3s.yobuddy.domain.task.dto.request.ProgramTaskAssignRequest;
 import com.j3s.yobuddy.domain.task.dto.response.ProgramTaskListResponse;

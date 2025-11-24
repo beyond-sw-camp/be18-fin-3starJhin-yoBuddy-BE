@@ -1,15 +1,11 @@
-package com.j3s.yobuddy.api.task;
+package com.j3s.yobuddy.api.admin;
 
-import com.j3s.yobuddy.domain.task.dto.request.ProgramTaskAssignRequest;
 import com.j3s.yobuddy.domain.task.dto.request.TaskCreateRequest;
 import com.j3s.yobuddy.domain.task.dto.request.TaskUpdateRequest;
-import com.j3s.yobuddy.domain.task.dto.response.ProgramTaskListResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskCreateResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskDeleteResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskListResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskUpdateResponse;
-import com.j3s.yobuddy.domain.task.service.ProgramTaskCommandService;
-import com.j3s.yobuddy.domain.task.service.ProgramTaskQueryService;
 import com.j3s.yobuddy.domain.task.service.TaskCommandService;
 
 import com.j3s.yobuddy.domain.task.service.TaskQueryService;
@@ -17,7 +13,6 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

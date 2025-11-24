@@ -1,4 +1,4 @@
-package com.j3s.yobuddy.api.task;
+package com.j3s.yobuddy.api.user;
 
 import com.j3s.yobuddy.domain.task.dto.request.UserTaskSubmitRequest;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse;
