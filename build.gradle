@@ -33,6 +33,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+    // https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-sftp
+    implementation("org.springframework.integration:spring-integration-sftp:6.4.7")
     // Open Feign QueryDSL (latest security patched version)
     implementation("io.github.openfeign.querydsl:querydsl-core:7.0")
     implementation("io.github.openfeign.querydsl:querydsl-jpa:7.0")
