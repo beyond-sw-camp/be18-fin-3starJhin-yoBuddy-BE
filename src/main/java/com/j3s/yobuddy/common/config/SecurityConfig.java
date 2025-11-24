@@ -31,13 +31,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/wiki/**").permitAll()
+                .requestMatchers("/api/v1/health/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/notifications/stream").permitAll()
                 .requestMatchers("/api/v1/account/me").authenticated()
                 .requestMatchers("/api/v1/users/**").hasRole("USER")

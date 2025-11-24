@@ -44,6 +44,10 @@ public class AdminKpiGoalsController {
 
     @PostMapping
     public ResponseEntity<String> createGoal(@RequestBody KpiGoalsRequest request) {
+        if (request.getKpiCategoryId() == null) {
+            return ResponseEntity.badRequest().body("kpiCategoryId must not be null");
+        }
+
         kpiGoalsService.createGoal(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("KPI 목표가 생성되었습니다.");
     }
@@ -51,6 +55,10 @@ public class AdminKpiGoalsController {
     @PatchMapping("/{kpiGoalId}")
     public ResponseEntity<String> updateGoal(@PathVariable("kpiGoalId") Long kpiGoalId,
         @RequestBody KpiGoalsRequest request) {
+
+        if (request.getKpiCategoryId() == null) {
+            return ResponseEntity.badRequest().body("kpiCategoryId must not be null");
+        }
 
         kpiGoalsService.updateGoal(kpiGoalId, request);
         return ResponseEntity.ok("KPI 목표가 수정되었습니다.");
