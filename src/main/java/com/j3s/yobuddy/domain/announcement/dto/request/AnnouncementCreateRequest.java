@@ -3,6 +3,7 @@ package com.j3s.yobuddy.domain.announcement.dto.request;
 import com.j3s.yobuddy.domain.announcement.entity.AnnouncementType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,4 +20,6 @@ public class AnnouncementCreateRequest {
     private final AnnouncementType type;
 
     private final String content;
+
+    private final List<Long> fileIds;
 }

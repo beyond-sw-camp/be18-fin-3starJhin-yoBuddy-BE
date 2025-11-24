@@ -2,7 +2,9 @@ package com.j3s.yobuddy.domain.announcement.dto.response;
 
 import com.j3s.yobuddy.domain.announcement.entity.Announcement;
 import com.j3s.yobuddy.domain.announcement.entity.AnnouncementType;
+import com.j3s.yobuddy.domain.file.entity.FileEntity;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +22,9 @@ public class AnnouncementResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static AnnouncementResponse from(Announcement ann) {
+    private final List<AnnouncementFileResponse> files;
+
+    public static AnnouncementResponse from(Announcement ann, List<FileEntity> fileList) {
         return AnnouncementResponse.builder()
             .announcementId(ann.getAnnouncementId())
             .title(ann.getTitle())
@@ -29,7 +33,7 @@ public class AnnouncementResponse {
             .author(ann.getUser().getName())
             .createdAt(ann.getCreatedAt())
             .updatedAt(ann.getUpdatedAt())
+            .files(fileList.stream().map(AnnouncementFileResponse::from).toList())
             .build();
     }
-
 }
