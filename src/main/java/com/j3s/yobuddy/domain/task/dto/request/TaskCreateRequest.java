@@ -19,6 +19,9 @@ public class TaskCreateRequest {
     @NotNull
     private Integer points;
 
+    @NotNull
+    private List<Long> departmentIds;
+
     private List<Long> fileIds;
 
 }

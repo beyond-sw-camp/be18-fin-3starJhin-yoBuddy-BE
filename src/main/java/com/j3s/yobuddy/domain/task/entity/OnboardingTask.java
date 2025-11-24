@@ -1,14 +1,10 @@
 package com.j3s.yobuddy.domain.task.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.*;
 
 @Entity
 @Getter
@@ -19,7 +15,6 @@ public class OnboardingTask {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "task_id")
     private Long id;
 
     private String title;
@@ -28,6 +23,9 @@ public class OnboardingTask {
     private String description;
 
     private Integer points;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskDepartment> taskDepartments = new ArrayList<>();
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -44,12 +42,13 @@ public class OnboardingTask {
         this.description = description;
         this.points = points;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         this.isDeleted = false;
     }
 
+
     public void delete() {
         this.isDeleted = true;
+        this.updatedAt = LocalDateTime.now();
     }
-
-
 }

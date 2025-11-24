@@ -21,6 +21,7 @@ public class TaskListResponse {
         private String title;
         private String description;
         private Integer points;
+        private List<Long> departmentIds;
         private LocalDateTime createdAt;
     }
 }

@@ -11,5 +11,6 @@ public class TaskUpdateRequest {
     private String title;
     private String description;
     private Integer points;
+    private List<Long> departmentIds;
     private List<Long> fileIds;
 }

@@ -2,22 +2,12 @@ package com.j3s.yobuddy.domain.department.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.j3s.yobuddy.domain.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import com.j3s.yobuddy.domain.task.entity.TaskDepartment;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
@@ -48,6 +38,11 @@ public class Department {
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
     @Builder.Default
     private List<User> users = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "department", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<TaskDepartment> taskDepartments = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

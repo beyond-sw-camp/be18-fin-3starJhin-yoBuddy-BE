@@ -19,21 +19,28 @@ public class TaskQueryServiceImpl implements TaskQueryService {
     @Override
     public TaskListResponse getTaskList() {
 
-        // Soft Delete 되지 않은 Task 만 조회
         List<OnboardingTask> tasks = onboardingTaskRepository.findAll()
             .stream()
             .filter(task -> task.getIsDeleted() == null || !task.getIsDeleted())
             .toList();
 
         List<TaskListResponse.TaskSummary> taskSummaries = tasks.stream()
-            .map(task -> TaskListResponse.TaskSummary.builder()
-                .taskId(task.getId())
-                .title(task.getTitle())
-                .description(task.getDescription())
-                .points(task.getPoints())
-                .createdAt(task.getCreatedAt())
-                .build()
-            )
+            .map(task -> {
+
+                // ⭐ Task가 연결된 부서 ID 리스트 추출
+                List<Long> deptIds = task.getTaskDepartments().stream()
+                    .map(td -> td.getDepartment().getDepartmentId())
+                    .toList();
+
+                return TaskListResponse.TaskSummary.builder()
+                    .taskId(task.getId())
+                    .title(task.getTitle())
+                    .description(task.getDescription())
+                    .points(task.getPoints())
+                    .createdAt(task.getCreatedAt())
+                    .departmentIds(deptIds)     // ⭐ 추가된 필드
+                    .build();
+            })
             .toList();
 
         return TaskListResponse.builder()
