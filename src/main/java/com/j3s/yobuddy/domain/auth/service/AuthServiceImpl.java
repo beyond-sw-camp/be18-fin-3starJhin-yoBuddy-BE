@@ -6,14 +6,18 @@ import com.j3s.yobuddy.domain.auth.dto.LoginRequest;
 import com.j3s.yobuddy.domain.auth.dto.TokenResponse;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import java.time.Duration;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -25,12 +29,12 @@ public class AuthServiceImpl implements AuthService {
     private final StringRedisTemplate redisTemplate;
     private final JwtProperties jwtProperties;
 
-    private String redisKeyFor(Long userId) {
+    private String redisKey(Long userId) {
         return "refresh:" + userId;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse login(LoginRequest req) {
         User user = userRepository.findByEmailAndIsDeletedFalse(req.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
@@ -39,29 +43,30 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String access = jwtTokenProvider.createAccessToken(
-            user.getUserId(), user.getEmail(), user.getRole().name());
-        String refresh = jwtTokenProvider.createRefreshToken(user.getUserId());
+        Long userId = user.getUserId();
 
-        // store refresh in redis with expiration
-        long ttlMs = jwtProperties.getRefreshExpirationMs();
-        redisTemplate.opsForValue()
-            .set(redisKeyFor(user.getUserId()), refresh, Duration.ofMillis(ttlMs));
+        String access = jwtTokenProvider.createAccessToken(userId, user.getEmail(), user.getRole().name());
+        String refresh = jwtTokenProvider.createRefreshToken(userId);
+
+        redisTemplate.opsForValue().set(redisKey(userId), refresh, Duration.ofMillis(jwtProperties.getRefreshExpirationMs()));
 
         return new TokenResponse(access, refresh, jwtProperties.getAccessExpirationMs());
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse refresh(String refreshToken) {
-        if (!jwtTokenProvider.validate(refreshToken)) {
+
+        Jws<Claims> claims;
+        try {
+            claims = jwtTokenProvider.parseClaims(refreshToken);
+        } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid refresh token");
         }
 
-        Jws<Claims> claims = jwtTokenProvider.parseClaims(refreshToken);
         Long userId = Long.valueOf(claims.getBody().getSubject());
+        String key = redisKey(userId);
 
-        String key = redisKeyFor(userId);
         String saved = redisTemplate.opsForValue().get(key);
         if (saved == null || !saved.equals(refreshToken)) {
             throw new IllegalArgumentException("Refresh token not recognized");
@@ -70,13 +75,10 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // issue new tokens (rotate refresh token)
-        String newAccess = jwtTokenProvider.createAccessToken(user.getUserId(), user.getEmail(),
-            user.getRole().name());
-        String newRefresh = jwtTokenProvider.createRefreshToken(user.getUserId());
+        String newAccess = jwtTokenProvider.createAccessToken(userId, user.getEmail(), user.getRole().name());
+        String newRefresh = jwtTokenProvider.createRefreshToken(userId);
 
-        redisTemplate.opsForValue()
-            .set(key, newRefresh, Duration.ofMillis(jwtProperties.getRefreshExpirationMs()));
+        redisTemplate.opsForValue().set(key, newRefresh, Duration.ofMillis(jwtProperties.getRefreshExpirationMs()));
 
         return new TokenResponse(newAccess, newRefresh, jwtProperties.getAccessExpirationMs());
     }
@@ -84,6 +86,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(Long userId) {
-        redisTemplate.delete(redisKeyFor(userId));
+        redisTemplate.delete(redisKey(userId));
     }
 }
