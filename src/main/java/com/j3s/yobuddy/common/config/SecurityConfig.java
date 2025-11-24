@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -37,7 +38,7 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/notifications/stream").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/v1/notifications/stream").permitAll()
                 .requestMatchers("/api/v1/account/me").authenticated()
                 .requestMatchers("/api/v1/users/**").hasRole("USER")
                 .requestMatchers("/api/v1/mentors/**").hasRole("MENTOR")
