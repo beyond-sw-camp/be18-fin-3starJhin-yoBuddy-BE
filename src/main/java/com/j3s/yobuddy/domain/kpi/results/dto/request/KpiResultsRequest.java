@@ -18,3 +18,4 @@ public class KpiResultsRequest {
     private final Long departmentId;
 
 }
+

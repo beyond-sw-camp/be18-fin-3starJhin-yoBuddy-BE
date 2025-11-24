@@ -41,6 +41,7 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
             .targetValue(request.getTargetValue())
             .weight(request.getWeight())
             .kpiCategoryId(request.getKpiCategoryId())
+            .departmentId(request.getDepartmentId())
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .isDeleted(false)
@@ -56,7 +57,7 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
             .orElseThrow(() -> new KpiGoalsNotFoundException(kpiGoalId));
 
         g.update(request.getProgramId(), request.getDescription(), request.getTargetValue(), request.getWeight(),
-            request.getKpiCategoryId());
+            request.getKpiCategoryId(), request.getDepartmentId());
 
         kpiGoalsRepository.save(g);
 
@@ -67,6 +68,7 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
             .targetValue(g.getTargetValue())
             .weight(g.getWeight())
             .kpiCategoryId(g.getKpiCategoryId())
+            .departmentId(g.getDepartmentId())
             .createdAt(g.getCreatedAt())
             .updatedAt(g.getUpdatedAt())
             .build();

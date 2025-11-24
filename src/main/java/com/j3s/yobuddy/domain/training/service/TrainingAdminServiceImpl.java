@@ -20,6 +20,7 @@ import com.j3s.yobuddy.domain.training.entity.Training;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingUpdateDataException;
+import com.j3s.yobuddy.domain.training.exception.MissingOnlineUrlException;
 import com.j3s.yobuddy.domain.training.exception.ProgramAlreadyCompletedException;
 import com.j3s.yobuddy.domain.training.exception.TrainingInUseException;
 import com.j3s.yobuddy.domain.training.exception.TrainingNotFoundException;
@@ -115,11 +116,16 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             throw new InvalidTrainingDataException("(description 은 필수입니다.)");
         }
 
+        if (request.getType() == TrainingType.ONLINE && request.getOnlineUrl() == null){
+            throw new InvalidTrainingDataException("(온라인 교육의 URL은 필수입니다.)");
+        }
+
         // TODO: fileIds 로 Files 연동은 추후
         Training training = Training.create(
             request.getTitle(),
             request.getType(),
-            request.getDescription()
+            request.getDescription(),
+            request.getOnlineUrl()
         );
 
         Training saved = trainingRepository.save(training);
@@ -137,12 +143,24 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         boolean hasUpdate =
             (request.getTitle() != null && !request.getTitle().isBlank()) ||
                 request.getType() != null ||
-                (request.getDescription() != null && !request.getDescription().isBlank());
+                (request.getDescription() != null && !request.getDescription().isBlank()) ||
+                (request.getOnlineUrl() != null && !request.getOnlineUrl().isBlank());
 
         if (!hasUpdate) {
             throw new InvalidTrainingUpdateDataException();
         }
 
+        if (request.getType() == TrainingType.ONLINE) {
+            if (request.getOnlineUrl() == null || request.getOnlineUrl().isBlank()) {// 새로 정의한 예외
+            }
+        }
+
+        if (request.getType() == null && training.getType() == TrainingType.ONLINE) {
+            if (request.getOnlineUrl() != null && request.getOnlineUrl().isBlank()) {
+                throw new MissingOnlineUrlException();
+            }
+        }
+        
         if (request.getTitle() != null && !request.getTitle().isBlank()) {
             training.updateTitle(request.getTitle());
         }
@@ -153,6 +171,10 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
 
         if (request.getDescription() != null && !request.getDescription().isBlank()) {
             training.updateDescription(request.getDescription());
+        }
+
+        if (request.getOnlineUrl() != null && !request.getOnlineUrl().isBlank()) {
+            training.updateOnlineUrl(request.getOnlineUrl());
         }
 
         return TrainingResponse.from(training);
@@ -181,6 +203,7 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     }
 
     @Override
+    @Transactional
     public ProgramTrainingAssignResponse assignTrainingToProgram(
         Long programId,
         Long trainingId,
@@ -262,6 +285,7 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     }
 
     @Override
+    @Transactional
     public ProgramTrainingUnassignResponse unassignTrainingFromProgram(
         Long programId,
         Long trainingId
