@@ -1,6 +1,8 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+  profiles:
+    active: local
 
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
@@ -50,3 +52,36 @@ sftp:
   port: ${SFTP_PORT}
   user: ${SFTP_USER}
   password: ${SFTP_PASSWORD}
+
+---
+# local (개발)
+spring:
+  config:
+    activate:
+      on-profile: local
+
+cookie:
+  secure: false
+  same-site: Lax
+
+---
+# QA (HTTP 환경)
+spring:
+  config:
+    activate:
+      on-profile: qa
+
+cookie:
+  secure: false
+  same-site: Lax
+
+---
+# prod (HTTPS)
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+cookie:
+  secure: true
+  same-site: None

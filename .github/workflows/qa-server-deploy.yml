@@ -17,7 +17,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build JAR
-        run: ./gradlew clean build -x test
+        run: SPRING_PROFILES_ACTIVE=qa ./gradlew clean build -x test
 
       - name: Generate .env file
         run: |
