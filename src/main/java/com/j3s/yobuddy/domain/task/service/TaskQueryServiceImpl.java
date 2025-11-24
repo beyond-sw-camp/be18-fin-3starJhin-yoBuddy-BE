@@ -1,42 +1,44 @@
 package com.j3s.yobuddy.domain.task.service;
 
-import com.j3s.yobuddy.domain.task.dto.request.AdminTaskSearchCond;
-import com.j3s.yobuddy.domain.task.dto.response.AdminTaskListItem;
-import com.j3s.yobuddy.domain.task.dto.response.AdminTaskListResponse;
-import com.j3s.yobuddy.domain.task.entity.Task;
-import com.j3s.yobuddy.domain.task.repository.TaskRepository;
+import com.j3s.yobuddy.domain.task.dto.response.TaskListResponse;
+import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
+import com.j3s.yobuddy.domain.task.repository.OnboardingTaskRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TaskQueryServiceImpl implements TaskQueryService {
 
-    private final TaskRepository taskRepository;
+    private final OnboardingTaskRepository onboardingTaskRepository;
 
     @Override
-    public AdminTaskListResponse getAdminTaskList(AdminTaskSearchCond cond, Pageable pageable) {
+    public TaskListResponse getTaskList() {
 
-        Page<Task> tasks = taskRepository.findAll(pageable); // 검색 조건 미구현 버전
+        // Soft Delete 되지 않은 Task 만 조회
+        List<OnboardingTask> tasks = onboardingTaskRepository.findAll()
+            .stream()
+            .filter(task -> task.getIsDeleted() == null || !task.getIsDeleted())
+            .toList();
 
-        List<AdminTaskListItem> items = tasks.stream()
-            .map(task -> AdminTaskListItem.builder()
+        List<TaskListResponse.TaskSummary> taskSummaries = tasks.stream()
+            .map(task -> TaskListResponse.TaskSummary.builder()
                 .taskId(task.getId())
                 .title(task.getTitle())
                 .description(task.getDescription())
-                .dueDate(task.getDueDate())
                 .points(task.getPoints())
-                .assignedProgramCount(0)
                 .createdAt(task.getCreatedAt())
-                .build())
+                .build()
+            )
             .toList();
 
-        return AdminTaskListResponse.builder()
-            .totalCount((int) tasks.getTotalElements())
-            .tasks(items)
+        return TaskListResponse.builder()
+            .totalCount(taskSummaries.size())
+            .tasks(taskSummaries)
             .build();
     }
 }

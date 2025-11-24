@@ -9,5 +9,4 @@ public class TaskGradeRequest {
 
     private Integer grade;     // required
     private String feedback;   // required
-    private String comment;    // optional
 }

@@ -1,6 +1,6 @@
 package com.j3s.yobuddy.domain.programenrollment.service;
 
-import com.j3s.yobuddy.domain.onboarding.entity.OnboardingPrograms;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
@@ -28,16 +28,17 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
 
     @Override
     @Transactional
-    public ProgramEnrollmentResponse enroll(ProgramEnrollmentRequest request) {
-        if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(request.getUserId(),
-            request.getProgramId())) {
-            throw new DuplicateEnrollmentException(request.getUserId(), request.getProgramId());
+    public ProgramEnrollmentResponse enroll(Long programId, ProgramEnrollmentRequest request) {
+
+        if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(request.getUserId(), programId)) {
+            throw new DuplicateEnrollmentException(request.getUserId(), programId);
         }
 
         User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new EnrollmentNotFoundException(request.getUserId()));
-        OnboardingPrograms program = programRepository.findById(request.getProgramId())
-            .orElseThrow(() -> new EnrollmentNotFoundException(request.getProgramId()));
+
+        OnboardingProgram program = programRepository.findById(programId)
+            .orElseThrow(() -> new EnrollmentNotFoundException(programId));
 
         ProgramEnrollment enrollment = ProgramEnrollment.builder()
             .user(user)
@@ -45,14 +46,14 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
             .status(EnrollmentStatus.ACTIVE)
             .build();
 
-        ProgramEnrollment saved = enrollmentRepository.save(enrollment);
+        enrollmentRepository.save(enrollment);
 
         return ProgramEnrollmentResponse.builder()
-            .enrollmentId(saved.getEnrollmentId())
-            .programId(program.getProgramId())
+            .enrollmentId(enrollment.getEnrollmentId())
+            .programId(programId)
             .userId(user.getUserId())
-            .status(saved.getStatus())
-            .enrolledAt(saved.getEnrolledAt())
+            .status(enrollment.getStatus())
+            .enrolledAt(enrollment.getEnrolledAt())
             .build();
     }
 
@@ -63,7 +64,7 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
             .stream()
             .map(e -> ProgramEnrollmentResponse.builder()
                 .enrollmentId(e.getEnrollmentId())
-                .programId(e.getProgram().getProgramId())
+                .programId(programId)
                 .userId(e.getUser().getUserId())
                 .status(e.getStatus())
                 .enrolledAt(e.getEnrolledAt())
@@ -79,7 +80,7 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
             .map(e -> ProgramEnrollmentResponse.builder()
                 .enrollmentId(e.getEnrollmentId())
                 .programId(e.getProgram().getProgramId())
-                .userId(e.getUser().getUserId())
+                .userId(userId)
                 .status(e.getStatus())
                 .enrolledAt(e.getEnrolledAt())
                 .build())
@@ -88,17 +89,17 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
 
     @Override
     @Transactional
-    public ProgramEnrollmentResponse updateEnrollment(Long id,
+    public ProgramEnrollmentResponse updateEnrollment(Long programId, Long enrollmentId,
         ProgramEnrollmentUpdateRequest request) {
-        ProgramEnrollment enrollment = enrollmentRepository.findById(id)
-            .orElseThrow(() -> new EnrollmentNotFoundException(id));
+
+        ProgramEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
+            .orElseThrow(() -> new EnrollmentNotFoundException(enrollmentId));
 
         enrollment.updateStatus(EnrollmentStatus.valueOf(request.getStatus()));
-        enrollmentRepository.save(enrollment);
 
         return ProgramEnrollmentResponse.builder()
-            .enrollmentId(enrollment.getEnrollmentId())
-            .programId(enrollment.getProgram().getProgramId())
+            .enrollmentId(enrollmentId)
+            .programId(programId)
             .userId(enrollment.getUser().getUserId())
             .status(enrollment.getStatus())
             .enrolledAt(enrollment.getEnrolledAt())
@@ -110,8 +111,6 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
     public void withdraw(Long id) {
         ProgramEnrollment enrollment = enrollmentRepository.findById(id)
             .orElseThrow(() -> new EnrollmentNotFoundException(id));
-
         enrollment.updateStatus(EnrollmentStatus.WITHDRAWN);
-        enrollmentRepository.save(enrollment);
-    }
+        enrollmentRepository.save(enrollment); }
 }

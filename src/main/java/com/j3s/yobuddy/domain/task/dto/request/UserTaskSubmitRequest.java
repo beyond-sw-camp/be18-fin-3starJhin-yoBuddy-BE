@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public class UserTaskSubmitRequest {
-    private String comment;
+    private String attachmentUrl;  // 파일 링크(Optional)
 }

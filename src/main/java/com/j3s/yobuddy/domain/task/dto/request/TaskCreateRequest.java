@@ -17,10 +17,8 @@ public class TaskCreateRequest {
     private String description;
 
     @NotNull
-    private LocalDate dueDate;
-
-    @NotNull
     private Integer points;
 
-    private List<Long> fileIds; // optional
+    private List<Long> fileIds;
+
 }

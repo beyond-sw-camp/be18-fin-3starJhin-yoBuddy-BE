@@ -21,10 +21,8 @@ public class ProgramTaskListResponse {
     @Builder
     public static class TaskInfo {
         private Long taskId;
-        private String title;
-        private String description;
+        private Long programId;
         private LocalDate dueDate;
-        private Integer points;
         private LocalDateTime assignedAt;
     }
 }

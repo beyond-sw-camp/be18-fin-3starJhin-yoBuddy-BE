@@ -14,13 +14,8 @@ public class UserTaskScoreResponse {
 
     private String title;
 
-    private String status;      // PENDING, SUBMITTED, GRADED
     private Integer grade;
 
     private String feedback;
-    private String evaluator;
-
-    private LocalDateTime evaluatedAt;
     private LocalDateTime updatedAt;
-
 }

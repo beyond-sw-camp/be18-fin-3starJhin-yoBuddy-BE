@@ -13,7 +13,6 @@ public class TaskCreateResponse {
     private Long taskId;
     private String title;
     private String description;
-    private LocalDate dueDate;
     private Integer points;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

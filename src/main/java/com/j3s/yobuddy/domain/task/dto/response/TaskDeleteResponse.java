@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class TaskDeleteResponse {
 
+    private String message;
     private Long taskId;
     private LocalDateTime deletedAt;
 

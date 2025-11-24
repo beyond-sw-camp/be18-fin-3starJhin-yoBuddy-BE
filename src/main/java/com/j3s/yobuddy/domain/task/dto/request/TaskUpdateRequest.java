@@ -10,7 +10,6 @@ public class TaskUpdateRequest {
 
     private String title;
     private String description;
-    private LocalDate dueDate;
     private Integer points;
     private List<Long> fileIds;
 }

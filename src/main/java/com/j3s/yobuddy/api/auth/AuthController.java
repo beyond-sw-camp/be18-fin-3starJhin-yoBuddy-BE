@@ -1,18 +1,11 @@
 package com.j3s.yobuddy.api.auth;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.j3s.yobuddy.common.security.JwtTokenProvider;
 import com.j3s.yobuddy.domain.auth.dto.LoginRequest;
-import com.j3s.yobuddy.domain.auth.dto.RefreshRequest;
 import com.j3s.yobuddy.domain.auth.dto.TokenResponse;
 import com.j3s.yobuddy.domain.auth.service.AuthService;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -20,35 +13,49 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 
-	private final AuthService authService;
-	private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-	@PostMapping("/login")
-	public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest req) {
-		TokenResponse resp = authService.login(req);
-		return ResponseEntity.ok(resp);
-	}
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(@RequestBody LoginRequest req) {
+        TokenResponse resp = authService.login(req);
 
-	@PostMapping("/refresh")
-	public ResponseEntity<TokenResponse> refresh(@RequestBody RefreshRequest body) {
-		TokenResponse resp = authService.refresh(body.getRefreshToken());
-		return ResponseEntity.ok(resp);
-	}
+        return ResponseEntity.ok()
+            .header("Authorization", "Bearer " + resp.getAccessToken())
+            .header("Refresh-Token", resp.getRefreshToken())
+            .header("Access-Token-Expires-In", String.valueOf(resp.getAccessExpiresIn()))
+            .build();
+    }
 
-	@PostMapping("/logout")
-	public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authorization) {
-		// expect: Authorization: Bearer <access-token>
-		if (authorization == null || !authorization.startsWith("Bearer ")) {
-			return ResponseEntity.badRequest().build();
-		}
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> refresh(
+        @RequestHeader("Refresh-Token") String refreshToken) {
 
-		String token = authorization.substring(7);
-		Long userId = jwtTokenProvider.getUserIdFromToken(token);
-		if (userId == null) {
-			return ResponseEntity.badRequest().build();
-		}
+        TokenResponse resp = authService.refresh(refreshToken);
 
-		authService.logout(userId);
-		return ResponseEntity.noContent().build();
-	}
+        return ResponseEntity.ok()
+            .header("Authorization", "Bearer " + resp.getAccessToken())
+            .header("Refresh-Token", resp.getRefreshToken())
+            .header("Access-Token-Expires-In", String.valueOf(resp.getAccessExpiresIn()))
+            .build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+        @RequestHeader("Authorization") String authorization) {
+
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String token = authorization.substring(7);
+        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        authService.logout(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

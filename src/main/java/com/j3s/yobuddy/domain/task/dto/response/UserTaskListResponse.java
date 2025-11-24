@@ -13,21 +13,21 @@ public class UserTaskListResponse {
 
     private Long userId;
     private Long programId;
-
-    private List<TaskSummary> tasks;
+    private List<TaskInfo> tasks;
 
     @Getter
     @Builder
-    public static class TaskSummary {
+    public static class TaskInfo {
 
         private Long taskId;
         private String title;
         private LocalDate dueDate;
 
-        private String status;         // PENDING, SUBMITTED, GRADED, LATE
-        private Integer grade;         // null 가능
-        private LocalDateTime submittedAt;  // null 가능
+        // ENUM 문자열 그대로 내려가기 때문에 String 사용
+        private String status;
 
-        private String feedback;       // 채점 후 제공
+        private Integer grade;
+        private LocalDateTime submittedAt;
+        private String feedback;
     }
 }

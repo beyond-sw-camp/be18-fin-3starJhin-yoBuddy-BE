@@ -13,7 +13,6 @@ public class TaskUpdateResponse {
     private Long taskId;
     private String title;
     private String description;
-    private LocalDate dueDate;
     private Integer points;
     private LocalDateTime updatedAt;
 }
