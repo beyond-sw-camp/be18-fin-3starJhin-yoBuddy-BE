@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import com.j3s.yobuddy.domain.task.dto.response.AdminTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskListResponse;
 import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
 import com.j3s.yobuddy.domain.task.repository.OnboardingTaskRepository;
@@ -47,5 +48,18 @@ public class TaskQueryServiceImpl implements TaskQueryService {
             .totalCount(taskSummaries.size())
             .tasks(taskSummaries)
             .build();
+    }
+
+    @Override
+    public AdminTaskDetailResponse getTaskDetail(Long taskId) {
+
+        OnboardingTask task = onboardingTaskRepository.findById(taskId)
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+
+        if (task.getIsDeleted() != null && task.getIsDeleted()) {
+            throw new IllegalStateException("Task is deleted");
+        }
+
+        return AdminTaskDetailResponse.from(task);
     }
 }
