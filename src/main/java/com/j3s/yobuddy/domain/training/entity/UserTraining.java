@@ -13,9 +13,12 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import com.j3s.yobuddy.domain.user.entity.User;
@@ -24,6 +27,8 @@ import com.j3s.yobuddy.domain.user.entity.User;
 @Table(name = "User_Trainings")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserTraining {
 
     @Id
