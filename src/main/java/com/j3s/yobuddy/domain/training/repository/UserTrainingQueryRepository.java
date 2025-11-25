@@ -79,31 +79,26 @@ public class UserTrainingQueryRepository {
         return Optional.ofNullable(
             query
                 .select(
-                    Projections.constructor(
+                    Projections.fields(
                         UserTrainingDetailResponse.class,
 
-                        // userId + trainingId
-                        ut.user.userId,      // userId
-                        t.trainingId,    // trainingId (PathVariable과 동일해야 함)
+                        ut.user.userId.as("userId"),
+                        t.trainingId.as("trainingId"),
 
-                        // Trainings 정보
                         t.title,
                         t.type,
                         t.onlineUrl,
                         t.description,
 
-                        // Program_Trainings 일정 정보
                         pt.startDate,
                         pt.endDate,
                         pt.scheduledAt,
 
-                        // User_Trainings 정보
                         ut.status,
                         ut.completedAt,
                         ut.createdAt,
                         ut.updatedAt,
 
-                        // Form_Results 정보
                         fr.score,
                         fr.maxScore,
                         fr.passingScore,
@@ -112,27 +107,18 @@ public class UserTrainingQueryRepository {
                     )
                 )
                 .from(ut)
-
-                // User_Trainings → Program_Trainings
                 .join(ut.programTraining, pt)
-
-                // Program_Trainings → Trainings
                 .join(pt.training, t)
-
-                // Form_Results (user_id + training_id)
                 .leftJoin(fr)
                 .on(
                     fr.user.userId.eq(userId)
                         .and(fr.training.trainingId.eq(trainingId))
                         .and(fr.isDeleted.eq(false))
                 )
-
-                // WHERE 조건
                 .where(
                     ut.user.userId.eq(userId)
-                        .and(pt.training.trainingId.eq(trainingId))   // ★ 핵심: path variable과 매칭
+                        .and(pt.training.trainingId.eq(trainingId))
                 )
-
                 .fetchOne()
         );
     }

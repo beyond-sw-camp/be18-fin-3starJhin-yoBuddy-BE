@@ -1,6 +1,5 @@
 package com.j3s.yobuddy.domain.announcement.service;
 
-import com.j3s.yobuddy.domain.announcement.dto.request.AnnouncementUpdateRequest;
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementListResponse;
 import com.j3s.yobuddy.domain.announcement.dto.response.AnnouncementResponse;
 import com.j3s.yobuddy.domain.announcement.entity.Announcement;
@@ -57,12 +56,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         if (files != null) {
             for (MultipartFile file : files) {
-                FileEntity saved = fileService.uploadFile(
-                    file,
-                    FileType.GENERAL,
-                    RefType.ANNOUNCEMENT,
-                    announcement.getAnnouncementId()
-                );
+                FileEntity uploaded = fileService.uploadTempFile(file, FileType.GENERAL);
+                fileService.bindFile(uploaded.getFileId(), RefType.ANNOUNCEMENT, announcement.getAnnouncementId());
             }
         }
 
@@ -74,35 +69,40 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     @Override
     @Transactional
-    public AnnouncementResponse updateAnnouncement(Long announcementId,
-        AnnouncementUpdateRequest request) {
+    public AnnouncementResponse updateAnnouncementWithFiles(
+        Long announcementId,
+        String title,
+        AnnouncementType type,
+        String content,
+        List<Long> removeFileIds,
+        List<MultipartFile> files
+    ) throws Exception {
 
-        Announcement announcement = announcementRepository
+        Announcement ann = announcementRepository
             .findByAnnouncementIdAndIsDeletedFalse(announcementId)
             .orElseThrow(() -> new AnnouncementNotFoundException(announcementId));
 
-        announcement.update(request.getTitle(), request.getType(), request.getContent());
+        ann.update(title, type, content);
 
-        if (request.getRemoveFileIds() != null) {
-            for (Long fileId : request.getRemoveFileIds()) {
+        if (removeFileIds != null) {
+            for (Long fileId : removeFileIds) {
                 FileEntity file = fileService.getFileEntity(fileId);
                 file.setRefId(null);
                 file.setRefType(null);
             }
         }
 
-        if (request.getAddFileIds() != null) {
-            for (Long fileId : request.getAddFileIds()) {
-                FileEntity file = fileService.getFileEntity(fileId);
-                file.setRefType(RefType.ANNOUNCEMENT);
-                file.setRefId(announcementId);
+        if (files != null) {
+            for (MultipartFile file : files) {
+                FileEntity uploaded = fileService.uploadTempFile(file, FileType.GENERAL);
+                fileService.bindFile(uploaded.getFileId(), RefType.ANNOUNCEMENT, announcementId);
             }
         }
 
         List<FileEntity> fileList =
             fileRepository.findByRefTypeAndRefId(RefType.ANNOUNCEMENT, announcementId);
 
-        return AnnouncementResponse.from(announcement, fileList);
+        return AnnouncementResponse.from(ann, fileList);
     }
 
     @Override
@@ -132,23 +132,19 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Transactional(readOnly = true)
     public Page<AnnouncementListResponse> getAllAnnouncements(AnnouncementType type, String title,
         Pageable pageable) {
+
         Page<Announcement> result;
 
         if (type == null && (title == null || title.isBlank())) {
-            // 전체 조회
             result = announcementRepository.findAllByIsDeletedFalse(pageable);
 
         } else if (type == null) {
-            // 타입 없이 제목 검색
-            result = announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title,
-                pageable);
+            result = announcementRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalse(title, pageable);
 
         } else if (title == null || title.isBlank()) {
-            // 타입만 필터
             result = announcementRepository.findByTypeAndIsDeletedFalse(type, pageable);
 
         } else {
-            // 타입 + 제목 검색
             result = announcementRepository.findByTypeAndTitleContainingIgnoreCaseAndIsDeletedFalse(
                 type, title, pageable);
         }

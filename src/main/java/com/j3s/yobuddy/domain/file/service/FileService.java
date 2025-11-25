@@ -4,6 +4,7 @@ import com.j3s.yobuddy.domain.file.entity.FileEntity;
 import com.j3s.yobuddy.domain.file.entity.FileType;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
@@ -15,92 +16,79 @@ import java.io.FileOutputStream;
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class FileService {
 
-    @Autowired
-    private SftpRemoteFileTemplate sftpTemplate;
-
-    @Autowired
-    private FileRepository fileRepository;
+    private final SftpRemoteFileTemplate sftpTemplate;
+    private final FileRepository fileRepository;
 
     @Value("${spring.file.upload-dir}")
-    private String remoteDir; // QA 서버 경로
+    private String remoteDir;
 
-    // ----------------------------
-    // 파일 업로드
-    // ----------------------------
-    public FileEntity uploadFile(MultipartFile multipartFile, FileType fileType, RefType refType, Long refId) throws Exception {
-        // 1. MultipartFile → 임시 File
-        File tempFile = new File(System.getProperty("java.io.tmpdir"), multipartFile.getOriginalFilename());
-        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-            fos.write(multipartFile.getBytes());
+    /**
+     * 1) 임시 업로드 (refType/refId 없음)
+     */
+    public FileEntity uploadTempFile(MultipartFile file, FileType fileType) throws Exception {
+
+        File tmp = new File(System.getProperty("java.io.tmpdir"), file.getOriginalFilename());
+        try (FileOutputStream fos = new FileOutputStream(tmp)) {
+            fos.write(file.getBytes());
         }
 
-// 2. SFTP 저장 폴더 구조 생성 (FileType까지만 분기)
-        String folderPath = remoteDir + "/" + fileType.name(); // 기본: C:/.../TASK
+        String folder = remoteDir + "/" + fileType.name();
+        String path = folder + "/" + file.getOriginalFilename();
 
-        String remotePath = folderPath + "/" + multipartFile.getOriginalFilename();
+        final String finalFolder = folder;
+        final String finalPath = path;
 
-        // final로 복사하여 람다에서 참조 가능하게 함
-        final String finalFolderPath = folderPath;
-        final String finalRemotePath = remotePath;
-
-        // 3. SFTP 업로드
         sftpTemplate.execute(session -> {
-            // 폴더 순차 생성
-            String[] dirs = finalFolderPath.split("/");
-            String currentPath = "";
-            for (String dir : dirs) {
-                if (dir.isEmpty()) continue;
-                currentPath += "/" + dir;
-                try {
-                    session.mkdir(currentPath);
-                } catch (Exception ignored) {
-                    // 이미 존재하면 무시
-                }
+            String[] dirs = finalFolder.split("/");
+            String current = "";
+            for (String d : dirs) {
+                if (d.isEmpty()) continue;
+                current += "/" + d;
+                try { session.mkdir(current); } catch (Exception ignore) {}
             }
 
-            // 파일 업로드
-            try (var inputStream = multipartFile.getInputStream()) {
-                session.write(inputStream, finalRemotePath);
+            try (var inputStream = file.getInputStream()) {
+                session.write(inputStream, finalPath);
             }
             return null;
         });
 
-        // 4. 임시 파일 삭제
-        tempFile.delete();
+        tmp.delete();
 
-        // 5. DB 저장
-        FileEntity fileEntity = new FileEntity();
-        fileEntity.setFileType(fileType);
-        fileEntity.setRefType(refType);
-        fileEntity.setRefId(refId);
-        fileEntity.setFilename(multipartFile.getOriginalFilename());
-        fileEntity.setFilepath(finalRemotePath);
-        fileEntity.setUploadedAt(LocalDateTime.now());
+        FileEntity entity = new FileEntity();
+        entity.setFileType(fileType);
+        entity.setFilename(file.getOriginalFilename());
+        entity.setFilepath(path);
+        entity.setUploadedAt(LocalDateTime.now());
 
-        return fileRepository.save(fileEntity);
+        return fileRepository.save(entity);
     }
 
-    // ----------------------------
-    // 파일 다운로드
-    // ----------------------------
-    public byte[] downloadFile(Long fileId) throws Exception {
-        FileEntity fileEntity = getFileEntity(fileId);
-
-        return sftpTemplate.execute(session -> {
-            try (java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
-                session.read(fileEntity.getFilepath(), baos);
-                return baos.toByteArray();
-            }
-        });
+    /**
+     * 2) refType/refId 매핑 전용 (기존 uploadFile 역할)
+     */
+    public FileEntity bindFile(Long fileId, RefType refType, Long refId) {
+        FileEntity entity = getFileEntity(fileId);
+        entity.setRefType(refType);
+        entity.setRefId(refId);
+        return fileRepository.save(entity);
     }
 
-    // ----------------------------
-    // 파일 엔티티 조회
-    // ----------------------------
     public FileEntity getFileEntity(Long fileId) {
         return fileRepository.findById(fileId)
             .orElseThrow(() -> new RuntimeException("파일 없음"));
+    }
+
+    public byte[] downloadFile(Long fileId) throws Exception {
+        FileEntity file = getFileEntity(fileId);
+        return sftpTemplate.execute(session -> {
+            try (var baos = new java.io.ByteArrayOutputStream()) {
+                session.read(file.getFilepath(), baos);
+                return baos.toByteArray();
+            }
+        });
     }
 }

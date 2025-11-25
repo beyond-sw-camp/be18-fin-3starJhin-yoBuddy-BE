@@ -1,16 +1,19 @@
 package com.j3s.yobuddy.domain.training.dto.response;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.training.entity.FormResultStatus;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 public class UserTrainingDetailResponse {
 
     private Long userId;
@@ -21,21 +24,24 @@ public class UserTrainingDetailResponse {
     private String description;
     private String onlineUrl;
 
-    // 일정 (Program_Trainings)
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDateTime scheduledAt;
 
-    // User_Trainings
     private UserTrainingStatus status;
     private LocalDateTime completedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Form_Results
     private BigDecimal score;
     private BigDecimal maxScore;
     private BigDecimal passingScore;
-    private FormResultStatus result;   // PASS / FAIL
+    private FormResultStatus result;
     private LocalDateTime submittedAt;
+
+    private List<FileResponse> attachedFiles;
+
+    public void setAttachedFiles(List<FileResponse> attachedFiles) {
+        this.attachedFiles = attachedFiles;
+    }
 }
