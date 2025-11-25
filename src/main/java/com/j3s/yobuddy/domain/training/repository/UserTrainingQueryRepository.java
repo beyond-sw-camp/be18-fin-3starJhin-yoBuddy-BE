@@ -50,6 +50,7 @@ public class UserTrainingQueryRepository {
                 t.title,
                 t.type.stringValue(),
                 t.onlineUrl,
+                t.description,
 
                 ut.status.stringValue(),
                 ut.score,
@@ -88,8 +89,8 @@ public class UserTrainingQueryRepository {
                         // Trainings 정보
                         t.title,
                         t.type,
-                        t.description,
                         t.onlineUrl,
+                        t.description,
 
                         // Program_Trainings 일정 정보
                         pt.startDate,

@@ -14,6 +14,7 @@ public class UserTrainingItemResponse {
     private final String title;
     private final String type;
     private final String onlineUrl;
+    private final String description;
 
     private final String status;
     private final BigDecimal score;
