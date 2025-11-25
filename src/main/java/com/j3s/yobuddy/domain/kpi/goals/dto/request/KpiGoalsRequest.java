@@ -14,5 +14,7 @@ public class KpiGoalsRequest {
     private final Integer targetValue;
     private final BigDecimal weight;
     private final Long kpiCategoryId;
+    private final Long departmentId;
 
 }
+

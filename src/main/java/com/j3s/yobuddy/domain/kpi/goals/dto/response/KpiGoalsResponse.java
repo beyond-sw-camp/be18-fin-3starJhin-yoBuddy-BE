@@ -18,17 +18,18 @@ public class KpiGoalsResponse {
     private final Integer targetValue;
     private final BigDecimal weight;
     private final Long kpiCategoryId;
+    private final Long departmentId;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
     public static KpiGoalsResponse from(KpiGoals g) {
         return KpiGoalsResponse.builder()
             .kpiGoalId(g.getKpiGoalId())
-            .programId(g.getProgramId())
             .description(g.getDescription())
             .targetValue(g.getTargetValue())
             .weight(g.getWeight())
             .kpiCategoryId(g.getKpiCategoryId())
+            .departmentId(g.getDepartmentId())
             .createdAt(g.getCreatedAt())
             .updatedAt(g.getUpdatedAt())
             .build();

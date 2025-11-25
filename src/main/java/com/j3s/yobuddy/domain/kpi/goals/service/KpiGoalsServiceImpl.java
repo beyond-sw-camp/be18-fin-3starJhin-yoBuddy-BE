@@ -36,11 +36,11 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
     @Transactional
     public void createGoal(KpiGoalsRequest request) {
         KpiGoals g = KpiGoals.builder()
-            .programId(request.getProgramId())
             .description(request.getDescription())
             .targetValue(request.getTargetValue())
             .weight(request.getWeight())
             .kpiCategoryId(request.getKpiCategoryId())
+            .departmentId(request.getDepartmentId())
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .isDeleted(false)
@@ -56,17 +56,17 @@ public class KpiGoalsServiceImpl implements KpiGoalsService {
             .orElseThrow(() -> new KpiGoalsNotFoundException(kpiGoalId));
 
         g.update(request.getProgramId(), request.getDescription(), request.getTargetValue(), request.getWeight(),
-            request.getKpiCategoryId());
+            request.getKpiCategoryId(), request.getDepartmentId());
 
         kpiGoalsRepository.save(g);
 
         return KpiGoalsListResponse.builder()
             .kpiGoalId(g.getKpiGoalId())
-            .programId(g.getProgramId())
             .description(g.getDescription())
             .targetValue(g.getTargetValue())
             .weight(g.getWeight())
             .kpiCategoryId(g.getKpiCategoryId())
+            .departmentId(g.getDepartmentId())
             .createdAt(g.getCreatedAt())
             .updatedAt(g.getUpdatedAt())
             .build();

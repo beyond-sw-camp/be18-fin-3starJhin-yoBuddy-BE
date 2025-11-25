@@ -6,9 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class KpiCategoryRequest {
-
     private final String name;
-
     private final String description;
-
 }

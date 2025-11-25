@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.j3s.yobuddy.domain.user.dto.RegisterRequest;
-import com.j3s.yobuddy.domain.user.dto.UpdateUserRequest;
-import com.j3s.yobuddy.domain.user.dto.UserResponse;
-import com.j3s.yobuddy.domain.user.dto.UserSearchRequest;
+import com.j3s.yobuddy.domain.user.dto.request.RegisterRequest;
+import com.j3s.yobuddy.domain.user.dto.request.UpdateUserRequest;
+import com.j3s.yobuddy.domain.user.dto.response.UserResponse;
+import com.j3s.yobuddy.domain.user.dto.request.UserSearchRequest;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.service.UserService;
 

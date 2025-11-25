@@ -30,40 +30,30 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(JwtProperties props) {
         this.props = props;
-        if (props.getSecret() == null || props.getSecret().isBlank()) {
-            throw new IllegalStateException("JWT secret is not configured. Set env JWT_SECRET_BASE64 or configure app.jwt.secret in application.yml");
-        }
-        String secret = Objects.requireNonNull(props.getSecret(),"app.jwt.secret is null");
-        // Keys.hmacShaKeyFor requires sufficient length (>=256 bits) secret
+        String secret = Objects.requireNonNull(props.getSecret(), "JWT secret is null");
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
     public String createAccessToken(Long userId, String email, String role) {
         Instant now = Instant.now();
-        Date iat = Date.from(now);
-        Date exp = Date.from(now.plusMillis(props.getAccessExpirationMs()));
-
         return Jwts.builder()
             .setSubject(String.valueOf(userId))
             .claim("email", email)
             .claim("role", role)
             .setIssuer(props.getIssuer())
-            .setIssuedAt(iat)
-            .setExpiration(exp)
+            .setIssuedAt(Date.from(now))
+            .setExpiration(Date.from(now.plusMillis(props.getAccessExpirationMs())))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact();
     }
 
     public String createRefreshToken(Long userId) {
         Instant now = Instant.now();
-        Date iat = Date.from(now);
-        Date exp = Date.from(now.plusMillis(props.getRefreshExpirationMs()));
-
         return Jwts.builder()
             .setSubject(String.valueOf(userId))
             .setIssuer(props.getIssuer())
-            .setIssuedAt(iat)
-            .setExpiration(exp)
+            .setIssuedAt(Date.from(now))
+            .setExpiration(Date.from(now.plusMillis(props.getRefreshExpirationMs())))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact();
     }
@@ -72,39 +62,33 @@ public class JwtTokenProvider {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
     }
 
-    public Long getUserIdFromToken(String token) {
-        Jws<Claims> claims = parseClaims(token);
-        String sub = claims.getBody().getSubject();
-        return sub == null ? null : Long.valueOf(sub);
-    }
-
     public boolean validate(String token) {
         try {
             parseClaims(token);
             return true;
-        } catch (Exception ex) {
+        } catch (Exception e) {
             return false;
         }
     }
 
-    /**
-     * Build Authentication object from JWT token. It extracts subject (userId) and role claim.
-     */
-    public Authentication getAuthentication(String token) {
-        Jws<Claims> jws = parseClaims(token);
-        Claims body = jws.getBody();
-        String sub = body.getSubject();
-        String role = body.get("role", String.class);
-
-        Collection<GrantedAuthority> authorities = Collections.emptyList();
-        if (role != null && !role.isBlank()) {
-            // ensure role has no ROLE_ prefix duplication
-            String roleName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-            authorities = Collections.singletonList(new SimpleGrantedAuthority(roleName));
-        }
-
-        Object principal = sub != null ? sub : "anonymous";
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    public Long getUserIdFromToken(String token) {
+        return Long.valueOf(parseClaims(token).getBody().getSubject());
     }
 
+    public String getEmail(String token) {
+        return parseClaims(token).getBody().get("email", String.class);
+    }
+
+    public String getRole(String token) {
+        return parseClaims(token).getBody().get("role", String.class);
+    }
+
+    public Authentication getAuthentication(String token) {
+        Claims body = parseClaims(token).getBody();
+        String role = body.get("role", String.class);
+        Collection<GrantedAuthority> authorities = Collections.singletonList(
+            new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role)
+        );
+        return new UsernamePasswordAuthenticationToken(body.getSubject(), token, authorities);
+    }
 }

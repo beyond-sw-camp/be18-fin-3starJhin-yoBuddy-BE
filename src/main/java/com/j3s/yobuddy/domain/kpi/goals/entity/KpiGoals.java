@@ -28,9 +28,6 @@ public class KpiGoals {
 	@Column(name = "kpi_goal_id", nullable = false)
 	private Long kpiGoalId;
 
-	@Column(name = "program_id")
-	private Long programId;
-
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
@@ -41,6 +38,10 @@ public class KpiGoals {
 
 	@Column(name = "kpi_category_id")
 	private Long kpiCategoryId;
+
+	@Column(name = "department_id")
+	private Long departmentId;
+
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
@@ -59,12 +60,8 @@ public class KpiGoals {
 	}
 
 	public void update(Long programId, String description, Integer targetValue, BigDecimal weight,
-		Long kpiCategoryId) {
+		Long kpiCategoryId, Long departmentId) {
 		boolean updated = false;
-		if (programId != null) {
-			this.programId = programId;
-			updated = true;
-		}
 		if (description != null) {
 			this.description = description;
 			updated = true;
@@ -79,6 +76,10 @@ public class KpiGoals {
 		}
 		if (kpiCategoryId != null) {
 			this.kpiCategoryId = kpiCategoryId;
+			updated = true;
+		}
+		if (departmentId != null) {
+			this.departmentId = departmentId;
 			updated = true;
 		}
 		if (updated) {
