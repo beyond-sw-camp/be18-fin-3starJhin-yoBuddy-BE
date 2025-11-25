@@ -65,12 +65,12 @@ public class AdminTrainingController {
         @RequestParam TrainingType type,
         @RequestParam String description,
         @RequestParam(required = false) String onlineUrl,
-        @RequestParam(required = false) List<Long> fileIds,
         @RequestPart(required = false) List<MultipartFile> files
     ) throws Exception {
-        return trainingAdminService.createTrainingWithFiles(title, type, description, onlineUrl, fileIds, files);
+        return trainingAdminService.createTrainingWithFiles(
+            title, type, description, onlineUrl, files
+        );
     }
-
 
     @PatchMapping(value = "/{trainingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -80,21 +80,11 @@ public class AdminTrainingController {
         @RequestParam(required = false) TrainingType type,
         @RequestParam(required = false) String description,
         @RequestParam(required = false) String onlineUrl,
-        @RequestParam(required = false) List<Long> addFileIds,
         @RequestParam(required = false) List<Long> removeFileIds,
-
-        @RequestPart(value = "files", required = false) List<MultipartFile> files
+        @RequestPart(required = false) List<MultipartFile> files
     ) throws Exception {
-
         return trainingAdminService.updateTrainingWithFiles(
-            trainingId,
-            title,
-            type,
-            description,
-            onlineUrl,
-            addFileIds,
-            removeFileIds,
-            files
+            trainingId, title, type, description, onlineUrl, removeFileIds, files
         );
     }
 

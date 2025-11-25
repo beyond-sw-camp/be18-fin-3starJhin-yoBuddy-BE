@@ -117,57 +117,58 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     }
 
     @Transactional
-    public TrainingResponse createTraining(TrainingCreateRequest request) {
+    public TrainingResponse createTrainingWithFiles(
+        String title,
+        TrainingType type,
+        String description,
+        String onlineUrl,
+        List<MultipartFile> files
+    ) throws Exception {
 
         Training training = Training.create(
-            request.getTitle(),
-            request.getType(),
-            request.getDescription(),
-            request.getOnlineUrl()
+            title, type, description, onlineUrl
         );
-
         Training saved = trainingRepository.save(training);
 
-        if (request.getFileIds() != null) {
-            for (Long fileId : request.getFileIds()) {
-                FileEntity file = fileService.getFileEntity(fileId);
-                file.setRefType(RefType.TRAINING);
-                file.setRefId(saved.getTrainingId());
-                fileRepository.save(file);
+        // 새 파일 업로드
+        if (files != null) {
+            for (MultipartFile file : files) {
+                FileEntity uploaded = fileService.uploadTempFile(file, FileType.TRAINING);
+                fileService.bindFile(uploaded.getFileId(), RefType.TRAINING, saved.getTrainingId());
             }
         }
 
-        List<FileResponse> files = fileRepository
+        List<FileResponse> attached = fileRepository
             .findByRefTypeAndRefId(RefType.TRAINING, saved.getTrainingId())
             .stream()
             .map(FileResponse::from)
             .toList();
 
-        return TrainingResponse.of(saved, files);
+        return TrainingResponse.of(saved, attached);
     }
 
     @Transactional
-    public TrainingResponse updateTraining(Long trainingId, TrainingUpdateRequest request) {
+    public TrainingResponse updateTrainingWithFiles(
+        Long trainingId,
+        String title,
+        TrainingType type,
+        String description,
+        String onlineUrl,
+        List<Long> removeFileIds,
+        List<MultipartFile> files
+    ) throws Exception {
 
         Training training = trainingRepository.findById(trainingId)
             .filter(t -> !t.isDeleted())
             .orElseThrow(() -> new TrainingNotFoundException(trainingId));
 
-        if (request.getTitle() != null && !request.getTitle().isBlank()) {
-            training.updateTitle(request.getTitle());
-        }
-        if (request.getType() != null) {
-            training.updateType(request.getType());
-        }
-        if (request.getDescription() != null && !request.getDescription().isBlank()) {
-            training.updateDescription(request.getDescription());
-        }
-        if (request.getOnlineUrl() != null && !request.getOnlineUrl().isBlank()) {
-            training.updateOnlineUrl(request.getOnlineUrl());
-        }
+        if (title != null) training.updateTitle(title);
+        if (type != null) training.updateType(type);
+        if (description != null) training.updateDescription(description);
+        if (onlineUrl != null) training.updateOnlineUrl(onlineUrl);
 
-        if (request.getRemoveFileIds() != null) {
-            for (Long fileId : request.getRemoveFileIds()) {
+        if (removeFileIds != null) {
+            for (Long fileId : removeFileIds) {
                 FileEntity file = fileService.getFileEntity(fileId);
                 file.setRefType(null);
                 file.setRefId(null);
@@ -175,22 +176,20 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             }
         }
 
-        if (request.getAddFileIds() != null) {
-            for (Long fileId : request.getAddFileIds()) {
-                FileEntity file = fileService.getFileEntity(fileId);
-                file.setRefType(RefType.TRAINING);
-                file.setRefId(trainingId);
-                fileRepository.save(file);
+        if (files != null) {
+            for (MultipartFile file : files) {
+                FileEntity uploaded = fileService.uploadTempFile(file, FileType.TRAINING);
+                fileService.bindFile(uploaded.getFileId(), RefType.TRAINING, trainingId);
             }
         }
 
-        List<FileResponse> files = fileRepository
+        List<FileResponse> attached = fileRepository
             .findByRefTypeAndRefId(RefType.TRAINING, trainingId)
             .stream()
             .map(FileResponse::from)
             .toList();
 
-        return TrainingResponse.of(training, files);
+        return TrainingResponse.of(training, attached);
     }
 
     @Transactional
@@ -371,94 +370,5 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             trainings,
             trainings.size()
         );
-    }
-
-    @Transactional
-    public TrainingResponse createTrainingWithFiles(
-        String title,
-        TrainingType type,
-        String description,
-        String onlineUrl,
-        List<Long> fileIds,
-        List<MultipartFile> files
-    ) throws Exception {
-
-        Training training = Training.create(
-            title, type, description, onlineUrl
-        );
-        Training saved = trainingRepository.save(training);
-
-        if (files != null) {
-            for (MultipartFile file : files) {
-                FileEntity uploaded = fileService.uploadTempFile(file, FileType.TRAINING);
-                fileService.bindFile(uploaded.getFileId(), RefType.TRAINING, saved.getTrainingId());
-            }
-        }
-
-        if (fileIds != null) {
-            for (Long fileId : fileIds) {
-                fileService.bindFile(fileId, RefType.TRAINING, saved.getTrainingId());
-            }
-        }
-
-        List<FileResponse> attached = fileRepository
-            .findByRefTypeAndRefId(RefType.TRAINING, saved.getTrainingId())
-            .stream()
-            .map(FileResponse::from)
-            .toList();
-
-        return TrainingResponse.of(saved, attached);
-    }
-
-    @Transactional
-    public TrainingResponse updateTrainingWithFiles(
-        Long trainingId,
-        String title,
-        TrainingType type,
-        String description,
-        String onlineUrl,
-        List<Long> addFileIds,
-        List<Long> removeFileIds,
-        List<MultipartFile> files
-    ) throws Exception {
-
-        Training training = trainingRepository.findById(trainingId)
-            .filter(t -> !t.isDeleted())
-            .orElseThrow(() -> new TrainingNotFoundException(trainingId));
-
-        if (title != null) training.updateTitle(title);
-        if (type != null) training.updateType(type);
-        if (description != null) training.updateDescription(description);
-        if (onlineUrl != null) training.updateOnlineUrl(onlineUrl);
-
-        if (removeFileIds != null) {
-            for (Long fileId : removeFileIds) {
-                FileEntity file = fileService.getFileEntity(fileId);
-                file.setRefType(null);
-                file.setRefId(null);
-                fileRepository.save(file);
-            }
-        }
-
-        if (addFileIds != null) {
-            for (Long fileId : addFileIds) {
-                fileService.bindFile(fileId, RefType.TRAINING, trainingId);
-            }
-        }
-
-        if (files != null) {
-            for (MultipartFile file : files) {
-                FileEntity savedFile = fileService.uploadTempFile(file, FileType.TRAINING);
-                fileService.bindFile(savedFile.getFileId(), RefType.TRAINING, trainingId);
-            }
-        }
-
-        List<FileResponse> attached = fileRepository
-            .findByRefTypeAndRefId(RefType.TRAINING, trainingId)
-            .stream()
-            .map(FileResponse::from)
-            .toList();
-
-        return TrainingResponse.of(training, attached);
     }
 }

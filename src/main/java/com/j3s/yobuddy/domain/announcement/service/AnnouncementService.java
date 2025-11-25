@@ -22,8 +22,14 @@ public interface AnnouncementService {
         List<MultipartFile> files
     ) throws Exception;
 
-    AnnouncementResponse updateAnnouncement(Long announcementId,
-        @Valid AnnouncementUpdateRequest request);
+    AnnouncementResponse updateAnnouncementWithFiles(
+        Long announcementId,
+        String title,
+        AnnouncementType type,
+        String content,
+        List<Long> removeFileIds,
+        List<MultipartFile> files
+    ) throws Exception;
 
     void deleteAnnouncement(Long announcementId);
 

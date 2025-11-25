@@ -34,31 +34,36 @@ public class AdminAnnouncementController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AnnouncementResponse> createAnnouncement(
         @AuthenticationPrincipal String principal,
-        @RequestParam("title") String title,
-        @RequestParam("type") AnnouncementType type,
-        @RequestParam(value = "content", required = false) String content,
-        @RequestPart(value = "files", required = false) List<MultipartFile> files
+        @RequestParam String title,
+        @RequestParam AnnouncementType type,
+        @RequestParam(required = false) String content,
+        @RequestPart(required = false) List<MultipartFile> files
     ) throws Exception {
 
         Long userId = Long.valueOf(principal);
 
-        AnnouncementResponse response = announcementService
-            .createAnnouncementWithFiles(userId, title, type, content, files);
+        AnnouncementResponse response = announcementService.createAnnouncementWithFiles(
+            userId, title, type, content, files
+        );
 
-        return ResponseEntity.created(
-            URI.create("/api/v1/admin/announcements/" + response.getAnnouncementId())
-        ).body(response);
+        return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{announcementId}")
+    @PatchMapping(value = "/{announcementId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AnnouncementResponse> updateAnnouncement(
         @PathVariable Long announcementId,
-        @Valid @RequestBody
-        AnnouncementUpdateRequest request) {
-        AnnouncementResponse announcement = announcementService.updateAnnouncement(announcementId,
-            request);
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) AnnouncementType type,
+        @RequestParam(required = false) String content,
+        @RequestParam(required = false) List<Long> removeFileIds,
+        @RequestPart(required = false) List<MultipartFile> files
+    ) throws Exception {
 
-        return ResponseEntity.ok(announcement);
+        AnnouncementResponse response = announcementService.updateAnnouncementWithFiles(
+            announcementId, title, type, content, removeFileIds, files
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{announcementId}")

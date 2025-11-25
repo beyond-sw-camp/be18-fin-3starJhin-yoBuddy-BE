@@ -21,10 +21,6 @@ public interface TrainingAdminService {
 
     TrainingDetailResponse getTrainingDetail(Long trainingId);
 
-    TrainingResponse createTraining(TrainingCreateRequest request);
-
-    TrainingResponse updateTraining(Long trainingId, TrainingUpdateRequest request);
-
     TrainingDeleteResponse deleteTraining(Long trainingId);
 
     ProgramTrainingAssignResponse assignTrainingToProgram(Long programId, Long trainingId, ProgramTrainingAssignRequest request);
@@ -38,7 +34,6 @@ public interface TrainingAdminService {
         TrainingType type,
         String description,
         String onlineUrl,
-        List<Long> fileIds,
         List<MultipartFile> files
     ) throws Exception;
 
@@ -48,7 +43,6 @@ public interface TrainingAdminService {
         TrainingType type,
         String description,
         String onlineUrl,
-        List<Long> addFileIds,
         List<Long> removeFileIds,
         List<MultipartFile> files
     ) throws Exception;
