@@ -1,12 +1,13 @@
 package com.j3s.yobuddy.domain.training.service;
 
-import com.j3s.yobuddy.common.exception.BusinessException;
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingItemResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingsResponse;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
-import com.j3s.yobuddy.domain.training.exception.ForbiddenOperationException;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
 import com.j3s.yobuddy.domain.training.exception.UserTrainingsNotFoundException;
 import com.j3s.yobuddy.domain.training.repository.UserTrainingQueryRepository;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserTrainingServiceImpl implements UserTrainingService {
 
     private final UserTrainingQueryRepository userTrainingQueryRepository;
+    private final FileRepository fileRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -62,14 +64,19 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public UserTrainingDetailResponse getUserTrainingDetail(Long pathUserId,
-        Long trainingId) {
+    public UserTrainingDetailResponse getUserTrainingDetail(Long pathUserId, Long trainingId) {
 
-        // 2) 이 유저에게 할당된 이 training 이 없으면 → 404
-        return userTrainingQueryRepository.findUserTrainingDetail(pathUserId, trainingId)
-            .orElseThrow(() ->
-                new UserTrainingsNotFoundException(pathUserId)
-            );
+        UserTrainingDetailResponse dto =
+            userTrainingQueryRepository.findUserTrainingDetail(pathUserId, trainingId)
+                .orElseThrow(() -> new UserTrainingsNotFoundException(pathUserId));
+
+        List<FileResponse> files =
+            fileRepository.findByRefTypeAndRefId(RefType.TRAINING, trainingId).stream()
+                .map(FileResponse::from)
+                .toList();
+
+        dto.setAttachedFiles(files);
+
+        return dto;
     }
 }

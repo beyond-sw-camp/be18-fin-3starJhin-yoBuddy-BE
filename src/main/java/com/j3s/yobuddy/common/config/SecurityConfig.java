@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -37,6 +38,9 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/wiki/**").permitAll()
+                .requestMatchers("/api/v1/health/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/notifications/stream").permitAll()
                 .requestMatchers("/api/v1/account/me").authenticated()
                 .requestMatchers("/api/v1/users/**").hasRole("USER")
                 .requestMatchers("/api/v1/mentors/**").hasRole("MENTOR")
@@ -53,19 +57,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(
-            Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .toList()
-        );
+        String[] origins = allowedOrigins.split(",");
 
+        config.setAllowedOriginPatterns(Arrays.asList(origins));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("*"));
+        config.setExposedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
-
-        config.addExposedHeader("Authorization");
-        config.addExposedHeader("Refresh-Token");
-        config.addExposedHeader("Access-Token-Expires-In");
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

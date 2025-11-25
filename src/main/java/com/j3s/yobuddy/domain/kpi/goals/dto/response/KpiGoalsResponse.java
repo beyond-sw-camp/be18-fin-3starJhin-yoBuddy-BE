@@ -25,7 +25,6 @@ public class KpiGoalsResponse {
     public static KpiGoalsResponse from(KpiGoals g) {
         return KpiGoalsResponse.builder()
             .kpiGoalId(g.getKpiGoalId())
-            .programId(g.getProgramId())
             .description(g.getDescription())
             .targetValue(g.getTargetValue())
             .weight(g.getWeight())

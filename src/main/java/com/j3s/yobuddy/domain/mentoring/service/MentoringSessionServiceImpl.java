@@ -9,6 +9,8 @@ import com.j3s.yobuddy.domain.mentoring.entity.MentoringStatus;
 import com.j3s.yobuddy.domain.mentoring.exception.MenteeNotFoundException;
 import com.j3s.yobuddy.domain.mentoring.exception.MentoringSessionNotFoundException;
 import com.j3s.yobuddy.domain.mentoring.repository.MentoringSessionRepository;
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus;
 import com.j3s.yobuddy.domain.programenrollment.exception.ProgramEnrollmentNotFoundException;
@@ -30,6 +32,7 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     private final MentoringSessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final ProgramEnrollmentRepository enrollmentRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -51,12 +54,19 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             .program(enrollment.getProgram())
             .description(req.getDescription())
             .scheduledAt(req.getScheduledAt())
-            .status(MentoringStatus.SCHEDULED)   // 기본 상태
+            .status(MentoringStatus.SCHEDULED)
             .feedback(null)
             .deleted(false)
             .build();
 
         sessionRepository.save(session);
+
+        notificationService.notify(
+            mentee,
+            NotificationType.MENTORING,
+            "새로운 멘토링 세션이 생성되었습니다",
+            "세션 일정: " + session.getScheduledAt()
+        );
 
         return toResponse(session);
     }

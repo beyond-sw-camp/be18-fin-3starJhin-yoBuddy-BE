@@ -28,9 +28,6 @@ public class KpiGoals {
 	@Column(name = "kpi_goal_id", nullable = false)
 	private Long kpiGoalId;
 
-	@Column(name = "program_id")
-	private Long programId;
-
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
@@ -65,10 +62,6 @@ public class KpiGoals {
 	public void update(Long programId, String description, Integer targetValue, BigDecimal weight,
 		Long kpiCategoryId, Long departmentId) {
 		boolean updated = false;
-		if (programId != null) {
-			this.programId = programId;
-			updated = true;
-		}
 		if (description != null) {
 			this.description = description;
 			updated = true;
