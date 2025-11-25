@@ -15,4 +15,5 @@ public interface MentorMenteeAssignmentRepository
     Optional<MentorMenteeAssignment> findByMenteeUserIdAndDeletedFalse(Long menteeId);
 
     List<MentorMenteeAssignment> findByMentorUserIdAndDeletedFalse(Long mentorId);
+    boolean existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(Long mentorId, Long menteeId);
 }
