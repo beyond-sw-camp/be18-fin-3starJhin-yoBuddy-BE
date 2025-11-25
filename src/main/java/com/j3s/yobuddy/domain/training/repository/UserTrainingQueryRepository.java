@@ -1,10 +1,5 @@
 package com.j3s.yobuddy.domain.training.repository;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Repository;
-
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingItemResponse;
 import com.j3s.yobuddy.domain.training.entity.QFormResult;
@@ -16,8 +11,11 @@ import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import com.j3s.yobuddy.domain.user.entity.User;
 
 @Repository
 @RequiredArgsConstructor
@@ -52,6 +50,7 @@ public class UserTrainingQueryRepository {
                 t.title,
                 t.type.stringValue(),
                 t.onlineUrl,
+                t.description,
 
                 ut.status.stringValue(),
                 ut.score,
@@ -90,8 +89,8 @@ public class UserTrainingQueryRepository {
                         // Trainings 정보
                         t.title,
                         t.type,
-                        t.description,
                         t.onlineUrl,
+                        t.description,
 
                         // Program_Trainings 일정 정보
                         pt.startDate,
