@@ -11,8 +11,10 @@ import com.j3s.yobuddy.domain.training.dto.response.TrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingListItemResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingResponse;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface TrainingAdminService {
     Page<TrainingListItemResponse> getTrainingList( TrainingType type, Long programId, String keyword, Pageable pageable);
@@ -30,4 +32,24 @@ public interface TrainingAdminService {
     ProgramTrainingUnassignResponse unassignTrainingFromProgram(Long programId, Long trainingId);
 
     ProgramTrainingsResponse getProgramTrainings(Long programId, Boolean includeUnassigned,String type);
+
+    TrainingResponse createTrainingWithFiles(
+        String title,
+        TrainingType type,
+        String description,
+        String onlineUrl,
+        List<Long> fileIds,
+        List<MultipartFile> files
+    ) throws Exception;
+
+    TrainingResponse updateTrainingWithFiles(
+        Long trainingId,
+        String title,
+        TrainingType type,
+        String description,
+        String onlineUrl,
+        List<Long> addFileIds,
+        List<Long> removeFileIds,
+        List<MultipartFile> files
+    ) throws Exception;
 }

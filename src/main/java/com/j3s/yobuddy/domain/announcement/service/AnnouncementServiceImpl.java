@@ -55,16 +55,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .build()
         );
 
-        if (files != null) {
-            for (MultipartFile file : files) {
-                FileEntity saved = fileService.uploadFile(
-                    file,
-                    FileType.GENERAL,
-                    RefType.ANNOUNCEMENT,
-                    announcement.getAnnouncementId()
-                );
-            }
-        }
+//        if (files != null) {
+//            for (MultipartFile file : files) {
+//                FileEntity saved = fileService.uploadFile(
+//                    file,
+//                    FileType.GENERAL,
+//                    RefType.ANNOUNCEMENT,
+//                    announcement.getAnnouncementId()
+//                );
+//            }
+//        }
 
         List<FileEntity> fileList =
             fileRepository.findByRefTypeAndRefId(RefType.ANNOUNCEMENT, announcement.getAnnouncementId());

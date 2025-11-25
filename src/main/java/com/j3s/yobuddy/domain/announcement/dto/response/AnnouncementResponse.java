@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.announcement.dto.response;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.announcement.entity.Announcement;
 import com.j3s.yobuddy.domain.announcement.entity.AnnouncementType;
 import com.j3s.yobuddy.domain.file.entity.FileEntity;
@@ -22,7 +23,7 @@ public class AnnouncementResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    private final List<AnnouncementFileResponse> files;
+    private final List<FileResponse> files;
 
     public static AnnouncementResponse from(Announcement ann, List<FileEntity> fileList) {
         return AnnouncementResponse.builder()
@@ -33,7 +34,7 @@ public class AnnouncementResponse {
             .author(ann.getUser().getName())
             .createdAt(ann.getCreatedAt())
             .updatedAt(ann.getUpdatedAt())
-            .files(fileList.stream().map(AnnouncementFileResponse::from).toList())
+            .files(fileList.stream().map(FileResponse::from).toList())
             .build();
     }
 }
