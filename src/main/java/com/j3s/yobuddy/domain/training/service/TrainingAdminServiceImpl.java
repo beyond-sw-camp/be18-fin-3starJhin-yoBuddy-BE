@@ -9,6 +9,8 @@ import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
+import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
+import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingAssignRequest;
 import com.j3s.yobuddy.domain.training.dto.request.TrainingCreateRequest;
 import com.j3s.yobuddy.domain.training.dto.request.TrainingUpdateRequest;
@@ -33,6 +35,8 @@ import com.j3s.yobuddy.domain.training.exception.TrainingNotFoundException;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingQueryRepository;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
 import com.j3s.yobuddy.domain.training.repository.TrainingRepository;
+import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +59,8 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     private final ProgramTrainingQueryRepository programTrainingQueryRepository;
     private final FileRepository fileRepository;
     private final FileService fileService;
+    private final ProgramEnrollmentRepository programEnrollmentRepository;
+    private final UserTrainingAssignmentService userTrainingAssignmentService;
 
     @Transactional(readOnly = true)
     public Page<TrainingListItemResponse> getTrainingList(
@@ -228,78 +234,50 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         Long trainingId,
         ProgramTrainingAssignRequest request
     ) {
+
         OnboardingProgram program = onboardingProgramRepository.findById(programId)
-            .orElseThrow(() ->
-                new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
+            .orElseThrow(() -> new InvalidTrainingDataException("프로그램을 찾을 수 없습니다. programId=" + programId));
 
         Training training = trainingRepository.findById(trainingId)
-            .orElseThrow(() ->
-                new TrainingNotFoundException(trainingId));
+            .orElseThrow(() -> new TrainingNotFoundException(trainingId));
 
         boolean alreadyAssigned =
             programTrainingRepository.existsByProgram_ProgramIdAndTraining_TrainingId(programId, trainingId);
 
         if (alreadyAssigned) {
-            throw new InvalidTrainingDataException(
-                "이미 해당 프로그램에 연결된 교육입니다. programId=" + programId + ", trainingId=" + trainingId
-            );
+            throw new InvalidTrainingDataException("이미 매핑된 교육입니다.");
         }
 
-        TrainingType trainingType = training.getType();
-        if (trainingType == null) {
-            throw new InvalidTrainingDataException(
-                "교육 유형(type)이 설정되지 않은 교육입니다. trainingId=" + trainingId
-            );
-        }
-
-        if (trainingType == TrainingType.ONLINE) {
-            if (request == null
-                || request.getStartDate() == null
-                || request.getEndDate() == null) {
-                throw new InvalidTrainingDataException(
-                    "온라인 교육은 startDate와 endDate가 모두 필요합니다. trainingId=" + trainingId
-                );
-            }
-
-            if (request.getStartDate().isAfter(request.getEndDate())) {
-                throw new InvalidTrainingDataException(
-                    "온라인 교육의 startDate는 endDate보다 이후일 수 없습니다. "
-                        + "(startDate=" + request.getStartDate()
-                        + ", endDate=" + request.getEndDate() + ")"
-                );
-            }
-        }
-
-        if (trainingType == TrainingType.OFFLINE) {
-            if (request == null || request.getScheduledAt() == null) {
-                throw new InvalidTrainingDataException(
-                    "오프라인 교육은 scheduledAt이 필요합니다. trainingId=" + trainingId
-                );
-            }
-        }
-
-        LocalDateTime effectiveAssignedAt =
+        LocalDateTime assignedAt =
             (request != null && request.getAssignedAt() != null)
                 ? request.getAssignedAt()
                 : LocalDateTime.now();
 
-        ProgramTraining programTraining = ProgramTraining.builder()
+        ProgramTraining pt = ProgramTraining.builder()
             .program(program)
             .training(training)
-            .assignedAt(effectiveAssignedAt)
+            .assignedAt(assignedAt)
             .scheduledAt(request != null ? request.getScheduledAt() : null)
             .startDate(request != null ? request.getStartDate() : null)
             .endDate(request != null ? request.getEndDate() : null)
             .build();
 
-        programTrainingRepository.save(programTraining);
+        programTrainingRepository.save(pt);
+
+        List<User> enrolledUsers = programEnrollmentRepository
+            .findByProgram_ProgramId(programId)
+            .stream()
+            .map(ProgramEnrollment::getUser)
+            .toList();
+
+        userTrainingAssignmentService.assignForProgramTraining(pt, enrolledUsers);
 
         return new ProgramTrainingAssignResponse(
-            program.getProgramId(),
+            programId,
             training.getTrainingId(),
             training.getTitle(),
-            trainingType.name(),
-            effectiveAssignedAt
+            training.getType().name(),
+            assignedAt
         );
     }
 
