@@ -21,4 +21,5 @@ public class UserProfileResponse {
     private final String createdAt;
     private final String updatedAt;
 
+    private final String profileImageUrl;
 }

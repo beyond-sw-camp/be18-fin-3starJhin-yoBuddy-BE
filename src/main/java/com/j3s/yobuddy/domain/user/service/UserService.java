@@ -11,6 +11,7 @@ import com.j3s.yobuddy.domain.user.dto.request.RegisterRequest;
 import com.j3s.yobuddy.domain.user.dto.request.UpdateUserRequest;
 import com.j3s.yobuddy.domain.user.dto.request.UserSearchRequest;
 import com.j3s.yobuddy.domain.user.entity.User;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
 
@@ -26,5 +27,5 @@ public interface UserService {
 
     UserProfileResponse getUserProfile(Long userId);
 
-    void updateMyAccount(Long userId, UpdateProfileRequest req);
+    void updateMyAccount(Long userId, UpdateProfileRequest req, MultipartFile profileImage);
 }
