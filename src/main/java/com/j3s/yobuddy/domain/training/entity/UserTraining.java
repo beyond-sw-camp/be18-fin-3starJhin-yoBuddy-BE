@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.training.entity;
 
+import com.j3s.yobuddy.domain.formresult.entity.FormResultStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,10 +14,12 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,9 +29,9 @@ import com.j3s.yobuddy.domain.user.entity.User;
 @Entity
 @Table(name = "User_Trainings")
 @Getter
+@Builder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserTraining {
 
     @Id
@@ -42,6 +45,10 @@ public class UserTraining {
 
     @Column(name = "score", precision = 5, scale = 2)
     private BigDecimal score;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result")
+    private FormResultStatus result;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
