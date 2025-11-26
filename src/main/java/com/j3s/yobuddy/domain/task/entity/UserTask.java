@@ -62,10 +62,9 @@ public class UserTask {
     }
 
     // 💡 도메인 메서드 (행위)
-    public void submit(String feedback) {
+    public void submit() {
         this.status = UserTaskStatus.SUBMITTED;
         this.submittedAt = LocalDateTime.now();
-        this.feedback = feedback;
         this.grade = null;
     }
 

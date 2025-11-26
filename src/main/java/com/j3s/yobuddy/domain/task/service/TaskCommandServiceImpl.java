@@ -1,7 +1,13 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.department.entity.Department;
 import com.j3s.yobuddy.domain.department.repository.DepartmentRepository;
+import com.j3s.yobuddy.domain.file.entity.FileEntity;
+import com.j3s.yobuddy.domain.file.entity.FileType;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.task.dto.request.TaskCreateRequest;
 import com.j3s.yobuddy.domain.task.dto.request.TaskUpdateRequest;
 import com.j3s.yobuddy.domain.task.dto.response.TaskCreateResponse;
@@ -18,41 +24,42 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TaskCommandServiceImpl implements TaskCommandService {
 
     private final OnboardingTaskRepository onboardingTaskRepository;
-    private final ProgramTaskRepository programTaskRepository;
     private final DepartmentRepository departmentRepository;
     private final TaskDepartmentRepository taskDepartmentRepository;
+    private final ProgramTaskRepository programTaskRepository;
 
-    // ---------------------
-    // CREATE TASK
-    // ---------------------
+    private final FileService fileService;
+    private final FileRepository fileRepository;
+
     @Override
-    @Transactional
-    public TaskCreateResponse createTask(TaskCreateRequest request) {
+    public TaskCreateResponse createTaskWithFiles(
+        String title,
+        String description,
+        Integer points,
+        List<Long> departmentIds,
+        List<MultipartFile> files
+    ) throws Exception {
 
         OnboardingTask task = OnboardingTask.builder()
-            .title(request.getTitle())
-            .description(request.getDescription())
-            .points(request.getPoints())
+            .title(title)
+            .description(description)
+            .points(points)
             .build();
 
         onboardingTaskRepository.save(task);
 
-        List<Long> validDepartmentIds = new ArrayList<>();
-
-        for (Long deptId : request.getDepartmentIds()) {
-
+        // 부서 연결
+        for (Long deptId : departmentIds) {
             Department dept = departmentRepository.findById(deptId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-
-            if (Boolean.TRUE.equals(dept.getIsDeleted())) {
-                throw new IllegalArgumentException("Department " + deptId + " is deleted.");
-            }
 
             TaskDepartment td = TaskDepartment.builder()
                 .task(task)
@@ -60,47 +67,49 @@ public class TaskCommandServiceImpl implements TaskCommandService {
                 .build();
 
             task.getTaskDepartments().add(td);
-            validDepartmentIds.add(dept.getDepartmentId());
+            taskDepartmentRepository.save(td);
         }
 
-        return TaskCreateResponse.builder()
-            .taskId(task.getId())
-            .title(task.getTitle())
-            .description(task.getDescription())
-            .points(task.getPoints())
-            .departmentIds(validDepartmentIds)  // ⭐ 추가!
-            .createdAt(task.getCreatedAt())
-            .updatedAt(task.getUpdatedAt())
-            .build();
+        // 파일 업로드
+        if (files != null) {
+            for (MultipartFile file : files) {
+                FileEntity uploaded = fileService.uploadTempFile(file, FileType.TASK);
+                fileService.bindFile(uploaded.getFileId(), RefType.TASK, task.getId());
+            }
+        }
+
+        List<FileResponse> attached = fileRepository
+            .findByRefTypeAndRefId(RefType.TASK, task.getId())
+            .stream()
+            .map(FileResponse::from)
+            .toList();
+
+        return TaskCreateResponse.of(task, attached);
     }
 
-
-    // ---------------------
-    // UPDATE TASK
-    // ---------------------
     @Override
-    @Transactional
-    public TaskUpdateResponse updateTask(Long taskId, TaskUpdateRequest request) {
+    public TaskUpdateResponse updateTaskWithFiles(
+        Long taskId,
+        String title,
+        String description,
+        Integer points,
+        List<Long> departmentIds,
+        List<Long> removeFileIds,
+        List<MultipartFile> files
+    ) throws Exception {
 
-        // 1) 기존 Task 조회
         OnboardingTask task = onboardingTaskRepository.findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-        // 2) 필드 수정
-        if (request.getTitle() != null) task.setTitle(request.getTitle());
-        if (request.getDescription() != null) task.setDescription(request.getDescription());
-        if (request.getPoints() != null) task.setPoints(request.getPoints());
+        if (title != null) task.setTitle(title);
+        if (description != null) task.setDescription(description);
+        if (points != null) task.setPoints(points);
 
-        task.setUpdatedAt(LocalDateTime.now());
-
-        // 3) 부서 변경처리
-        if (request.getDepartmentIds() != null) {
-
-            // (1) 기존 TaskDepartment 제거 (orphanRemoval 때문에 자동 삭제됨)
+        // 부서 재매핑
+        if (departmentIds != null) {
             task.getTaskDepartments().clear();
 
-            // (2) 새 부서 매핑 입력
-            for (Long deptId : request.getDepartmentIds()) {
+            for (Long deptId : departmentIds) {
                 Department dept = departmentRepository.findById(deptId)
                     .orElseThrow(() -> new IllegalArgumentException("Department not found"));
 
@@ -114,42 +123,53 @@ public class TaskCommandServiceImpl implements TaskCommandService {
             }
         }
 
-        return TaskUpdateResponse.builder()
-            .taskId(task.getId())
-            .title(task.getTitle())
-            .description(task.getDescription())
-            .points(task.getPoints())
-            .updatedAt(task.getUpdatedAt())
-            .build();
+        // 파일 삭제
+        if (removeFileIds != null) {
+            for (Long fileId : removeFileIds) {
+                FileEntity file = fileService.getFileEntity(fileId);
+                file.setRefType(null);
+                file.setRefId(null);
+                fileRepository.save(file);
+            }
+        }
+
+        // 새 파일 업로드
+        if (files != null) {
+            for (MultipartFile file : files) {
+                FileEntity uploaded = fileService.uploadTempFile(file, FileType.TASK);
+                fileService.bindFile(uploaded.getFileId(), RefType.TASK, task.getId());
+            }
+        }
+
+        List<FileResponse> attached = fileRepository
+            .findByRefTypeAndRefId(RefType.TASK, task.getId())
+            .stream()
+            .map(FileResponse::from)
+            .toList();
+
+        return TaskUpdateResponse.of(task, attached);
     }
 
-    // ---------------------
-    // DELETE TASK
-    // ---------------------
     @Override
-    @Transactional
     public TaskDeleteResponse deleteTask(Long taskId) {
 
         OnboardingTask task = onboardingTaskRepository.findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-        int programUnlinkedCount = programTaskRepository.countByOnboardingTaskId(taskId);
+        int programUnlinkedCount =
+            programTaskRepository.countByOnboardingTaskId(taskId);
 
         task.delete();
         task.setUpdatedAt(LocalDateTime.now());
 
-        programTaskRepository.deleteByOnboardingTaskId(taskId);
+        // 파일 연결 해제
+        List<FileEntity> files = fileRepository.findByRefTypeAndRefId(RefType.TASK, taskId);
+        for (FileEntity file : files) {
+            file.setRefType(null);
+            file.setRefId(null);
+            fileRepository.save(file);
+        }
 
-        return TaskDeleteResponse.builder()
-            .message("Task deleted successfully")
-            .taskId(task.getId())
-            .deletedAt(LocalDateTime.now())
-            .relatedEntities(
-                TaskDeleteResponse.RelatedEntities.builder()
-                    .programUnlinkedCount(programUnlinkedCount)
-                    .userTaskRemovedCount(0)
-                    .build()
-            )
-            .build();
+        return TaskDeleteResponse.of(taskId, programUnlinkedCount);
     }
 }

@@ -1,5 +1,8 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import com.j3s.yobuddy.domain.task.dto.response.UserTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse.TaskInfo;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskScoreResponse;
@@ -22,101 +25,95 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class UserTaskQueryServiceImpl implements UserTaskQueryService {
 
-    private final ProgramTaskRepository programTaskRepository;
     private final UserTaskRepository userTaskRepository;
+    private final FileRepository fileRepository;
 
     @Override
-    public UserTaskListResponse getUserTasks(
-        Long userId,
-        UserTaskStatus statusFilter,
-        Long programId,
-        Boolean overdue
-    ) {
+    public UserTaskListResponse getUserTaskList(Long userId) {
 
-        // 1) 특정 프로그램의 과제만 조회하거나, 전체 프로그램 과제 조회
-        List<ProgramTask> programTasks = (programId != null)
-            ? programTaskRepository.findByOnboardingProgram_ProgramId(programId)
-            : programTaskRepository.findAll();
+        List<UserTask> tasks = userTaskRepository.findByUser_UserId(userId);
 
-        // 2) 각 ProgramTask 에 대해 UserTask 매핑
-        List<TaskInfo> tasks = programTasks.stream()
-            .map(pt -> mapTask(userId, pt))
-            .collect(Collectors.toList());
-
-        // 3) 필터 적용
-        tasks = tasks.stream()
-            .filter(t -> statusFilter == null || t.getStatus().equals(statusFilter.name()))
-            .filter(t -> overdue == null || (overdue && t.getDueDate().isBefore(LocalDate.now())))
-            .collect(Collectors.toList());
-
-        // 4) programId 계산 (옵션)
-        Long resolvedProgramId = programId != null
-            ? programId
-            : (programTasks.isEmpty() ? null : programTasks.get(0).getOnboardingProgram().getProgramId());
+        var list = tasks.stream()
+            .map(ut -> UserTaskListResponse.TaskInfo.builder()
+                .taskId(ut.getId())  // userTaskId
+                .title(ut.getProgramTask().getOnboardingTask().getTitle())
+                .dueDate(ut.getProgramTask().getDueDate().toLocalDate())
+                .status(ut.getStatus().name())
+                .grade(ut.getGrade())
+                .submittedAt(ut.getSubmittedAt())
+                .feedback(ut.getFeedback())
+                .build())
+            .toList();
 
         return UserTaskListResponse.builder()
             .userId(userId)
-            .programId(resolvedProgramId)
-            .tasks(tasks)
-            .build();
-    }
-
-    private TaskInfo mapTask(Long userId, ProgramTask pt) {
-
-        UserTask userTask = userTaskRepository
-            .findByUser_UserIdAndProgramTask_Id(userId, pt.getId())
-            .orElse(null);
-
-        LocalDate dueDate = pt.getDueDate().toLocalDate();
-
-        // 제출 기록 없음 → 자동 상태 계산
-        if (userTask == null) {
-            UserTaskStatus computed = dueDate.isBefore(LocalDate.now())
-                ? UserTaskStatus.LATE
-                : UserTaskStatus.PENDING;
-
-            return TaskInfo.builder()
-                .taskId(pt.getOnboardingTask().getId())
-                .title(pt.getOnboardingTask().getTitle())
-                .dueDate(dueDate)
-                .status(computed.name())
-                .grade(null)
-                .submittedAt(null)
-                .feedback(null)
-                .build();
-        }
-
-        // 제출 기록 있음
-        return TaskInfo.builder()
-            .taskId(pt.getOnboardingTask().getId())
-            .title(pt.getOnboardingTask().getTitle())
-            .dueDate(dueDate)
-            .status(userTask.getStatus().name())
-            .grade(userTask.getGrade())
-            .submittedAt(userTask.getSubmittedAt())
-            .feedback(userTask.getFeedback())
+            .tasks(list)
             .build();
     }
 
     @Override
-    public UserTaskScoreResponse getUserTaskScore(Long userId, Long programTaskId) {
+    public UserTaskDetailResponse getUserTaskDetail(Long userId, Long userTaskId) {
 
-        UserTask userTask = userTaskRepository
-            .findByUser_UserIdAndProgramTask_Id(userId, programTaskId)
+        UserTask ut = userTaskRepository
+            .findByIdAndUser_UserId(userTaskId, userId)
             .orElseThrow(() -> new IllegalArgumentException("UserTask not found"));
 
-        ProgramTask programTask = userTask.getProgramTask();
-        String title = programTask.getOnboardingTask().getTitle();
-        Long taskId = programTask.getOnboardingTask().getId();
+        Long onboardingTaskId = ut.getProgramTask().getOnboardingTask().getId();
 
-        return UserTaskScoreResponse.builder()
-            .userId(userId)
-            .taskId(taskId)
-            .title(title)
-            .grade(userTask.getGrade())
-            .feedback(userTask.getFeedback())
-            .updatedAt(userTask.getUpdatedAt())
+        // 1) 과제 기본 파일 (TASK)
+        var taskFiles = fileRepository
+            .findByRefTypeAndRefId(RefType.TASK, onboardingTaskId)
+            .stream()
+            .map(f -> UserTaskDetailResponse.FileInfo.builder()
+                .fileId(f.getFileId())
+                .fileName(f.getFilename())
+                .filePath(f.getFilepath())
+                .build())
+            .toList();
+
+        // 2) 유저 제출 파일 (USER_TASK)
+        var submittedFiles = fileRepository
+            .findByRefTypeAndRefId(RefType.USER_TASK, userTaskId)
+            .stream()
+            .map(f -> UserTaskDetailResponse.FileInfo.builder()
+                .fileId(f.getFileId())
+                .fileName(f.getFilename())
+                .filePath(f.getFilepath())
+                .build())
+            .toList();
+
+        return UserTaskDetailResponse.builder()
+            .userTaskId(userTaskId)
+            .taskId(onboardingTaskId)
+            .title(ut.getProgramTask().getOnboardingTask().getTitle())
+            .description(ut.getProgramTask().getOnboardingTask().getDescription())
+            .dueDate(ut.getProgramTask().getDueDate().toLocalDate())
+            .points(ut.getProgramTask().getOnboardingTask().getPoints())
+            .status(ut.getStatus().name())
+            .grade(ut.getGrade())
+            .submittedAt(ut.getSubmittedAt())
+            .updatedAt(ut.getUpdatedAt())
+            .feedback(ut.getFeedback())
+            .taskFiles(taskFiles)
+            .submittedFiles(submittedFiles)
             .build();
     }
 
+    @Override
+    public UserTaskScoreResponse getUserTaskScore(Long userId, Long userTaskId) {
+
+        UserTask ut = userTaskRepository
+            .findByIdAndUser_UserId(userTaskId, userId)
+            .orElseThrow(() -> new IllegalArgumentException("UserTask not found"));
+
+        return UserTaskScoreResponse.builder()
+            .userId(userId)
+            .taskId(userTaskId)
+            .title(ut.getProgramTask().getOnboardingTask().getTitle())
+            .grade(ut.getGrade())
+            .feedback(ut.getFeedback())
+            .updatedAt(ut.getUpdatedAt())
+            .build();
+    }
 }
+
