@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserTrainingDetailResponse {
 
+    private Long userTrainingId;
     private Long userId;
     private Long trainingId;
 

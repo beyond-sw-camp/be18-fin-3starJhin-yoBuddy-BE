@@ -77,4 +77,9 @@ public class UserTraining {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void completeTraining() {
+        this.status = UserTrainingStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
 }

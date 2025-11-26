@@ -3,14 +3,18 @@ package com.j3s.yobuddy.api.user;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingsResponse;
 import com.j3s.yobuddy.domain.training.service.UserTrainingService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users/{userId}/trainings")
@@ -45,5 +49,15 @@ public class UserTrainingController {
     ) {
         // DTO 그대로 반환 (공통 ApiResponse 없음!)
         return userTrainingService.getUserTrainingDetail(userId, trainingId);
+    }
+
+    @PostMapping("/{trainingId}/certificate")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void uploadCertificate(
+        @PathVariable Long userId,
+        @PathVariable Long trainingId,
+        @RequestParam("files") List<MultipartFile> files
+    ) {
+        userTrainingService.uploadCertificate(userId, trainingId, files);
     }
 }
