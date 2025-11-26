@@ -7,6 +7,7 @@ import com.j3s.yobuddy.domain.training.entity.QProgramTraining;
 import com.j3s.yobuddy.domain.training.entity.QTraining;
 import com.j3s.yobuddy.domain.training.entity.QUserTraining;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
+import com.j3s.yobuddy.domain.training.entity.UserTraining;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -82,6 +83,7 @@ public class UserTrainingQueryRepository {
                     Projections.fields(
                         UserTrainingDetailResponse.class,
 
+                        ut.userTrainingId.as("userTrainingId"),
                         ut.user.userId.as("userId"),
                         t.trainingId.as("trainingId"),
 
@@ -118,6 +120,24 @@ public class UserTrainingQueryRepository {
                 .where(
                     ut.user.userId.eq(userId)
                         .and(pt.training.trainingId.eq(trainingId))
+                )
+                .fetchOne()
+        );
+    }
+
+    public Optional<UserTraining> findEntity(Long userId, Long trainingId) {
+        QUserTraining ut = QUserTraining.userTraining;
+        QProgramTraining pt = QProgramTraining.programTraining;
+        QTraining t = QTraining.training;
+
+        return Optional.ofNullable(
+            query.select(ut)
+                .from(ut)
+                .join(ut.programTraining, pt).fetchJoin()
+                .join(pt.training, t).fetchJoin()
+                .where(
+                    ut.user.userId.eq(userId)
+                        .and(t.trainingId.eq(trainingId))
                 )
                 .fetchOne()
         );
