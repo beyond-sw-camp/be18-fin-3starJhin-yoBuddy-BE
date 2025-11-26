@@ -111,10 +111,19 @@ public class UserTrainingServiceImpl implements UserTrainingService {
             throw new IllegalArgumentException("이수증 파일을 최소 1개 이상 업로드해야 합니다.");
         }
 
+        Long userTrainingId = ut.getUserTrainingId();
+
+        List<FileEntity> oldFiles =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_TRAINING, userTrainingId);
+
+        for (FileEntity old : oldFiles) {
+            fileRepository.delete(old);    // 물리 삭제
+        }
+
         for (MultipartFile file : files) {
             try {
                 FileEntity uploaded = fileService.uploadTempFile(file, FileType.USER_TRAINING);
-                fileService.bindFile(uploaded.getFileId(), RefType.USER_TRAINING, ut.getUserTrainingId());
+                fileService.bindFile(uploaded.getFileId(), RefType.USER_TRAINING, userTrainingId);
             } catch (Exception e) {
                 throw new RuntimeException("파일 업로드 중 오류 발생", e);
             }
@@ -123,4 +132,3 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         ut.completeTraining();
     }
 }
-
