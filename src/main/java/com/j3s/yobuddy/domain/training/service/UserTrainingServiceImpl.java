@@ -70,13 +70,28 @@ public class UserTrainingServiceImpl implements UserTrainingService {
             .findUserTrainingDetail(pathUserId, trainingId)
             .orElseThrow(() -> new UserTrainingsNotFoundException(pathUserId));
 
-        // 사용자 제출 파일(UserTraining 기준)
-        List<FileResponse> files =
-            fileRepository.findByRefTypeAndRefId(RefType.USER_TRAINING, dto.getUserTrainingId()).stream()
-                .map(FileResponse::from)
-                .toList();
+        UserTraining ut = userTrainingQueryRepository
+            .findEntity(pathUserId, trainingId)
+            .orElseThrow(() -> new UserTrainingsNotFoundException(pathUserId));
 
-        dto.setAttachedFiles(files);
+        Long userTrainingId = ut.getUserTrainingId();
+        Long realTrainingId = ut.getProgramTraining().getTraining().getTrainingId();
+
+        List<FileResponse> trainingFiles = fileRepository
+            .findByRefTypeAndRefId(RefType.TRAINING, realTrainingId)
+            .stream()
+            .map(FileResponse::from)
+            .toList();
+
+        List<FileResponse> certificateFiles = fileRepository
+            .findByRefTypeAndRefId(RefType.USER_TRAINING, userTrainingId)
+            .stream()
+            .map(FileResponse::from)
+            .toList();
+
+        dto.setTrainingFiles(trainingFiles);
+        dto.setCertificateFiles(certificateFiles);
+
         return dto;
     }
 
