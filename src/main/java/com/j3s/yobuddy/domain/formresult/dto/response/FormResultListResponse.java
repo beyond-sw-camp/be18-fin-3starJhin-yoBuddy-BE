@@ -19,8 +19,8 @@ public class FormResultListResponse {
     private final BigDecimal score;
     private final FormResultStatus result;
 
-    public static FormResultResponse from(FormResult fr) {
-        return FormResultResponse.builder()
+    public static FormResultListResponse from(FormResult fr) {
+        return FormResultListResponse.builder()
             .formResultId(fr.getFormResultId())
             .userName(fr.getUser().getName())
             .trainingName(fr.getProgramTraining().getTraining().getTitle())

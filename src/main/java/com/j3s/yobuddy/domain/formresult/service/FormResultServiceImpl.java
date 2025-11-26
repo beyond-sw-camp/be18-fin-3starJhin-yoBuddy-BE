@@ -1,6 +1,7 @@
 package com.j3s.yobuddy.domain.formresult.service;
 
 import com.j3s.yobuddy.domain.formresult.dto.request.FormResultCreateRequest;
+import com.j3s.yobuddy.domain.formresult.dto.response.FormResultListResponse;
 import com.j3s.yobuddy.domain.formresult.entity.FormResult;
 import com.j3s.yobuddy.domain.formresult.entity.FormResultStatus;
 import com.j3s.yobuddy.domain.formresult.exception.FormResultAlreadyDeletedException;
@@ -25,6 +26,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,6 +110,7 @@ public class FormResultServiceImpl implements FormResultService {
     }
 
     @Override
+    @Transactional
     public void deleteFormResult(Long formResultId) {
 
         FormResult formResult = formResultRepository.findByFormResultIdAndIsDeletedFalse(
@@ -118,5 +122,16 @@ public class FormResultServiceImpl implements FormResultService {
 
         formResult.softDelete();
         formResultRepository.save(formResult);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FormResultListResponse> getFormResultList(Pageable pageable) {
+
+        Page<FormResult> result;
+
+        result = formResultRepository.findAllByIsDeletedFalse(pageable);
+
+        return result.map(FormResultListResponse::from);
     }
 }
