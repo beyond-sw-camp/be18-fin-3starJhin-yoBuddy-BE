@@ -3,6 +3,8 @@ package com.j3s.yobuddy.domain.formresult.service;
 import com.j3s.yobuddy.domain.formresult.dto.request.FormResultCreateRequest;
 import com.j3s.yobuddy.domain.formresult.entity.FormResult;
 import com.j3s.yobuddy.domain.formresult.entity.FormResultStatus;
+import com.j3s.yobuddy.domain.formresult.exception.FormResultAlreadyDeletedException;
+import com.j3s.yobuddy.domain.formresult.exception.FormResultNotFoundException;
 import com.j3s.yobuddy.domain.formresult.repository.FormResultRepository;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.exception.ProgramNotFoundException;
@@ -107,5 +109,14 @@ public class FormResultServiceImpl implements FormResultService {
     @Override
     public void deleteFormResult(Long formResultId) {
 
+        FormResult formResult = formResultRepository.findByFormResultIdAndIsDeletedFalse(
+            formResultId).orElseThrow(() -> new FormResultNotFoundException(formResultId));
+
+        if (formResult.getIsDeleted()) {
+            throw new FormResultAlreadyDeletedException(formResultId);
+        }
+
+        formResult.softDelete();
+        formResultRepository.save(formResult);
     }
 }
