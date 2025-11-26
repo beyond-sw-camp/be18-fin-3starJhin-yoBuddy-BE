@@ -91,4 +91,24 @@ public class FileService {
             }
         });
     }
+
+    public void deleteFile(Long fileId) {
+        FileEntity file = fileRepository.findById(fileId)
+            .orElse(null);
+
+        if (file == null) return;
+
+        // 1) SFTP 파일 삭제
+        try {
+            sftpTemplate.execute(session -> {
+                session.remove(file.getFilepath());
+                return null;
+            });
+        } catch (Exception ignored) {
+            // 파일이 없어도 무시
+        }
+
+        // 2) DB 삭제
+        fileRepository.delete(file);
+    }
 }

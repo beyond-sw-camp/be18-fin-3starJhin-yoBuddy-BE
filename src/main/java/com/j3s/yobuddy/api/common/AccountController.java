@@ -7,6 +7,7 @@ import com.j3s.yobuddy.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,6 +41,15 @@ public class AccountController {
     ) {
         Long userId = Long.valueOf((String) authentication.getPrincipal());
         userService.updateMyAccount(userId, req, profileImage);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<?> deleteProfileImage(Authentication authentication) {
+
+        Long userId = Long.valueOf((String) authentication.getPrincipal());
+        userService.deleteProfileImage(userId);
+
         return ResponseEntity.noContent().build();
     }
 }
