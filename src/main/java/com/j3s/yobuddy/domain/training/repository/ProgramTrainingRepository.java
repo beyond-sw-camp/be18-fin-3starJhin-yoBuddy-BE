@@ -17,4 +17,6 @@ public interface ProgramTrainingRepository extends JpaRepository<ProgramTraining
     boolean existsByProgram_ProgramIdAndTraining_TrainingId(Long programId, Long trainingId);
 
     Optional<ProgramTraining> findByProgram_ProgramIdAndTraining_TrainingId(Long programId, Long trainingId);
+
+    List<ProgramTraining> findByProgram_ProgramId(Long programId);
 }

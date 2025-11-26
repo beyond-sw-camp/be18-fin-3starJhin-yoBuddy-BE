@@ -11,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -47,10 +46,6 @@ public class UserTraining {
     @Enumerated(EnumType.STRING)
     @Column(name = "result")
     private FormResultStatus result;
-
-    @Lob
-    @Column(name = "feedback")
-    private String feedback;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
