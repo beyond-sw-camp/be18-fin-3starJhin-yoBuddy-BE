@@ -12,13 +12,14 @@ public class TaskDeleteResponse {
     private String message;
     private Long taskId;
     private LocalDateTime deletedAt;
+    private int programUnlinkedCount;
 
-    private RelatedEntities relatedEntities;
-
-    @Getter
-    @Builder
-    public static class RelatedEntities {
-        private Integer programUnlinkedCount;
-        private Integer userTaskRemovedCount;
+    public static TaskDeleteResponse of(Long taskId, int count) {
+        return TaskDeleteResponse.builder()
+            .message("Task deleted successfully")
+            .taskId(taskId)
+            .programUnlinkedCount(count)
+            .deletedAt(LocalDateTime.now())
+            .build();
     }
 }

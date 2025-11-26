@@ -1,5 +1,8 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.task.dto.response.AdminTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskListResponse;
 import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
@@ -16,6 +19,7 @@ import java.util.List;
 public class TaskQueryServiceImpl implements TaskQueryService {
 
     private final OnboardingTaskRepository onboardingTaskRepository;
+    private final FileRepository fileRepository;
 
     @Override
     public TaskListResponse getTaskList() {
@@ -60,6 +64,11 @@ public class TaskQueryServiceImpl implements TaskQueryService {
             throw new IllegalStateException("Task is deleted");
         }
 
-        return AdminTaskDetailResponse.from(task);
+        List<FileResponse> files =
+            fileRepository.findByRefTypeAndRefId(RefType.TASK, taskId).stream()
+                .map(FileResponse::from)
+                .toList();
+
+        return AdminTaskDetailResponse.of(task, files);
     }
 }
