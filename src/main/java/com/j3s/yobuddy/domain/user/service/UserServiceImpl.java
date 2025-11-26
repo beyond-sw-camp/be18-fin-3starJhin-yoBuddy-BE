@@ -1,5 +1,11 @@
 package com.j3s.yobuddy.domain.user.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.FileEntity;
+import com.j3s.yobuddy.domain.file.entity.FileType;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.user.dto.request.UpdateProfileRequest;
 import com.j3s.yobuddy.domain.user.dto.response.UserProfileResponse;
 import java.util.ArrayList;
@@ -33,6 +39,7 @@ import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +48,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
+    private final FileRepository fileRepository;
+    private final FileService fileService;
 
     @Override
     @Transactional(readOnly = true)
@@ -62,23 +71,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserProfileResponse getUserProfile(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // 프로필 이미지 조회
+        List<FileEntity> files =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+        FileResponse profile = files.isEmpty()
+            ? null
+            : FileResponse.from(files.get(0));
+
         return UserProfileResponse.builder()
             .userId(user.getUserId())
             .name(user.getName())
             .email(user.getEmail())
             .role(user.getRole().name())
+            .departmentId(user.getDepartment().getDepartmentId())
+            .departmentName(user.getDepartment().getName())
             .joinedAt(user.getJoinedAt().toString())
             .createdAt(user.getCreatedAt().toString())
             .updatedAt(user.getUpdatedAt().toString())
-            .departmentId(user.getDepartment().getDepartmentId())
-            .departmentName(user.getDepartment().getName())
+            .profileImageUrl(profile != null ? profile.getUrl() : null)
             .build();
     }
 
     @Override
     @Transactional
-    public void updateMyAccount(Long userId, UpdateProfileRequest req) {
+    public void updateMyAccount(Long userId, UpdateProfileRequest req, MultipartFile profileImage) {
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
@@ -111,12 +132,24 @@ public class UserServiceImpl implements UserService {
             if (!currentProvided || !newProvided) {
                 throw new InvalidUserRequestException("비밀번호 변경 시 현재/새 비밀번호 모두 필요합니다.");
             }
-
             if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
                 throw new UserPasswordMismatchException();
             }
-
             user.changePassword(passwordEncoder.encode(req.getNewPassword()));
+        }
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+
+            List<FileEntity> oldFiles =
+                fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+            oldFiles.forEach(fileRepository::delete);
+
+            try {
+                FileEntity uploaded = fileService.uploadTempFile(profileImage, FileType.USER_PROFILE);
+                fileService.bindFile(uploaded.getFileId(), RefType.USER_PROFILE, userId);
+            } catch (Exception e) {
+                throw new RuntimeException("프로필 이미지 업로드 중 오류 발생", e);
+            }
         }
     }
 
