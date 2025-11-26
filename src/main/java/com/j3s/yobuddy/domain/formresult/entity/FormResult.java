@@ -1,5 +1,7 @@
-package com.j3s.yobuddy.domain.training.entity;
+package com.j3s.yobuddy.domain.formresult.entity;
 
+import com.j3s.yobuddy.domain.training.entity.ProgramTraining;
+import com.j3s.yobuddy.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,17 +12,22 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.j3s.yobuddy.domain.user.entity.User;
 
 @Entity
 @Table(name = "Form_Results")
 @Getter
-@NoArgsConstructor
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FormResult {
 
     @Id
@@ -41,20 +48,34 @@ public class FormResult {
     @Column(name = "result")
     private FormResultStatus result;  // PASS / FAIL enum
 
-    @Column(name = "submitted_at")
+    @Column(name = "submitted_at", nullable = false, updatable = false)
     private LocalDateTime submittedAt;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;  // 평가 대상 유저
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "training_id", nullable = false)
-    private Training training;
+    @JoinColumn(name = "program_training_id", nullable = false)
+    private ProgramTraining programTraining;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
