@@ -23,8 +23,8 @@ public class FormResultListResponse {
         return FormResultResponse.builder()
             .formResultId(fr.getFormResultId())
             .userName(fr.getUser().getName())
-            .trainingName(fr.getTraining().getTitle())
-            .programName(fr.getOnboardingProgram().getName())
+            .trainingName(fr.getProgramTraining().getTraining().getTitle())
+            .programName(fr.getProgramTraining().getProgram().getName())
             .score(fr.getScore())
             .result(fr.getResult())
             .build();

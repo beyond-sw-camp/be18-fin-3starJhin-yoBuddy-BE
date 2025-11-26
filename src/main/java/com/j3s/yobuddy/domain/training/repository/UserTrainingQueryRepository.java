@@ -1,8 +1,8 @@
 package com.j3s.yobuddy.domain.training.repository;
 
+import com.j3s.yobuddy.domain.formresult.entity.QFormResult;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingItemResponse;
-import com.j3s.yobuddy.domain.training.entity.QFormResult;
 import com.j3s.yobuddy.domain.training.entity.QProgramTraining;
 import com.j3s.yobuddy.domain.training.entity.QTraining;
 import com.j3s.yobuddy.domain.training.entity.QUserTraining;
@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import com.j3s.yobuddy.domain.user.entity.User;
 
 @Repository
 @RequiredArgsConstructor
@@ -69,7 +68,8 @@ public class UserTrainingQueryRepository {
             .fetch();
     }
 
-    public Optional<UserTrainingDetailResponse> findUserTrainingDetail(Long userId, Long trainingId) {
+    public Optional<UserTrainingDetailResponse> findUserTrainingDetail(Long userId,
+        Long trainingId) {
 
         QUserTraining ut = QUserTraining.userTraining;
         QProgramTraining pt = QProgramTraining.programTraining;
@@ -112,7 +112,7 @@ public class UserTrainingQueryRepository {
                 .leftJoin(fr)
                 .on(
                     fr.user.userId.eq(userId)
-                        .and(fr.training.trainingId.eq(trainingId))
+                        .and(fr.programTraining.training.trainingId.eq(trainingId))
                         .and(fr.isDeleted.eq(false))
                 )
                 .where(

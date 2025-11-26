@@ -14,6 +14,7 @@ import lombok.Getter;
 public class FormResultResponse {
 
     private final Long formResultId;
+    private final Long programTrainingId;
     private final String userName;
     private final String departmentName;
     private final String trainingName;
@@ -29,10 +30,11 @@ public class FormResultResponse {
     public static FormResultResponse from(FormResult fr) {
         return FormResultResponse.builder()
             .formResultId(fr.getFormResultId())
+            .programTrainingId(fr.getProgramTraining().getProgramTrainingId())
             .userName(fr.getUser().getName())
             .departmentName(fr.getUser().getDepartment().getName())
-            .trainingName(fr.getTraining().getTitle())
-            .programName(fr.getOnboardingProgram().getName())
+            .trainingName(fr.getProgramTraining().getTraining().getTitle())
+            .programName(fr.getProgramTraining().getProgram().getName())
             .score(fr.getScore())
             .maxScore(fr.getMaxScore())
             .passingScore(fr.getPassingScore())

@@ -7,4 +7,6 @@ import jakarta.validation.Valid;
 public interface FormResultService {
 
     FormResult createFormResult(@Valid FormResultCreateRequest request);
+
+    void deleteFormResult(Long formResultId);
 }

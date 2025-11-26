@@ -1,7 +1,6 @@
 package com.j3s.yobuddy.domain.formresult.entity;
 
-import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
-import com.j3s.yobuddy.domain.training.entity.Training;
+import com.j3s.yobuddy.domain.training.entity.ProgramTraining;
 import com.j3s.yobuddy.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -25,13 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "Form_Results",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uq_form_results_program_training_user",
-            columnNames = {"program_id", "training_id", "user_id"}
-        )
-    })
+@Table(name = "Form_Results")
 @Getter
 @Builder
 @AllArgsConstructor
@@ -73,12 +65,8 @@ public class FormResult {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "training_id", nullable = false)
-    private Training training;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "program_id", nullable = false)
-    private OnboardingProgram onboardingProgram;
+    @JoinColumn(name = "program_training_id", nullable = false)
+    private ProgramTraining programTraining;
 
     @PrePersist
     protected void onCreate() {
