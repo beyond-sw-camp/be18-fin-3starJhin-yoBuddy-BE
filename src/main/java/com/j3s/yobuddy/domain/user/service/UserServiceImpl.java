@@ -142,7 +142,10 @@ public class UserServiceImpl implements UserService {
 
             List<FileEntity> oldFiles =
                 fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
-            oldFiles.forEach(fileRepository::delete);
+
+            for (FileEntity old : oldFiles) {
+                fileService.deleteFile(old.getFileId());
+            }
 
             try {
                 FileEntity uploaded = fileService.uploadTempFile(profileImage, FileType.USER_PROFILE);
@@ -301,5 +304,19 @@ public class UserServiceImpl implements UserService {
             .joinedAt(req.getJoinedAt())
             .department(department)
             .build();
+    }
+
+    @Transactional
+    public void deleteProfileImage(Long userId) {
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        List<FileEntity> files =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+        for (FileEntity file : files) {
+            fileService.deleteFile(file.getFileId());
+        }
     }
 }

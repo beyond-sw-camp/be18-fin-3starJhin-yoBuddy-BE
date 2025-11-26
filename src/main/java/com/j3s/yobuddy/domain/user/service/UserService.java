@@ -28,4 +28,6 @@ public interface UserService {
     UserProfileResponse getUserProfile(Long userId);
 
     void updateMyAccount(Long userId, UpdateProfileRequest req, MultipartFile profileImage);
+
+    void deleteProfileImage(Long userId);
 }
