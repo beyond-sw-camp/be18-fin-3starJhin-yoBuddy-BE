@@ -35,7 +35,7 @@ public class NotificationController {
         return sseManager.connect(userId);
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NotificationPayload>> getNotifications(Authentication auth) {
         Long userId = extractUserId(auth);
         return ResponseEntity.ok(queryService.getRecentNotifications(userId));
