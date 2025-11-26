@@ -12,6 +12,8 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-timezone: Asia/Seoul
 
   data:
     redis:
@@ -29,10 +31,16 @@ spring:
 
         jdbc:
           batch_size: 1000
+          time_zone: Asia/Seoul
         order_inserts: true
         order_updates: true
         generate_statistics: false
     show-sql: true
+
+  jackson:
+    time-zone: Asia/Seoul
+  mvc:
+    time-zone: Asia/Seoul
 
   mail:
     host: ${MAIL_HOST}
@@ -58,36 +66,3 @@ sftp:
   port: ${SFTP_PORT}
   user: ${SFTP_USER}
   password: ${SFTP_PASSWORD}
-
----
-# local (개발)
-spring:
-  config:
-    activate:
-      on-profile: local
-
-cookie:
-  secure: false
-  same-site: Lax
-
----
-# QA (HTTP 환경)
-spring:
-  config:
-    activate:
-      on-profile: qa
-
-cookie:
-  secure: false
-  same-site: Lax
-
----
-# prod (HTTPS)
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-cookie:
-  secure: true
-  same-site: None
