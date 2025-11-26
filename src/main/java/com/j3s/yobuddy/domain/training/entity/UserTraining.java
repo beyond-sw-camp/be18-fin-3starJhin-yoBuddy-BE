@@ -43,10 +43,6 @@ public class UserTraining {
     @Column(name = "score", precision = 5, scale = 2)
     private BigDecimal score;
 
-    @Lob
-    @Column(name = "feedback")
-    private String feedback;
-
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 

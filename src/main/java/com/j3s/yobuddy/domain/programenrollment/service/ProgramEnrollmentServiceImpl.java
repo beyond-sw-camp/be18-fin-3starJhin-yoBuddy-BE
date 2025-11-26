@@ -10,6 +10,9 @@ import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.Enrollm
 import com.j3s.yobuddy.domain.programenrollment.exception.DuplicateEnrollmentException;
 import com.j3s.yobuddy.domain.programenrollment.exception.EnrollmentNotFoundException;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
+import com.j3s.yobuddy.domain.task.entity.ProgramTask;
+import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
+import com.j3s.yobuddy.domain.task.service.UserTaskAssignmentService;
 import com.j3s.yobuddy.domain.training.entity.ProgramTraining;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
 import com.j3s.yobuddy.domain.training.service.UserTrainingAssignmentService;
@@ -30,13 +33,19 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
     private final OnboardingProgramRepository programRepository;
     private final UserRepository userRepository;
     private final ProgramTrainingRepository programTrainingRepository;
+    private final ProgramTaskRepository programTaskRepository;
     private final UserTrainingAssignmentService userTrainingAssignmentService;
+    private final UserTaskAssignmentService userTaskAssignmentService;
 
     @Override
     @Transactional
     public List<ProgramEnrollmentResponse> enroll(Long programId, ProgramEnrollmentRequest request) {
 
-        List<ProgramTraining> pts = programTrainingRepository.findByProgram_ProgramId(programId);
+        List<ProgramTraining> trainings =
+            programTrainingRepository.findByProgram_ProgramId(programId);
+
+        List<ProgramTask> tasks =
+            programTaskRepository.findByOnboardingProgram_ProgramId(programId);
 
         List<ProgramEnrollmentResponse> result = new ArrayList<>();
 
@@ -60,7 +69,9 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
 
             enrollmentRepository.save(enrollment);
 
-            userTrainingAssignmentService.assignForUser(user, pts);
+            userTrainingAssignmentService.assignForUser(user, trainings);
+
+            userTaskAssignmentService.assignForUser(user, tasks);
 
             result.add(
                 ProgramEnrollmentResponse.builder()
