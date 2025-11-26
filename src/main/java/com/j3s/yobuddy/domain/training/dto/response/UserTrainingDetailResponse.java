@@ -21,8 +21,8 @@ public class UserTrainingDetailResponse {
 
     private String title;
     private TrainingType type;
-    private String description;
     private String onlineUrl;
+    private String description;
 
     private LocalDate startDate;
     private LocalDate endDate;
