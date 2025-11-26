@@ -1,8 +1,9 @@
 package com.j3s.yobuddy.domain.training.repository;
 
-import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.entity.Training;
+import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import io.lettuce.core.dynamic.annotation.Param;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,4 +28,6 @@ public interface TrainingRepository extends JpaRepository<Training, Long> {
         @Param("keyword") String keyword,
         Pageable pageable
     );
+
+    Optional<Training> findByTitle(String trainingName);
 }
