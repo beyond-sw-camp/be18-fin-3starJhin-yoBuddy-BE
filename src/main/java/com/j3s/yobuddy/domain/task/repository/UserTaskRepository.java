@@ -8,7 +8,9 @@ import java.util.Optional;
 
 public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
 
-    Optional<UserTask> findByUser_UserIdAndProgramTask_Id(Long userId, Long programTaskId);
-
     List<UserTask> findByUser_UserId(Long userId);
+
+    Optional<UserTask> findByIdAndUser_UserId(Long userTaskId, Long userId);
+
+    List<UserTask> findByUser_UserIdIn(List<Long> userIds);
 }

@@ -1,88 +1,92 @@
 package com.j3s.yobuddy.api.mentor;
 
 import com.j3s.yobuddy.domain.task.dto.request.TaskGradeRequest;
-import com.j3s.yobuddy.domain.task.dto.response.MentorMenteeTaskResponse;
 import com.j3s.yobuddy.domain.task.service.MentorTaskService;
-
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/mentors")
-@PreAuthorize("hasRole('BUDDY')")
+@PreAuthorize("hasRole('MENTOR')")
 public class MentorTaskController {
 
     private final MentorTaskService mentorTaskService;
 
     /**
-     * 멘토가 멘티의 제출 과제를 채점한다.
+     * 내 모든 멘티들의 과제 리스트 조회
      */
-    @PatchMapping("/{mentorId}/tasks/{programTaskId}/grade")
-    public ResponseEntity<?> gradeTask(
+    @GetMapping("/{mentorId}/tasks")
+    public ResponseEntity<?> getAllMenteeTasks(
         @PathVariable Long mentorId,
-        @PathVariable Long programTaskId,
-        @RequestParam Long menteeId,
-        @RequestBody TaskGradeRequest request,
         Authentication authentication
     ) {
-
         Long authUserId = Long.valueOf(authentication.getName());
         if (!authUserId.equals(mentorId)) {
-            return ResponseEntity.status(403).body(
-                Map.of(
-                    "status", 403,
-                    "message", "FORBIDDEN_OPERATION",
-                    "detail", "You can only grade tasks assigned to you."
-                )
-            );
+            return ResponseEntity.status(403).body("FORBIDDEN");
         }
 
-        mentorTaskService.gradeTask(mentorId, menteeId, programTaskId, request);
+        var data = mentorTaskService.getAllMenteeTasks(mentorId);
 
-        return ResponseEntity.ok(
-            Map.of(
-                "statusCode", 200,
-                "message", "Task graded successfully"
-            )
-        );
+        return ResponseEntity.ok(Map.of(
+            "statusCode", 200,
+            "message", "Mentee tasks fetched successfully",
+            "data", data
+        ));
     }
 
     /**
-     * 멘토가 특정 멘티의 제출한 과제 목록 조회
+     * 특정 멘티 과제 상세 정보 조회
      */
-    @GetMapping("/{mentorId}/mentees/{menteeId}/tasks")
-    public ResponseEntity<?> getSubmittedTasks(
+    @GetMapping("/{mentorId}/tasks/{userTaskId}")
+    public ResponseEntity<?> getTaskDetail(
         @PathVariable Long mentorId,
-        @PathVariable Long menteeId,
+        @PathVariable Long userTaskId,
         Authentication authentication
     ) {
-
         Long authUserId = Long.valueOf(authentication.getName());
         if (!authUserId.equals(mentorId)) {
-            return ResponseEntity.status(403).body(
-                Map.of(
-                    "status", 403,
-                    "message", "FORBIDDEN_OPERATION",
-                    "detail", "You can only access your assigned mentees."
-                )
-            );
+            return ResponseEntity.status(403).body("FORBIDDEN");
         }
 
-        MentorMenteeTaskResponse data =
-            mentorTaskService.getSubmittedTasks(mentorId, menteeId);
+        var data = mentorTaskService.getTaskDetail(mentorId, userTaskId);
 
-        return ResponseEntity.ok(
-            Map.of(
-                "statusCode", 200,
-                "message", "Submitted tasks retrieved successfully",
-                "data", data
-            )
-        );
+        return ResponseEntity.ok(Map.of(
+            "statusCode", 200,
+            "message", "Task detail fetched",
+            "data", data
+        ));
+    }
+
+    /**
+     * 과제 채점(점수 + 피드백)
+     */
+    @PatchMapping("/{mentorId}/tasks/{userTaskId}/grade")
+    public ResponseEntity<?> gradeTask(
+        @PathVariable Long mentorId,
+        @PathVariable Long userTaskId,
+        @RequestBody TaskGradeRequest request,
+        Authentication authentication
+    ) {
+        Long authUserId = Long.valueOf(authentication.getName());
+        if (!authUserId.equals(mentorId)) {
+            return ResponseEntity.status(403).body("FORBIDDEN");
+        }
+
+        mentorTaskService.gradeTask(mentorId, userTaskId, request);
+
+        return ResponseEntity.ok(Map.of(
+            "statusCode", 200,
+            "message", "Task graded successfully"
+        ));
     }
 }

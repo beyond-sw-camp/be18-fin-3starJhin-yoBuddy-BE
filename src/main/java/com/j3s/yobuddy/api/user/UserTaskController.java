@@ -1,18 +1,19 @@
 package com.j3s.yobuddy.api.user;
 
-import com.j3s.yobuddy.domain.task.dto.request.UserTaskSubmitRequest;
-import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse;
-import com.j3s.yobuddy.domain.task.entity.UserTaskStatus;
 import com.j3s.yobuddy.domain.task.service.UserTaskCommandService;
 import com.j3s.yobuddy.domain.task.service.UserTaskQueryService;
 
+import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,110 +24,86 @@ public class UserTaskController {
     private final UserTaskQueryService userTaskQueryService;
     private final UserTaskCommandService userTaskCommandService;
 
+    /** 유저 과제 목록 */
     @GetMapping("/{userId}/tasks")
     public ResponseEntity<?> getUserTasks(
         @PathVariable Long userId,
-        @RequestParam(required = false) UserTaskStatus status,
-        @RequestParam(required = false) Long programId,
-        @RequestParam(required = false) Boolean overdue,
         Authentication authentication
     ) {
-
-        // 1) JWT에서 현재 사용자 ID 얻기
         Long authUserId = Long.valueOf(authentication.getName());
-
-        // 2) 본인 확인
         if (!authUserId.equals(userId)) {
-            return ResponseEntity.status(403).body(
-                Map.of(
-                    "status", 403,
-                    "message", "FORBIDDEN_OPERATION",
-                    "detail", "User " + userId + " can only access their own tasks."
-                )
-            );
+            return ResponseEntity.status(403).body("FORBIDDEN");
         }
 
-        // 3) 서비스 호출
-        UserTaskListResponse data = userTaskQueryService.getUserTasks(
-            userId,
-            status,
-            programId,
-            overdue
-        );
+        var data = userTaskQueryService.getUserTaskList(userId);
 
-        // 4) 정상 응답
         return ResponseEntity.ok(
-            Map.of(
-                "statusCode", 200,
-                "message", "User task list fetched successfully",
-                "data", data
-            )
+            Map.of("statusCode", 200, "message", "User task list fetched", "data", data)
         );
     }
 
-    @PostMapping("/{userId}/tasks/{programTaskId}/submit")
+    /** UserTask 상세 조회 */
+    @GetMapping("/{userId}/tasks/{userTaskId}")
+    public ResponseEntity<?> getUserTaskDetail(
+        @PathVariable Long userId,
+        @PathVariable Long userTaskId,
+        Authentication authentication
+    ) {
+        Long authUserId = Long.valueOf(authentication.getName());
+        if (!authUserId.equals(userId)) {
+            return ResponseEntity.status(403).body("FORBIDDEN");
+        }
+
+        var data = userTaskQueryService.getUserTaskDetail(userId, userTaskId);
+
+        return ResponseEntity.ok(
+            Map.of("statusCode", 200, "message", "User task detail fetched", "data", data)
+        );
+    }
+
+    /** UserTask 제출 */
+    @PostMapping(
+        value = "/{userId}/tasks/{userTaskId}/submit",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<?> submitTask(
         @PathVariable Long userId,
-        @PathVariable Long programTaskId,
-        @RequestBody UserTaskSubmitRequest request,
+        @PathVariable Long userTaskId,
+        @RequestPart(value = "removeFileIds", required = false) List<Long> removeFileIds,
+        @RequestPart(value = "files", required = false) List<MultipartFile> files,
         Authentication authentication
-    ) {
+    ) throws Exception {
 
-        // JWT 의 userId 가져오기
         Long authUserId = Long.valueOf(authentication.getName());
-
-        // 본인 확인 (다른 사람의 제출 방지)
         if (!authUserId.equals(userId)) {
-            return ResponseEntity.status(403).body(
-                Map.of(
-                    "status", 403,
-                    "message", "FORBIDDEN_OPERATION",
-                    "detail", "You can only submit your own tasks."
-                )
-            );
+            return ResponseEntity.status(403).body("FORBIDDEN");
         }
 
-        userTaskCommandService.submitTask(userId, programTaskId, request);
+        userTaskCommandService.submitTaskWithFiles(
+            userId, userTaskId, removeFileIds, files
+        );
 
         return ResponseEntity.status(201).body(
-            Map.of(
-                "statusCode", 201,
-                "message", "Task submitted successfully"
-            )
+            Map.of("statusCode", 201, "message", "Task submitted successfully")
         );
     }
 
-    @GetMapping("/{userId}/tasks/{programTaskId}/score")
+    /** 점수 조회 */
+    @GetMapping("/{userId}/tasks/{userTaskId}/score")
     public ResponseEntity<?> getUserTaskScore(
         @PathVariable Long userId,
-        @PathVariable Long programTaskId,
+        @PathVariable Long userTaskId,
         Authentication authentication
     ) {
-        // 1) JWT의 userId 가져오기
         Long authUserId = Long.valueOf(authentication.getName());
-
-        // 2) 본인 확인
         if (!authUserId.equals(userId)) {
-            return ResponseEntity.status(403).body(
-                Map.of(
-                    "status", 403,
-                    "message", "FORBIDDEN_OPERATION",
-                    "detail", "User " + userId + " can only access their own task scores."
-                )
-            );
+            return ResponseEntity.status(403).body("FORBIDDEN");
         }
 
-        // 3) 서비스 호출
-        var data = userTaskQueryService.getUserTaskScore(userId, programTaskId);
+        var data = userTaskQueryService.getUserTaskScore(userId, userTaskId);
 
-        // 4) 성공 응답
         return ResponseEntity.ok(
-            Map.of(
-                "statusCode", 200,
-                "message", "User task score fetched successfully",
-                "data", data
-            )
+            Map.of("statusCode", 200, "message", "User task score fetched", "data", data)
         );
     }
-
 }

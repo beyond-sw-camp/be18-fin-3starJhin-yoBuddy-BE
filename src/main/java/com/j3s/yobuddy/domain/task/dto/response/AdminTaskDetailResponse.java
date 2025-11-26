@@ -1,8 +1,13 @@
 package com.j3s.yobuddy.domain.task.dto.response;
 
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
+
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,22 +21,20 @@ public class AdminTaskDetailResponse {
     private List<Long> departmentIds;
     private LocalDateTime createdAt;
 
-    private String fileName; // 파일 기능은 나중에
-    private String fileUrl;  // 지금은 null 로 내려가기
+    private List<FileResponse> attachedFiles;
 
-    public static AdminTaskDetailResponse from(OnboardingTask onboardingTask) {
+    public static AdminTaskDetailResponse of(OnboardingTask task, List<FileResponse> files) {
         return AdminTaskDetailResponse.builder()
-            .taskId(onboardingTask.getId())
-            .title(onboardingTask.getTitle())
-            .description(onboardingTask.getDescription())
+            .taskId(task.getId())
+            .title(task.getTitle())
+            .description(task.getDescription())
             .departmentIds(
-                onboardingTask.getTaskDepartments().stream()
+                task.getTaskDepartments().stream()
                     .map(td -> td.getDepartment().getDepartmentId())
                     .toList()
             )
-            .createdAt(onboardingTask.getCreatedAt())
-            .fileName(null)
-            .fileUrl(null)
+            .createdAt(task.getCreatedAt())
+            .attachedFiles(files)
             .build();
     }
 }

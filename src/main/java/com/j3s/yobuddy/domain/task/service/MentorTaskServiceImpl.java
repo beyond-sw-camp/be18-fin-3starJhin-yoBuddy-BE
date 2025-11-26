@@ -1,97 +1,146 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.mentor.repository.MentorMenteeAssignmentRepository;
 import com.j3s.yobuddy.domain.task.dto.request.TaskGradeRequest;
-import com.j3s.yobuddy.domain.task.dto.response.MentorMenteeTaskResponse;
+import com.j3s.yobuddy.domain.task.dto.response.MentorTaskDetailResponse;
+import com.j3s.yobuddy.domain.task.dto.response.MentorTaskListResponse;
+import com.j3s.yobuddy.domain.task.entity.ProgramTask;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
-import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
-import com.j3s.yobuddy.domain.user.repository.UserRepository;
+import com.j3s.yobuddy.domain.user.entity.User;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class MentorTaskServiceImpl implements MentorTaskService {
 
-    private final MentorMenteeAssignmentRepository mentorMenteeAssignmentRepository;
-    private final UserRepository userRepository;
-    private final ProgramTaskRepository programTaskRepository;
+    private final MentorMenteeAssignmentRepository assignmentRepository;
     private final UserTaskRepository userTaskRepository;
-
-    @Override
-    public void gradeTask(Long mentorId, Long menteeId, Long programTaskId, TaskGradeRequest request) {
-
-        // 1) 멘토-멘티 관계 검증
-        boolean assigned = mentorMenteeAssignmentRepository
-            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
-
-        if (!assigned) {
-            throw new IllegalStateException("You are not assigned as a mentor of this mentee.");
-        }
-
-        // 2) 멘티 존재 확인
-        userRepository.findById(menteeId)
-            .orElseThrow(() -> new IllegalArgumentException("Mentee not found"));
-
-        // 3) ProgramTask 존재 확인
-        programTaskRepository.findById(programTaskId)
-            .orElseThrow(() -> new IllegalArgumentException("ProgramTask not found"));
-
-        // 4) 멘티의 제출(UserTask) 조회
-        UserTask userTask = userTaskRepository
-            .findByUser_UserIdAndProgramTask_Id(menteeId, programTaskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not submitted by mentee"));
-
-        // 5) 채점 반영 (엔티티 도메인 메서드)
-        userTask.grade(request.getGrade(), request.getFeedback());
-
-        // ⚠ save() 필요 없음 — Dirty Checking 자동 적용됨
-    }
+    private final FileRepository fileRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public MentorMenteeTaskResponse getSubmittedTasks(Long mentorId, Long menteeId) {
+    public MentorTaskListResponse getAllMenteeTasks(Long mentorId) {
 
-        // 1) 멘토-멘티 관계 검증
-        boolean assigned = mentorMenteeAssignmentRepository
-            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
+        List<Long> menteeIds = assignmentRepository.findMenteeIdsByMentorUserId(mentorId);
 
-        if (!assigned) {
-            throw new IllegalStateException("You are not assigned as a mentor of this mentee.");
+        if (menteeIds.isEmpty()) {
+            return MentorTaskListResponse.builder()
+                .mentorId(mentorId)
+                .tasks(List.of())
+                .build();
         }
 
-        // 2) 멘티 제출 과제(UserTask) 조회
-        List<UserTask> submitted = userTaskRepository.findByUser_UserId(menteeId);
+        List<UserTask> menteeTasks = userTaskRepository.findByUser_UserIdIn(menteeIds);
 
-        // 3) DTO 변환
-        List<MentorMenteeTaskResponse.TaskInfo> taskInfos = submitted.stream()
-            .map(ut -> {
-                var pt = ut.getProgramTask();
-                var t = pt.getOnboardingTask();
+        List<MentorTaskListResponse.MenteeTaskInfo> taskInfos =
+            menteeTasks.stream().map(ut -> {
+                    var mentee = ut.getUser();
+                    var pt = ut.getProgramTask();
+                    var t = pt.getOnboardingTask();
 
-                return MentorMenteeTaskResponse.TaskInfo.builder()
-                    .programTaskId(pt.getId())
-                    .taskId(t.getId())
-                    .title(t.getTitle())
-                    .dueDate(pt.getDueDate().toLocalDate())
-                    .status(ut.getStatus().name())
-                    .grade(ut.getGrade())
-                    .submittedAt(ut.getSubmittedAt())
-                    .feedback(ut.getFeedback())
-                    .build();
-            })
-            .collect(Collectors.toList());
+                    return MentorTaskListResponse.MenteeTaskInfo.builder()
+                        .userTaskId(ut.getId())
+                        .menteeId(mentee.getUserId())
+                        .menteeName(mentee.getName())
+                        .onboardingTaskId(t.getId())
+                        .taskTitle(t.getTitle())
+                        .dueDate(pt.getDueDate().toLocalDate())
+                        .status(ut.getStatus().name())
+                        .grade(ut.getGrade())
+                        .submittedAt(ut.getSubmittedAt())
+                        .feedback(ut.getFeedback())
+                        .build();
+                })
+                .collect(Collectors.toList());
 
-        return MentorMenteeTaskResponse.builder()
-            .menteeId(menteeId)
+        return MentorTaskListResponse.builder()
+            .mentorId(mentorId)
             .tasks(taskInfos)
             .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public MentorTaskDetailResponse getTaskDetail(Long mentorId, Long userTaskId) {
+
+        UserTask ut = userTaskRepository.findById(userTaskId)
+            .orElseThrow(() -> new IllegalArgumentException("UserTask not found"));
+
+        Long menteeId = ut.getUser().getUserId();
+
+        boolean assigned = assignmentRepository
+            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
+
+        if (!assigned) {
+            throw new IllegalStateException("You are not assigned to this mentee.");
+        }
+
+        var pt = ut.getProgramTask();
+        var task = pt.getOnboardingTask();
+
+        var taskFiles = fileRepository.findByRefTypeAndRefId(RefType.TASK, task.getId())
+            .stream()
+            .map(f -> MentorTaskDetailResponse.FileInfo.builder()
+                .fileId(f.getFileId())
+                .fileName(f.getFilename())
+                .filePath(f.getFilepath())
+                .build())
+            .toList();
+
+        var submittedFiles = fileRepository.findByRefTypeAndRefId(RefType.USER_TASK, userTaskId)
+            .stream()
+            .map(f -> MentorTaskDetailResponse.FileInfo.builder()
+                .fileId(f.getFileId())
+                .fileName(f.getFilename())
+                .filePath(f.getFilepath())
+                .build())
+            .toList();
+
+        return MentorTaskDetailResponse.builder()
+            .userTaskId(ut.getId())
+            .menteeId(menteeId)
+            .menteeName(ut.getUser().getName())
+            .taskId(task.getId())
+            .title(task.getTitle())
+            .description(task.getDescription())
+            .points(task.getPoints())
+            .dueDate(pt.getDueDate().toLocalDate())
+            .status(ut.getStatus().name())
+            .grade(ut.getGrade())
+            .submittedAt(ut.getSubmittedAt())
+            .feedback(ut.getFeedback())
+            .updatedAt(ut.getUpdatedAt())
+            .taskFiles(taskFiles)
+            .submittedFiles(submittedFiles)
+            .build();
+    }
+
+    @Override
+    public void gradeTask(Long mentorId, Long userTaskId, TaskGradeRequest request) {
+
+        UserTask ut = userTaskRepository.findById(userTaskId)
+            .orElseThrow(() -> new IllegalArgumentException("UserTask not found"));
+
+        Long menteeId = ut.getUser().getUserId();
+
+        boolean assigned = assignmentRepository
+            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
+
+        if (!assigned) {
+            throw new IllegalStateException("You are not assigned to this mentee.");
+        }
+
+        ut.grade(request.getGrade(), request.getFeedback());
+    }
 }
+
