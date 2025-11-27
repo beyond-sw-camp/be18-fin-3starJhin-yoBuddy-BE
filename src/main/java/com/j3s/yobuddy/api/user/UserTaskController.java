@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.api.user;
 
+import com.j3s.yobuddy.domain.task.dto.request.TaskSubmitRequest;
 import com.j3s.yobuddy.domain.task.service.UserTaskCommandService;
 import com.j3s.yobuddy.domain.task.service.UserTaskQueryService;
 
@@ -69,24 +70,30 @@ public class UserTaskController {
     public ResponseEntity<?> submitTask(
         @PathVariable Long userId,
         @PathVariable Long userTaskId,
-        @RequestPart(value = "removeFileIds", required = false) List<Long> removeFileIds,
-        @RequestPart(value = "files", required = false) List<MultipartFile> files,
+        @RequestPart(value = "files", required = false) MultipartFile[] files, // 🔥 먼저
+        @RequestParam(value = "comment", required = false) String comment,     // 🔥 나중에
         Authentication authentication
     ) throws Exception {
+
+        System.out.println("COMMENT TEST = " + comment); // 🔥 확인용 로그
 
         Long authUserId = Long.valueOf(authentication.getName());
         if (!authUserId.equals(userId)) {
             return ResponseEntity.status(403).body("FORBIDDEN");
         }
 
+        TaskSubmitRequest request = new TaskSubmitRequest(comment, files);
+
         userTaskCommandService.submitTaskWithFiles(
-            userId, userTaskId, removeFileIds, files
+            userId,
+            userTaskId,
+            request
         );
 
-        return ResponseEntity.status(201).body(
-            Map.of("statusCode", 201, "message", "Task submitted successfully")
-        );
+        return ResponseEntity.status(201)
+            .body(Map.of("statusCode", 201, "message", "Task submitted successfully"));
     }
+
 
     /** 점수 조회 */
     @GetMapping("/{userId}/tasks/{userTaskId}/score")
