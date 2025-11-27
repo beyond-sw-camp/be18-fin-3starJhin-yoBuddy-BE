@@ -75,8 +75,6 @@ public class UserTaskController {
         Authentication authentication
     ) throws Exception {
 
-        System.out.println("COMMENT TEST = " + comment); // 🔥 확인용 로그
-
         Long authUserId = Long.valueOf(authentication.getName());
         if (!authUserId.equals(userId)) {
             return ResponseEntity.status(403).body("FORBIDDEN");
