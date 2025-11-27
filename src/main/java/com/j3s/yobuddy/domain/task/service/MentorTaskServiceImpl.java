@@ -2,14 +2,12 @@ package com.j3s.yobuddy.domain.task.service;
 
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
-import com.j3s.yobuddy.domain.mentor.repository.MentorMenteeAssignmentRepository;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.repository.MentorMenteeAssignmentRepository;
 import com.j3s.yobuddy.domain.task.dto.request.TaskGradeRequest;
 import com.j3s.yobuddy.domain.task.dto.response.MentorTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.MentorTaskListResponse;
-import com.j3s.yobuddy.domain.task.entity.ProgramTask;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
-import com.j3s.yobuddy.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
