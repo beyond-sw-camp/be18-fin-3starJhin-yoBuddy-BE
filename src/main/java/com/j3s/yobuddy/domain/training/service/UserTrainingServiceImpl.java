@@ -14,8 +14,7 @@ import com.j3s.yobuddy.domain.training.entity.UserTraining;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
 import com.j3s.yobuddy.domain.training.exception.UserTrainingsNotFoundException;
-import com.j3s.yobuddy.domain.training.repository.UserTrainingQueryRepository;
-import java.time.LocalDateTime;
+import com.j3s.yobuddy.domain.training.repository.UserTrainingQueryRepositoryImpl;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class UserTrainingServiceImpl implements UserTrainingService {
 
-    private final UserTrainingQueryRepository userTrainingQueryRepository;
+    private final UserTrainingQueryRepositoryImpl userTrainingQueryRepository;
     private final FileRepository fileRepository;
     private final FileService fileService;
 
