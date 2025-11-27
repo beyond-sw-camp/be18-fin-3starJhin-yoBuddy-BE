@@ -19,6 +19,8 @@ import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,30 +84,28 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getByMentor(Long mentorId) {
-        return sessionRepository.findByMentor_UserIdAndDeletedFalse(mentorId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getByMentor(Long mentorId, Pageable pageable) {
+        return sessionRepository
+            .findByMentor_UserIdAndDeletedFalse(mentorId, pageable)
+            .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getByMentee(Long menteeId) {
-        return sessionRepository.findByMentee_UserIdAndDeletedFalse(menteeId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getByMentee(Long menteeId, Pageable pageable) {
+        return sessionRepository
+            .findByMentee_UserIdAndDeletedFalse(menteeId, pageable)
+            .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getByProgram(Long programId) {
-        return sessionRepository.findByProgram_ProgramIdAndDeletedFalse(programId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getByProgram(Long programId, Pageable pageable) {
+        return sessionRepository
+            .findByProgram_ProgramIdAndDeletedFalse(programId, pageable)
+            .map(this::toResponse);
     }
+
 
     @Override
     @Transactional
@@ -164,10 +164,28 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getAll() {
-        return sessionRepository.findAllByDeletedFalse()
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getAll(Pageable pageable) {
+        return sessionRepository.findAllByDeletedFalse(pageable)
+            .map(this::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MentoringSessionResponse> searchSessions(
+        Long mentorId,
+        Long menteeId,
+        Long programId,
+        MentoringStatus status,
+        String query,
+        Pageable pageable
+    ) {
+        return sessionRepository.searchSessions(
+            mentorId,
+            menteeId,
+            programId,
+            status,
+            query,
+            pageable
+        ).map(this::toResponse);
     }
 }

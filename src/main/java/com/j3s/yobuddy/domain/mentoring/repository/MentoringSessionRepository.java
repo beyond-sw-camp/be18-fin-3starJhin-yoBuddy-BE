@@ -3,17 +3,19 @@ package com.j3s.yobuddy.domain.mentoring.repository;
 import com.j3s.yobuddy.domain.mentoring.entity.MentoringSession;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MentoringSessionRepository extends JpaRepository<MentoringSession, Long> {
+public interface MentoringSessionRepository extends JpaRepository<MentoringSession, Long>, MentoringSessionQueryRepository {
 
-    List<MentoringSession> findByMentor_UserIdAndDeletedFalse(Long mentorId);
+    Page<MentoringSession> findByMentor_UserIdAndDeletedFalse(Long mentorId, Pageable pageable);
 
-    List<MentoringSession> findByMentee_UserIdAndDeletedFalse(Long menteeId);
+    Page<MentoringSession> findByMentee_UserIdAndDeletedFalse(Long menteeId, Pageable pageable);
 
-    List<MentoringSession> findByProgram_ProgramIdAndDeletedFalse(Long programId);
+    Page<MentoringSession> findByProgram_ProgramIdAndDeletedFalse(Long programId, Pageable pageable);
+
+    Page<MentoringSession> findAllByDeletedFalse(Pageable pageable);
 
     Optional<MentoringSession> findByIdAndDeletedFalse(Long sessionId);
-
-    List<MentoringSession> findAllByDeletedFalse();
 }
