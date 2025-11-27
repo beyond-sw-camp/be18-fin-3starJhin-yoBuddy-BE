@@ -1,10 +1,10 @@
 package com.j3s.yobuddy.api.mentor;
 
-import com.j3s.yobuddy.domain.mentor.dto.request.AssignMenteeRequest;
-import com.j3s.yobuddy.domain.mentor.dto.response.MenteeCandidateResponse;
-import com.j3s.yobuddy.domain.mentor.dto.response.MenteeDetailResponse;
-import com.j3s.yobuddy.domain.mentor.dto.response.MenteeListResponse;
-import com.j3s.yobuddy.domain.mentor.service.MentorService;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.dto.request.AssignMenteeRequest;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.dto.response.MenteeCandidateResponse;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.dto.response.MenteeDetailResponse;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.dto.response.MenteeListResponse;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.service.MentorService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,12 +35,12 @@ public class MentorController {
                              .build();
     }
 
-    @GetMapping("/{mentorId}/mentees")
-    public ResponseEntity<List<MenteeListResponse>> getMentees(@PathVariable Long mentorId) {
-
-        List<MenteeListResponse> mentees = mentorService.getMentees(mentorId);
-        return ResponseEntity.ok(mentees);
-    }
+//    @GetMapping("/{mentorId}/mentees")
+//    public ResponseEntity<List<MenteeListResponse>> getMentees(@PathVariable Long mentorId) {
+//
+//        List<MenteeListResponse> mentees = mentorService.getMentees(mentorId);
+//        return ResponseEntity.ok(mentees);
+//    }
 
     @DeleteMapping("/{mentorId}/mentees/{menteeId}")
     public ResponseEntity<Void> removeMentee(
