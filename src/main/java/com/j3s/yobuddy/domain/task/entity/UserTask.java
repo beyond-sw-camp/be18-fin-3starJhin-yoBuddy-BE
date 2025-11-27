@@ -37,6 +37,9 @@ public class UserTask {
     @JoinColumn(name = "program_task_id", nullable = false)
     private ProgramTask programTask;
 
+    @Column(columnDefinition = "TEXT")
+    private String comment;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
@@ -62,10 +65,11 @@ public class UserTask {
     }
 
     // 💡 도메인 메서드 (행위)
-    public void submit() {
+    public void submit(String comment) {
         this.status = UserTaskStatus.SUBMITTED;
         this.submittedAt = LocalDateTime.now();
         this.grade = null;
+        this.comment = comment;
     }
 
     public void grade(Integer grade, String feedback) {
