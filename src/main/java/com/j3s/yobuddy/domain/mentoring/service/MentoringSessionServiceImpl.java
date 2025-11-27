@@ -1,5 +1,8 @@
 package com.j3s.yobuddy.domain.mentoring.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.mentor.exception.MentorNotFoundException;
 import com.j3s.yobuddy.domain.mentoring.dto.request.MentoringSessionCreateRequest;
 import com.j3s.yobuddy.domain.mentoring.dto.request.MentoringSessionUpdateRequest;
@@ -19,6 +22,8 @@ import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +38,7 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     private final UserRepository userRepository;
     private final ProgramEnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
+    private final FileRepository fileRepository;
 
     @Override
     @Transactional
@@ -82,30 +88,28 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getByMentor(Long mentorId) {
-        return sessionRepository.findByMentor_UserIdAndDeletedFalse(mentorId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getByMentor(Long mentorId, Pageable pageable) {
+        return sessionRepository
+            .findByMentor_UserIdAndDeletedFalse(mentorId, pageable)
+            .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getByMentee(Long menteeId) {
-        return sessionRepository.findByMentee_UserIdAndDeletedFalse(menteeId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getByMentee(Long menteeId, Pageable pageable) {
+        return sessionRepository
+            .findByMentee_UserIdAndDeletedFalse(menteeId, pageable)
+            .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getByProgram(Long programId) {
-        return sessionRepository.findByProgram_ProgramIdAndDeletedFalse(programId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getByProgram(Long programId, Pageable pageable) {
+        return sessionRepository
+            .findByProgram_ProgramIdAndDeletedFalse(programId, pageable)
+            .map(this::toResponse);
     }
+
 
     @Override
     @Transactional
@@ -144,6 +148,14 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     private MentoringSessionResponse toResponse(MentoringSession s) {
         User mentee = s.getMentee();
 
+        String menteeProfileImageUrl = fileRepository
+            .findByRefTypeAndRefId(RefType.USER_PROFILE, mentee.getUserId())
+            .stream()
+            .findFirst()
+            .map(FileResponse::from)
+            .map(FileResponse::getUrl)
+            .orElse(null);
+
         return MentoringSessionResponse.builder()
             .id(s.getId())
             .mentorId(s.getMentor().getUserId())
@@ -153,6 +165,7 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             .menteeName(mentee.getName())
             .menteeEmail(mentee.getEmail())
             .menteePhoneNumber(mentee.getPhoneNumber())
+            .menteeProfileImageUrl(menteeProfileImageUrl)
             .scheduledAt(s.getScheduledAt())
             .description(s.getDescription())
             .status(s.getStatus())
@@ -164,10 +177,28 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MentoringSessionResponse> getAll() {
-        return sessionRepository.findAllByDeletedFalse()
-            .stream()
-            .map(this::toResponse)
-            .toList();
+    public Page<MentoringSessionResponse> getAll(Pageable pageable) {
+        return sessionRepository.findAllByDeletedFalse(pageable)
+            .map(this::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MentoringSessionResponse> searchSessions(
+        Long mentorId,
+        Long menteeId,
+        Long programId,
+        MentoringStatus status,
+        String query,
+        Pageable pageable
+    ) {
+        return sessionRepository.searchSessions(
+            mentorId,
+            menteeId,
+            programId,
+            status,
+            query,
+            pageable
+        ).map(this::toResponse);
     }
 }

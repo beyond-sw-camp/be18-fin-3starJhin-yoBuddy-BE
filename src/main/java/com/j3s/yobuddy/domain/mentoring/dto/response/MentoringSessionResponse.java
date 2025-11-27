@@ -21,6 +21,8 @@ public class MentoringSessionResponse {
     private final String menteeEmail;
     private final String menteePhoneNumber;
 
+    private final String menteeProfileImageUrl;
+
     private final String description;
     private final LocalDateTime scheduledAt;
     private final MentoringStatus status;

@@ -12,4 +12,5 @@ public class MenteeDetailResponse {
     private final String phoneNumber;
     private final String department;
     private final String joinedAt;
+    private final String profileImageUrl;
 }
