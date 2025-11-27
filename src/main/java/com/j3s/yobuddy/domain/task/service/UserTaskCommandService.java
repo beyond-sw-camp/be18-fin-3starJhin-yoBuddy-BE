@@ -1,13 +1,11 @@
 package com.j3s.yobuddy.domain.task.service;
 
-import java.util.List;
-import org.springframework.web.multipart.MultipartFile;
+import com.j3s.yobuddy.domain.task.dto.request.TaskSubmitRequest;
 
 public interface UserTaskCommandService {
     void submitTaskWithFiles(
         Long userId,
         Long userTaskId,
-        List<Long> removeFileIds,
-        List<MultipartFile> files
+        TaskSubmitRequest request
     ) throws Exception;
 }

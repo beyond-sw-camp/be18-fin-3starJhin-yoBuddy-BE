@@ -35,7 +35,8 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
 
         var list = tasks.stream()
             .map(ut -> UserTaskListResponse.TaskInfo.builder()
-                .taskId(ut.getId())  // userTaskId
+                .userTaskId(ut.getId()) // ⭐ 진짜 userTaskId
+                .taskId(ut.getProgramTask().getOnboardingTask().getId()) // ⭐ 실제 과제(Task) ID
                 .title(ut.getProgramTask().getOnboardingTask().getTitle())
                 .dueDate(ut.getProgramTask().getDueDate().toLocalDate())
                 .status(ut.getStatus().name())
@@ -44,6 +45,7 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
                 .feedback(ut.getFeedback())
                 .build())
             .toList();
+
 
         return UserTaskListResponse.builder()
             .userId(userId)
