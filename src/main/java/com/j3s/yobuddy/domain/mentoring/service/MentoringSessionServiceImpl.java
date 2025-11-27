@@ -1,5 +1,8 @@
 package com.j3s.yobuddy.domain.mentoring.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.mentor.exception.MentorNotFoundException;
 import com.j3s.yobuddy.domain.mentoring.dto.request.MentoringSessionCreateRequest;
 import com.j3s.yobuddy.domain.mentoring.dto.request.MentoringSessionUpdateRequest;
@@ -35,6 +38,7 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     private final UserRepository userRepository;
     private final ProgramEnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
+    private final FileRepository fileRepository;
 
     @Override
     @Transactional
@@ -144,6 +148,14 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     private MentoringSessionResponse toResponse(MentoringSession s) {
         User mentee = s.getMentee();
 
+        String menteeProfileImageUrl = fileRepository
+            .findByRefTypeAndRefId(RefType.USER_PROFILE, mentee.getUserId())
+            .stream()
+            .findFirst()
+            .map(FileResponse::from)
+            .map(FileResponse::getUrl)
+            .orElse(null);
+
         return MentoringSessionResponse.builder()
             .id(s.getId())
             .mentorId(s.getMentor().getUserId())
@@ -153,6 +165,7 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
             .menteeName(mentee.getName())
             .menteeEmail(mentee.getEmail())
             .menteePhoneNumber(mentee.getPhoneNumber())
+            .menteeProfileImageUrl(menteeProfileImageUrl)
             .scheduledAt(s.getScheduledAt())
             .description(s.getDescription())
             .status(s.getStatus())

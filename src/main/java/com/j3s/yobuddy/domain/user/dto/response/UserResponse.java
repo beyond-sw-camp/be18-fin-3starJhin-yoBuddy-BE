@@ -26,7 +26,9 @@ public class UserResponse {
     private final LocalDateTime updatedAt;
     private final Boolean isDeleted;
 
-    public static UserResponse from(User u) {
+    private final String profileImageUrl;
+
+    public static UserResponse from(User u, String profileImageUrl) {
         if (u == null) return null;
         Department d = u.getDepartment();
         return UserResponse.builder()
@@ -41,6 +43,7 @@ public class UserResponse {
             .createdAt(u.getCreatedAt())
             .updatedAt(u.getUpdatedAt())
             .isDeleted(u.isDeleted())
+            .profileImageUrl(profileImageUrl)
             .build();
     }
 }

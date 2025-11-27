@@ -12,4 +12,5 @@ public class MenteeListResponse {
     private final String email;
     private final String phoneNumber;
     private final String department;
+    private final String profileImageUrl;
 }

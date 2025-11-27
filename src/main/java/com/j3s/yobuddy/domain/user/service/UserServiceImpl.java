@@ -8,6 +8,7 @@ import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.user.dto.request.UpdateProfileRequest;
 import com.j3s.yobuddy.domain.user.dto.response.UserProfileResponse;
+import com.j3s.yobuddy.domain.user.dto.response.UserResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,20 +54,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<User> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
-        return userRepository.searchUsers(
+    public Page<UserResponse> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
+
+        Page<User> page = userRepository.searchUsers(
             searchRequest.getName(),
             searchRequest.getEmail(),
             searchRequest.getRole(),
             pageable
         );
+
+        return page.map(u -> {
+            // 프로필 이미지 조회
+            List<FileEntity> files =
+                fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, u.getUserId());
+
+            String profileImageUrl = files.isEmpty()
+                ? null
+                : FileResponse.from(files.get(0)).getUrl();
+
+            return UserResponse.from(u, profileImageUrl);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
+    public UserResponse getUserById(Long userId) {
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
+
+        List<FileEntity> files =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+        String profileImageUrl = files.isEmpty()
+            ? null
+            : FileResponse.from(files.get(0)).getUrl();
+
+        return UserResponse.from(user, profileImageUrl);
     }
 
     @Override
@@ -318,5 +341,14 @@ public class UserServiceImpl implements UserService {
         for (FileEntity file : files) {
             fileService.deleteFile(file.getFileId());
         }
+    }
+
+    private String getProfileImageUrl(Long userId) {
+        return fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId)
+            .stream()
+            .findFirst()
+            .map(FileResponse::from)
+            .map(FileResponse::getUrl)
+            .orElse(null);
     }
 }
