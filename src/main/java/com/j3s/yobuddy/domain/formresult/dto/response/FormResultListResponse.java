@@ -3,6 +3,8 @@ package com.j3s.yobuddy.domain.formresult.dto.response;
 import com.j3s.yobuddy.domain.formresult.entity.FormResult;
 import com.j3s.yobuddy.domain.formresult.entity.FormResultStatus;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +20,7 @@ public class FormResultListResponse {
     private final String programName;
     private final BigDecimal score;
     private final FormResultStatus result;
+    private final LocalDateTime submittedAt;
 
     public static FormResultListResponse from(FormResult fr) {
         return FormResultListResponse.builder()
@@ -27,6 +30,7 @@ public class FormResultListResponse {
             .programName(fr.getProgramTraining().getProgram().getName())
             .score(fr.getScore())
             .result(fr.getResult())
+            .submittedAt(fr.getSubmittedAt())
             .build();
     }
 
