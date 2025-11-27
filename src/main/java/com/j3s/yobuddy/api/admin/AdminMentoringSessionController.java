@@ -1,9 +1,8 @@
 package com.j3s.yobuddy.api.admin;
 
-import com.j3s.yobuddy.domain.mentoring.dto.response.MentoringSessionResponse;
-import com.j3s.yobuddy.domain.mentoring.entity.MentoringStatus;
-import com.j3s.yobuddy.domain.mentoring.service.MentoringSessionService;
-import java.util.List;
+import com.j3s.yobuddy.domain.mentor.mentoring.dto.response.MentoringSessionResponse;
+import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
+import com.j3s.yobuddy.domain.mentor.mentoring.service.MentoringSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
