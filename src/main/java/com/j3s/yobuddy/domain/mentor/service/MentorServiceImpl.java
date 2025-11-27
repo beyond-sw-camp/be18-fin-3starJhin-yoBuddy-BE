@@ -1,5 +1,9 @@
 package com.j3s.yobuddy.domain.mentor.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.FileEntity;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.mentor.dto.request.AssignMenteeRequest;
 import com.j3s.yobuddy.domain.mentor.dto.response.MenteeCandidateResponse;
 import com.j3s.yobuddy.domain.mentor.dto.response.MenteeDetailResponse;
@@ -25,6 +29,7 @@ public class MentorServiceImpl implements MentorService {
 
     private final UserRepository userRepository;
     private final MentorMenteeAssignmentRepository assignmentRepository;
+    private final FileRepository fileRepository;
 
     @Override
     @Transactional
@@ -86,13 +91,27 @@ public class MentorServiceImpl implements MentorService {
             assignmentRepository.findByMentorUserIdAndDeletedFalse(mentorId);
 
         return assignments.stream()
-            .map(a -> new MenteeListResponse(
-                a.getMentee().getUserId(),
-                a.getMentee().getName(),
-                a.getMentee().getEmail(),
-                a.getMentee().getPhoneNumber(),
-                a.getMentee().getDepartment().getName()
-            ))
+            .map(a -> {
+                User mentee = a.getMentee();
+
+                List<FileEntity> files = fileRepository.findByRefTypeAndRefId(
+                    RefType.USER_PROFILE,
+                    mentee.getUserId()
+                );
+
+                String profileImageUrl = files.isEmpty()
+                    ? null
+                    : FileResponse.from(files.get(0)).getUrl();
+
+                return new MenteeListResponse(
+                    mentee.getUserId(),
+                    mentee.getName(),
+                    mentee.getEmail(),
+                    mentee.getPhoneNumber(),
+                    mentee.getDepartment().getName(),
+                    profileImageUrl
+                );
+            })
             .toList();
     }
 
@@ -123,7 +142,6 @@ public class MentorServiceImpl implements MentorService {
     @Transactional(readOnly = true)
     public MenteeDetailResponse getMenteeDetail(Long mentorId, Long menteeId) {
 
-        // 멘티가 실제로 mentorId에게 배정된 상태인지 확인
         MentorMenteeAssignment assignment = assignmentRepository
             .findByMenteeUserIdAndDeletedFalse(menteeId)
             .orElseThrow(() -> new AssignmentNotFoundException(menteeId));
@@ -134,13 +152,22 @@ public class MentorServiceImpl implements MentorService {
 
         User mentee = assignment.getMentee();
 
+        String profileImageUrl = fileRepository
+            .findByRefTypeAndRefId(RefType.USER_PROFILE, mentee.getUserId())
+            .stream()
+            .findFirst()
+            .map(FileResponse::from)
+            .map(FileResponse::getUrl)
+            .orElse(null);
+
         return new MenteeDetailResponse(
             mentee.getUserId(),
             mentee.getName(),
             mentee.getEmail(),
             mentee.getPhoneNumber(),
             mentee.getDepartment().getName(),
-            mentee.getJoinedAt() != null ? mentee.getJoinedAt().toString() : null
+            mentee.getJoinedAt() != null ? mentee.getJoinedAt().toString() : null,
+            profileImageUrl
         );
     }
 }

@@ -2,6 +2,7 @@ package com.j3s.yobuddy.domain.user.service;
 
 import com.j3s.yobuddy.domain.user.dto.request.UpdateProfileRequest;
 import com.j3s.yobuddy.domain.user.dto.response.UserProfileResponse;
+import com.j3s.yobuddy.domain.user.dto.response.UserResponse;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -21,9 +22,9 @@ public interface UserService {
 
     void update(Long userId, UpdateUserRequest req);
 
-    Page<User> getAllUsers(UserSearchRequest searchRequest, Pageable pageable);
+    Page<UserResponse> getAllUsers(UserSearchRequest searchRequest, Pageable pageable);
 
-    User getUserById(Long userId);
+    UserResponse getUserById(Long userId);
 
     UserProfileResponse getUserProfile(Long userId);
 

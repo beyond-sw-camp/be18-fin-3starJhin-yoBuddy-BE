@@ -82,4 +82,10 @@ public class UserTraining {
         this.status = UserTrainingStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
+
+    public void markMissed() {
+        if (this.status != UserTrainingStatus.COMPLETED) {
+            this.status = UserTrainingStatus.MISSED;
+        }
+    }
 }
