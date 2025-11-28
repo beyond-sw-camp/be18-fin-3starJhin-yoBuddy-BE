@@ -96,6 +96,7 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             .submittedAt(ut.getSubmittedAt())
             .updatedAt(ut.getUpdatedAt())
             .feedback(ut.getFeedback())
+            .comment(ut.getComment())
             .taskFiles(taskFiles)
             .submittedFiles(submittedFiles)
             .build();
