@@ -1,9 +1,10 @@
 package com.j3s.yobuddy.domain.programenrollment.service;
 
+import java.util.List;
+
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
 import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentResponse;
-import java.util.List;
 
 public interface ProgramEnrollmentService {
 
@@ -15,5 +16,5 @@ public interface ProgramEnrollmentService {
 
     ProgramEnrollmentResponse updateEnrollment(Long programId, Long enrollmentId, ProgramEnrollmentUpdateRequest request);
 
-    void withdraw(Long userId);
+    void withdraw(Long programId, Long enrollmentId);
 }

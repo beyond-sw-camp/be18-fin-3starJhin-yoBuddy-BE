@@ -1,12 +1,7 @@
 package com.j3s.yobuddy.api.admin;
 
-import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
-import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
-import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentResponse;
-import com.j3s.yobuddy.domain.programenrollment.service.ProgramEnrollmentService;
-import jakarta.validation.Valid;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
+import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentUpdateRequest;
+import com.j3s.yobuddy.domain.programenrollment.dto.response.ProgramEnrollmentResponse;
+import com.j3s.yobuddy.domain.programenrollment.service.ProgramEnrollmentService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,12 +51,12 @@ public class AdminProgramEnrollmentController {
         return ResponseEntity.ok(enrollmentService.updateEnrollment(programId, enrollmentId, request));
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{enrollmentId}")
     public ResponseEntity<Void> withdraw(
         @PathVariable Long programId,
-        @PathVariable Long userId
+        @PathVariable Long enrollmentId
     ) {
-        enrollmentService.withdraw(userId);
+        enrollmentService.withdraw(programId, enrollmentId);
         return ResponseEntity.noContent().build();
     }
 }
