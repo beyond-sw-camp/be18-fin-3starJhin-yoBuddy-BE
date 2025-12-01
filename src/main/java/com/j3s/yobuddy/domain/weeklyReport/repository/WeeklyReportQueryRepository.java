@@ -20,4 +20,12 @@ public interface WeeklyReportQueryRepository {
     List<WeeklyReport> findDraftReportsEndedBefore(LocalDate date);
 
     BooleanExpression statusEq(WeeklyReportStatus status);
+
+    Page<WeeklyReport> findWeeklyReportsForMentor(Long mentorId,
+        Long menteeId,
+        WeeklyReportStatus status,
+        Integer weekNumber,
+        Pageable pageable);
+
+    List<WeeklyReport> findSubmittedReportsWithoutFeedbackBefore(LocalDate thresholdDate);
 }

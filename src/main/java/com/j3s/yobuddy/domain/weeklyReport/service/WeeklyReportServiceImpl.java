@@ -21,9 +21,6 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
     private final WeeklyReportRepository weeklyReportRepository; // ✅ 이것만 주입
 
-    /**
-     * [멘티] 주간 리포트 목록 조회 → QueryDSL 메서드도 WeeklyReportRepository를 통해 호출
-     */
     @Override
     @Transactional(readOnly = true)
     public Page<WeeklyReportSummaryResponse> getWeeklyReports(Long menteeId,
@@ -36,9 +33,6 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         return page.map(WeeklyReportSummaryResponse::from);
     }
 
-    /**
-     * [멘티] 주간 리포트 상세 조회
-     */
     @Override
     @Transactional(readOnly = true)
     public WeeklyReportDetailResponse getWeeklyReportDetail(Long menteeId,
@@ -54,9 +48,6 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         return WeeklyReportDetailResponse.from(report);
     }
 
-    /**
-     * [멘티] 주간 리포트 작성/수정
-     */
     @Override
     @Transactional
     public WeeklyReportDetailResponse updateWeeklyReport(Long menteeId,
@@ -71,7 +62,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         }
 
         if (report.getStatus() == WeeklyReportStatus.OVERDUE ||
-            report.getStatus() == WeeklyReportStatus.REVIEWED) {
+            report.getStatus() == WeeklyReportStatus.REVIEWED || report.getStatus() == WeeklyReportStatus.FEEDBACK_OVERDUE) {
             throw new WeeklyReportUpdateNotAllowedException();
         }
 
