@@ -3,7 +3,6 @@ package com.j3s.yobuddy.domain.weeklyReport.scheduler;
 
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
-import com.j3s.yobuddy.domain.weeklyReport.repository.WeeklyReportQueryRepository;
 import com.j3s.yobuddy.domain.weeklyReport.repository.WeeklyReportRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -20,18 +19,13 @@ public class WeeklyReportOverdueScheduler {
 
     private final WeeklyReportRepository weeklyReportRepository;
 
-    /**
-     * 매일 새벽 02:00 실행
-     * "0 0 2 * * *"
-     */
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 1 * * SAT")
     @Transactional
     public void markOverdueReports() {
         LocalDate today = LocalDate.now();
 
         log.info("[WeeklyReportOverdueScheduler] Start - today={}", today);
 
-        // 🔍 QueryDSL로 DRAFT + endDate < today 조회
         List<WeeklyReport> candidates =
             weeklyReportRepository.findDraftReportsEndedBefore(today);
 

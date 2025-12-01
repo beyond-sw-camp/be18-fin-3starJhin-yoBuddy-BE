@@ -61,7 +61,8 @@ public class WeeklyReport {
         DRAFT,
         SUBMITTED,
         REVIEWED,
-        OVERDUE
+        OVERDUE,
+        FEEDBACK_OVERDUE
     }
 
     @Column(name = "mentor_id")
@@ -124,6 +125,19 @@ public class WeeklyReport {
         this.challenges = challenges;
         this.learnings = learnings;
         this.status = status;
+    }
+
+    public void updateMentorFeedback(String mentorFeedback, WeeklyReportStatus status) {
+        this.mentorFeedback = mentorFeedback;
+        if (status != null) {
+            this.status = status;
+        }
+        this.updatedAt = java.time.LocalDateTime.now();
+    }
+
+    public void markFeedbackOverdue() {
+        this.status = WeeklyReportStatus.FEEDBACK_OVERDUE;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void changeStatus(WeeklyReportStatus status) {

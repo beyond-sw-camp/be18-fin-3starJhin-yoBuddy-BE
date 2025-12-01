@@ -16,8 +16,5 @@ public class WeeklyReportUpdateRequest {
     @NotBlank
     private String learnings;
 
-    /**
-     * "DRAFT" 또는 "SUBMITTED"만 받는다고 가정
-     */
     private String status;
 }
