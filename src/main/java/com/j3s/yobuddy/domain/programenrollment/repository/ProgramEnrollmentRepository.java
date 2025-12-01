@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.programenrollment.repository;
 
+import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,6 @@ public interface ProgramEnrollmentRepository extends JpaRepository<ProgramEnroll
     boolean existsByUser_UserIdAndProgram_ProgramId(Long userId, Long programId);
     Optional<ProgramEnrollment> findByUser_UserIdAndProgram_ProgramId(Long userId, Long programId);
     Optional<ProgramEnrollment> findByUser_UserIdAndStatus(Long userId, ProgramEnrollment.EnrollmentStatus status);
+    List<ProgramEnrollment> findByProgram_ProgramIdAndStatus(Long programId, EnrollmentStatus status);
+    List<ProgramEnrollment> findByStatus(ProgramEnrollment.EnrollmentStatus status);
 }
