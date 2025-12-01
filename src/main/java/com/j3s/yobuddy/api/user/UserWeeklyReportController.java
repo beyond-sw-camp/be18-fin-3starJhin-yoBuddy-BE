@@ -24,9 +24,6 @@ public class UserWeeklyReportController {
 
     private final WeeklyReportService weeklyReportService;
 
-    /**
-     * [멘티] 주간 리포트 목록 조회
-     */
     @GetMapping
     public Page<WeeklyReportSummaryResponse> getWeeklyReports(
         @PathVariable("menteeId") Long menteeId,
@@ -41,9 +38,6 @@ public class UserWeeklyReportController {
         );
     }
 
-    /**
-     * [멘티] 주간 리포트 상세 조회
-     */
     @GetMapping("/{weeklyReportId}")
     public WeeklyReportDetailResponse getWeeklyReportDetail(
         @PathVariable("menteeId") Long menteeId,
@@ -52,9 +46,6 @@ public class UserWeeklyReportController {
         return weeklyReportService.getWeeklyReportDetail(menteeId, weeklyReportId);
     }
 
-    /**
-     * [멘티] 주간 리포트 작성/수정
-     */
     @PostMapping("/{weeklyReportId}")
     public WeeklyReportDetailResponse updateWeeklyReport(
         @PathVariable("menteeId") Long menteeId,

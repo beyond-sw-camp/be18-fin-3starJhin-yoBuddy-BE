@@ -24,9 +24,6 @@ public class MentorWeeklyReportController {
 
     private final MentorWeeklyReportService mentorWeeklyReportService;
 
-    /**
-     * [멘토] 담당 멘티 주간 리포트 목록 조회
-     */
     @GetMapping
     public Page<MentorWeeklyReportSummaryResponse> getMenteeWeeklyReports(
         @PathVariable("mentorId") Long mentorId,
@@ -45,9 +42,6 @@ public class MentorWeeklyReportController {
         );
     }
 
-    /**
-     * [멘토] 주간 리포트 상세 조회
-     */
     @GetMapping("/{weeklyReportId}")
     public MentorWeeklyReportDetailResponse getWeeklyReportDetail(
         @PathVariable("mentorId") Long mentorId,
@@ -61,9 +55,6 @@ public class MentorWeeklyReportController {
         );
     }
 
-    /**
-     * [멘토] 주간 리포트 피드백 작성
-     */
     @PatchMapping("/{weeklyReportId}/feedback")
     public MentorWeeklyReportDetailResponse submitFeedback(
         @PathVariable("mentorId") Long mentorId,
