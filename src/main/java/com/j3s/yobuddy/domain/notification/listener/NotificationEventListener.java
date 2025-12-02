@@ -45,7 +45,8 @@ public class NotificationEventListener {
                 e.getMessage()
             );
         } catch (Exception ex) {
-            log.error("Email sending failed for user {}", e.getUser().getUserId());
+            log.error("Email sending failed for user {}. reason={}",
+                e.getUser().getUserId(), ex.getMessage(), ex);
         }
 
         // 3) SSE 전송 시도
