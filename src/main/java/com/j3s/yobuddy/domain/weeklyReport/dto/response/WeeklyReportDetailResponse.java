@@ -30,6 +30,7 @@ public class WeeklyReportDetailResponse {
     private Long mentorId;
     private Long menteeId;
     private LocalDateTime createdAt;
+    private LocalDateTime sumbittedAt;
     private LocalDateTime updatedAt;
 
     public static WeeklyReportDetailResponse from(WeeklyReport report) {
@@ -46,6 +47,7 @@ public class WeeklyReportDetailResponse {
             .mentorId(report.getMentorId())
             .menteeId(report.getMenteeId())
             .createdAt(report.getCreatedAt())
+            .sumbittedAt(report.getSubmittedAt())
             .updatedAt(report.getUpdatedAt())
             .build();
     }

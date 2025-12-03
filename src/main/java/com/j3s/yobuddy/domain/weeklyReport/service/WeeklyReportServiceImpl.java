@@ -9,6 +9,9 @@ import com.j3s.yobuddy.domain.weeklyReport.repository.WeeklyReportRepository;
 import com.j3s.yobuddy.domain.weeklyReport.dto.request.WeeklyReportUpdateRequest;
 import com.j3s.yobuddy.domain.weeklyReport.dto.response.WeeklyReportDetailResponse;
 import com.j3s.yobuddy.domain.weeklyReport.dto.response.WeeklyReportSummaryResponse;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -75,7 +78,8 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
             request.getAccomplishments(),
             request.getChallenges(),
             request.getLearnings(),
-            newStatus
+            newStatus,
+            LocalDateTime.now()
         );
 
         return WeeklyReportDetailResponse.from(report);
