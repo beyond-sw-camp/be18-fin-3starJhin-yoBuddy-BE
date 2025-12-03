@@ -1,5 +1,12 @@
 package com.j3s.yobuddy.domain.training.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.file.entity.FileEntity;
 import com.j3s.yobuddy.domain.file.entity.FileType;
@@ -15,11 +22,8 @@ import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
 import com.j3s.yobuddy.domain.training.exception.UserTrainingsNotFoundException;
 import com.j3s.yobuddy.domain.training.repository.UserTrainingQueryRepositoryImpl;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -130,4 +134,20 @@ public class UserTrainingServiceImpl implements UserTrainingService {
 
         ut.completeTraining();
     }
+    @Override
+    public BigDecimal calculateCompletionRate(Long userId) {
+        var resp = getUserTrainings(userId, null, null);
+        var trainings = resp.getTrainings();
+        long total = trainings.size();
+        long completed = trainings.stream()
+            .filter(t -> UserTrainingStatus.COMPLETED.name().equals(t.getStatus()))
+            .count();
+
+        if (total == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal rate = BigDecimal.valueOf((completed / total)* 100.0);
+        return rate;
+}
 }

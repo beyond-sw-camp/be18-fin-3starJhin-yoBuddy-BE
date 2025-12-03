@@ -1,19 +1,31 @@
 package com.j3s.yobuddy.domain.training.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.file.entity.FileEntity;
 import com.j3s.yobuddy.domain.file.entity.FileType;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.file.service.FileService;
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingAssignRequest;
-import com.j3s.yobuddy.domain.training.dto.request.TrainingCreateRequest;
-import com.j3s.yobuddy.domain.training.dto.request.TrainingUpdateRequest;
 import com.j3s.yobuddy.domain.training.dto.response.AssignedProgramResponse;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingAssignResponse;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingItemResponse;
@@ -27,27 +39,16 @@ import com.j3s.yobuddy.domain.training.entity.ProgramTraining;
 import com.j3s.yobuddy.domain.training.entity.Training;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
-import com.j3s.yobuddy.domain.training.exception.InvalidTrainingUpdateDataException;
-import com.j3s.yobuddy.domain.training.exception.MissingOnlineUrlException;
 import com.j3s.yobuddy.domain.training.exception.ProgramAlreadyCompletedException;
 import com.j3s.yobuddy.domain.training.exception.TrainingInUseException;
 import com.j3s.yobuddy.domain.training.exception.TrainingNotFoundException;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingQueryRepository;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
 import com.j3s.yobuddy.domain.training.repository.TrainingRepository;
+import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
-import com.j3s.yobuddy.domain.user.repository.UserRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +62,7 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     private final FileService fileService;
     private final ProgramEnrollmentRepository programEnrollmentRepository;
     private final UserTrainingAssignmentService userTrainingAssignmentService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public Page<TrainingListItemResponse> getTrainingList(
@@ -267,10 +269,20 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         List<User> enrolledUsers = programEnrollmentRepository
             .findByProgram_ProgramId(programId)
             .stream()
+            .filter(user -> user.getUser().getRole() == Role.USER)
             .map(ProgramEnrollment::getUser)
             .toList();
 
         userTrainingAssignmentService.assignForProgramTraining(pt, enrolledUsers);
+
+        for (User mentee : enrolledUsers) {
+            notificationService.notify(
+                mentee,
+                NotificationType.NEW_TRAINING,
+                "새로운 교육이 있습니다.",
+                "교육명: " + training.getTitle()
+            );
+        }
 
         return new ProgramTrainingAssignResponse(
             programId,

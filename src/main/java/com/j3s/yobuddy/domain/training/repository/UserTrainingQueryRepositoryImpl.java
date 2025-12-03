@@ -1,5 +1,11 @@
 package com.j3s.yobuddy.domain.training.repository;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Repository;
+
 import com.j3s.yobuddy.domain.formresult.entity.QFormResult;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingItemResponse;
@@ -10,14 +16,16 @@ import com.j3s.yobuddy.domain.training.entity.TrainingType;
 import com.j3s.yobuddy.domain.training.entity.UserTraining;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import com.j3s.yobuddy.domain.user.entity.QUser;
+import com.j3s.yobuddy.domain.user.entity.Role;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -150,6 +158,64 @@ public class UserTrainingQueryRepositoryImpl implements UserTrainingQueryReposit
                 ut.status.notIn(UserTrainingStatus.COMPLETED, UserTrainingStatus.MISSED),
                 pt.endDate.isNotNull(),
                 pt.endDate.before(today)
+            )
+            .fetch();
+    }
+
+    @Override
+    public List<UserTraining> findOnlineDueAt(LocalDate targetDate) {
+
+        return query
+            .selectFrom(ut)
+            .join(ut.programTraining, pt).fetchJoin()
+            .join(pt.training, t).fetchJoin()
+            .join(ut.user, u).fetchJoin()
+            .where(
+                t.type.eq(TrainingType.ONLINE),
+                pt.endDate.eq(targetDate),
+                ut.status.notIn(UserTrainingStatus.COMPLETED, UserTrainingStatus.MISSED),
+                u.role.eq(Role.USER)
+            )
+            .fetch();
+    }
+
+    @Override
+    public List<UserTraining> findOfflineScheduledAt(LocalDate targetDate) {
+
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.atTime(LocalTime.MAX);
+
+        return query
+            .selectFrom(ut)
+            .join(ut.programTraining, pt).fetchJoin()
+            .join(pt.training, t).fetchJoin()
+            .join(ut.user, u).fetchJoin()
+            .where(
+                t.type.eq(TrainingType.OFFLINE),
+                ut.status.notIn(UserTrainingStatus.COMPLETED, UserTrainingStatus.MISSED),
+                pt.scheduledAt.between(startOfDay, endOfDay),
+                u.role.eq(Role.USER)
+            )
+            .fetch();
+    }
+
+    @Override
+    public List<UserTraining> findOfflineFormPendingAt(LocalDate targetDate) {
+
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.atTime(LocalTime.MAX);
+
+        return query
+            .selectFrom(ut)
+            .join(ut.programTraining, pt).fetchJoin()
+            .join(pt.training, t).fetchJoin()
+            .join(ut.user, u).fetchJoin()
+            .where(
+                t.type.eq(TrainingType.OFFLINE),
+                pt.scheduledAt.between(startOfDay, endOfDay),
+                ut.status.eq(UserTrainingStatus.COMPLETED),
+                ut.result.isNull(),
+                u.role.eq(Role.USER)
             )
             .fetch();
     }
