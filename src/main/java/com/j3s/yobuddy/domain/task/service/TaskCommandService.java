@@ -9,23 +9,9 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface TaskCommandService {
-    TaskCreateResponse createTaskWithFiles(
-        String title,
-        String description,
-        Integer points,
-        List<Long> departmentIds,
-        List<MultipartFile> files
-    ) throws Exception;
+    TaskCreateResponse createTask(TaskCreateRequest request) throws Exception;
 
-    TaskUpdateResponse updateTaskWithFiles(
-        Long taskId,
-        String title,
-        String description,
-        Integer points,
-        List<Long> departmentIds,
-        List<Long> removeFileIds,
-        List<MultipartFile> files
-    ) throws Exception;
+    TaskUpdateResponse updateTask(Long taskId, TaskUpdateRequest request) throws Exception;
 
     TaskDeleteResponse deleteTask(Long taskId);
 

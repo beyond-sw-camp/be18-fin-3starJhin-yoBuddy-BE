@@ -15,6 +15,7 @@ import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.entity.UserTaskStatus;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,14 +27,22 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
     private final FileRepository fileRepository;
 
     @Override
+    @Transactional
     public UserTaskListResponse getUserTaskList(Long userId) {
 
         List<UserTask> tasks = userTaskRepository.findByUser_UserId(userId);
 
+        LocalDateTime now = LocalDateTime.now();
+        for (UserTask ut : tasks) {
+            ut.refreshMissingStatus(now);
+        }
+
+        userTaskRepository.saveAll(tasks);
+
         var list = tasks.stream()
             .map(ut -> UserTaskListResponse.TaskInfo.builder()
-                .userTaskId(ut.getId()) // ⭐ 진짜 userTaskId
-                .taskId(ut.getProgramTask().getOnboardingTask().getId()) // ⭐ 실제 과제(Task) ID
+                .userTaskId(ut.getId())
+                .taskId(ut.getProgramTask().getOnboardingTask().getId())
                 .title(ut.getProgramTask().getOnboardingTask().getTitle())
                 .dueDate(ut.getProgramTask().getDueDate().toLocalDate())
                 .status(ut.getStatus().name())
@@ -93,6 +102,7 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             .submittedAt(ut.getSubmittedAt())
             .updatedAt(ut.getUpdatedAt())
             .feedback(ut.getFeedback())
+            .comment(ut.getComment())
             .taskFiles(taskFiles)
             .submittedFiles(submittedFiles)
             .build();

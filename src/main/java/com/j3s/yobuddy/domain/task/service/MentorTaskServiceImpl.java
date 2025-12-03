@@ -9,6 +9,7 @@ import com.j3s.yobuddy.domain.task.dto.response.MentorTaskListResponse;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,7 @@ public class MentorTaskServiceImpl implements MentorTaskService {
     private final FileRepository fileRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public MentorTaskListResponse getAllMenteeTasks(Long mentorId) {
 
         List<Long> menteeIds = assignmentRepository.findMenteeIdsByMentorUserId(mentorId);
@@ -39,6 +40,13 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         }
 
         List<UserTask> menteeTasks = userTaskRepository.findByUser_UserIdIn(menteeIds);
+
+        LocalDateTime now = LocalDateTime.now();
+        for (UserTask ut : menteeTasks) {
+            ut.refreshMissingStatus(now);
+        }
+
+        userTaskRepository.saveAll(menteeTasks);
 
         List<MentorTaskListResponse.MenteeTaskInfo> taskInfos =
             menteeTasks.stream().map(ut -> {
