@@ -1,5 +1,11 @@
 package com.j3s.yobuddy.domain.training.repository;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Repository;
+
 import com.j3s.yobuddy.domain.formresult.entity.QFormResult;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingItemResponse;
@@ -13,11 +19,8 @@ import com.j3s.yobuddy.domain.user.entity.QUser;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor

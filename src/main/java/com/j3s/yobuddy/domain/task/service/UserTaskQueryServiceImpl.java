@@ -1,24 +1,21 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse;
-import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse.TaskInfo;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskScoreResponse;
-import com.j3s.yobuddy.domain.task.entity.ProgramTask;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.entity.UserTaskStatus;
-import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -116,6 +113,51 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             .feedback(ut.getFeedback())
             .updatedAt(ut.getUpdatedAt())
             .build();
+    }
+    @Override
+    public BigDecimal calculateCompletionRate(Long userId) {
+        var resp = getUserTaskList(userId);
+        var tasks = resp.getTasks();
+        long total = tasks.size();
+        long completed = tasks.stream()
+            .filter(t -> {
+            String s = t.getStatus();
+            return s != null && (s.equals(UserTaskStatus.GRADED.name())
+                || s.equals(UserTaskStatus.LATE.name())
+                || s.equals(UserTaskStatus.SUBMITTED.name()));
+            })
+            .count();
+
+        if (total == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal rate = BigDecimal.valueOf((completed / total)* 100.0);
+        return rate;
+    }
+    @Override
+    public BigDecimal calculateTaskScore(Long userId) {
+        var resp = getUserTaskList(userId);
+        var tasks = resp.getTasks();
+        var gradedGrades = tasks.stream()
+            .filter(t -> {
+            String s = t.getStatus();
+            return s != null && s.equals(UserTaskStatus.GRADED.name()) && t.getGrade() != null;
+            })
+            .map(t -> t.getGrade())
+            .toList();
+
+        if (gradedGrades.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int sum = gradedGrades.stream()
+            .mapToInt(Integer::intValue)
+            .sum();
+
+        BigDecimal divisor = BigDecimal.valueOf(gradedGrades.size());
+        BigDecimal score = BigDecimal.valueOf(sum).divide(divisor, 2, java.math.RoundingMode.HALF_UP);
+        return score;
     }
 }
 

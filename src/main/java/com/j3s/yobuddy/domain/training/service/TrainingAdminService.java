@@ -1,8 +1,12 @@
 package com.j3s.yobuddy.domain.training.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingAssignRequest;
-import com.j3s.yobuddy.domain.training.dto.request.TrainingCreateRequest;
-import com.j3s.yobuddy.domain.training.dto.request.TrainingUpdateRequest;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingAssignResponse;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingUnassignResponse;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingsResponse;
@@ -11,10 +15,6 @@ import com.j3s.yobuddy.domain.training.dto.response.TrainingDetailResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingListItemResponse;
 import com.j3s.yobuddy.domain.training.dto.response.TrainingResponse;
 import com.j3s.yobuddy.domain.training.entity.TrainingType;
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface TrainingAdminService {
     Page<TrainingListItemResponse> getTrainingList( TrainingType type, Long programId, String keyword, Pageable pageable);

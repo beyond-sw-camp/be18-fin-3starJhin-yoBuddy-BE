@@ -38,6 +38,8 @@ public class KpiCategoryServiceImpl implements KpiCategoryService {
         KpiCategory category = KpiCategory.builder()
             .name(request.getName())
             .description(request.getDescription())
+            .tableName(request.getTableName())
+            .fieldName(request.getFieldName())
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .isDeleted(false)
@@ -52,7 +54,7 @@ public class KpiCategoryServiceImpl implements KpiCategoryService {
         KpiCategory category = kpiCategoryRepository.findByKpiCategoryIdAndIsDeletedFalse(kpiCategoryId)
             .orElseThrow(() -> new KpiCategoryNotFoundException(kpiCategoryId));
 
-        category.update(request.getName(), request.getDescription());
+        category.update(request.getName(), request.getDescription(), request.getTableName(), request.getFieldName());
 
         kpiCategoryRepository.save(category);
 

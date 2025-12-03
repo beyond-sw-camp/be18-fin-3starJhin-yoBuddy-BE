@@ -15,6 +15,8 @@ public interface KpiGoalsRepository extends JpaRepository<KpiGoals, Long> {
 
     Optional<KpiGoals> findByKpiGoalIdAndIsDeletedFalse(Long kpiGoalId);
 
+    List<KpiGoals> findByDepartmentIdAndIsDeletedFalse(Long departmentId);
+
     List<KpiGoals> findByDescriptionContainingIgnoreCaseAndIsDeletedFalse(String description);
 
 }
