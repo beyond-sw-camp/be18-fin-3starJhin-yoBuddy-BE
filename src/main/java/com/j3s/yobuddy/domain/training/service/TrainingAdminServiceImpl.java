@@ -18,6 +18,8 @@ import com.j3s.yobuddy.domain.file.entity.FileType;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.file.service.FileService;
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
@@ -43,6 +45,7 @@ import com.j3s.yobuddy.domain.training.exception.TrainingNotFoundException;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingQueryRepository;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
 import com.j3s.yobuddy.domain.training.repository.TrainingRepository;
+import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
@@ -59,6 +62,7 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     private final FileService fileService;
     private final ProgramEnrollmentRepository programEnrollmentRepository;
     private final UserTrainingAssignmentService userTrainingAssignmentService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public Page<TrainingListItemResponse> getTrainingList(
@@ -265,10 +269,20 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
         List<User> enrolledUsers = programEnrollmentRepository
             .findByProgram_ProgramId(programId)
             .stream()
+            .filter(user -> user.getUser().getRole() == Role.USER)
             .map(ProgramEnrollment::getUser)
             .toList();
 
         userTrainingAssignmentService.assignForProgramTraining(pt, enrolledUsers);
+
+        for (User mentee : enrolledUsers) {
+            notificationService.notify(
+                mentee,
+                NotificationType.NEW_TRAINING,
+                "새로운 교육이 있습니다.",
+                "교육명: " + training.getTitle()
+            );
+        }
 
         return new ProgramTrainingAssignResponse(
             programId,

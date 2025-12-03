@@ -24,4 +24,10 @@ public interface UserTrainingQueryRepository {
     Optional<UserTraining> findEntity(Long userId, Long trainingId);
 
     List<UserTraining> findOverdueTrainings(LocalDate today);
+
+    List<UserTraining> findOnlineDueAt(LocalDate targetDate);
+
+    List<UserTraining> findOfflineScheduledAt(LocalDate targetDate);
+
+    List<UserTraining> findOfflineFormPendingAt(LocalDate targetDate);
 }

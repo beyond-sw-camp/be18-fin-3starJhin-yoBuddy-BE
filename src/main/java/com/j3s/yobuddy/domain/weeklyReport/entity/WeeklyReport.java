@@ -74,6 +74,9 @@ public class WeeklyReport {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -120,11 +123,13 @@ public class WeeklyReport {
     public void updateContent(String accomplishments,
         String challenges,
         String learnings,
-        WeeklyReportStatus status) {
+        WeeklyReportStatus status,
+        LocalDateTime submuttedAt) {
         this.accomplishments = accomplishments;
         this.challenges = challenges;
         this.learnings = learnings;
         this.status = status;
+        this.submittedAt = submuttedAt;
     }
 
     public void updateMentorFeedback(String mentorFeedback, WeeklyReportStatus status) {
