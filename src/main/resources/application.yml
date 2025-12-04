@@ -62,6 +62,9 @@ sftp:
   user: ${SFTP_USER}
   password: ${SFTP_PASSWORD}
 
+chatbot:
+  base-url: http://localhost:8000
+
 ---
 # local
 spring:
