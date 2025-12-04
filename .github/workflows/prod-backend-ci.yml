@@ -29,7 +29,6 @@ jobs:
         run: |
           BACK_REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/yobuddy-back-repo
 
-          cd backend
           docker build -t back-repo .
           docker tag back-repo:latest $BACK_REPO:latest
           docker push $BACK_REPO:latest
