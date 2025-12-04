@@ -22,9 +22,13 @@ public class UserScheduleResponse {
         private Long sessionId;
         private Long userTaskId;
         private Long userTrainingId;
+        private Long trainingId;
         private String date;
         private String time;
         private String mentorName;
         private String status;
+
+        private String taskTitle;
+        private String trainingTitle;
     }
 }
