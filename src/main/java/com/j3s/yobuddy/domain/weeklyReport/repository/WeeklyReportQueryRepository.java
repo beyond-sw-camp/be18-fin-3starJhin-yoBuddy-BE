@@ -28,4 +28,6 @@ public interface WeeklyReportQueryRepository {
         Pageable pageable);
 
     List<WeeklyReport> findSubmittedReportsWithoutFeedbackBefore(LocalDate thresholdDate);
+
+    List<WeeklyReport> findSubmittedReportsWithoutFeedbackBetween(LocalDate startInclusive, LocalDate endExclusive);
 }
