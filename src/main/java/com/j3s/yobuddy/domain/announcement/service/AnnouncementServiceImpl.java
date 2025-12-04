@@ -8,10 +8,13 @@ import com.j3s.yobuddy.domain.announcement.exception.AnnouncementAlreadyDeletedE
 import com.j3s.yobuddy.domain.announcement.exception.AnnouncementNotFoundException;
 import com.j3s.yobuddy.domain.announcement.repository.AnnouncementRepository;
 import com.j3s.yobuddy.domain.file.entity.FileEntity;
-import com.j3s.yobuddy.domain.file.repository.FileRepository;
-import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.file.entity.FileType;
 import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import com.j3s.yobuddy.domain.file.service.FileService;
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
+import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.exception.UserNotFoundException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
@@ -31,6 +34,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private final UserRepository userRepository;
     private final FileService fileService;
     private final FileRepository fileRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -63,6 +67,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         List<FileEntity> fileList =
             fileRepository.findByRefTypeAndRefId(RefType.ANNOUNCEMENT, announcement.getAnnouncementId());
+
+        notifyUsersForNewAnnouncement();
 
         return AnnouncementResponse.from(announcement, fileList);
     }
@@ -164,5 +170,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             fileRepository.findByRefTypeAndRefId(RefType.ANNOUNCEMENT, announcementId);
 
         return AnnouncementResponse.from(ann, files);
+    }
+
+    private void notifyUsersForNewAnnouncement() {
+        userRepository.findAllByIsDeletedFalse().stream()
+            .filter(user -> user.getRole() == Role.USER || user.getRole() == Role.MENTOR)
+            .forEach(user -> notificationService.notify(
+                user,
+                NotificationType.NEW_ANNOUNCEMENT,
+                "새로운 공지사항",
+                "새로운 공지사항이 등록되었어요."
+            ));
     }
 }

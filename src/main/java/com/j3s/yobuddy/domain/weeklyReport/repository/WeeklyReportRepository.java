@@ -24,4 +24,8 @@ public interface WeeklyReportRepository extends JpaRepository<WeeklyReport, Long
     boolean existsByMenteeIdAndWeekNumber(Long menteeId, Integer weekNumber);
 
     List<WeeklyReport> findAllByStatusAndEndDateBefore(WeeklyReportStatus status, LocalDate endDate);
+
+    List<WeeklyReport> findAllByStatusAndEndDate(WeeklyReportStatus status, LocalDate endDate);
+
+    List<WeeklyReport> findByEndDateAndStatus(LocalDate endDate, WeeklyReportStatus status);
 }

@@ -12,6 +12,7 @@ import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
+import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingAssignRequest;
 import com.j3s.yobuddy.domain.training.dto.request.TrainingCreateRequest;
@@ -43,6 +44,7 @@ import com.j3s.yobuddy.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -172,6 +174,8 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             .filter(t -> !t.isDeleted())
             .orElseThrow(() -> new TrainingNotFoundException(trainingId));
 
+        boolean hasNewAttachments = files != null && !files.isEmpty();
+
         if (title != null) training.updateTitle(title);
         if (type != null) training.updateType(type);
         if (description != null) training.updateDescription(description);
@@ -198,6 +202,10 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             .stream()
             .map(FileResponse::from)
             .toList();
+
+        if (hasNewAttachments) {
+            notifyTrainingAttachmentUpdate(training, trainingId);
+        }
 
         return TrainingResponse.of(training, attached);
     }
@@ -362,5 +370,35 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             trainings,
             trainings.size()
         );
+    }
+
+    private void notifyTrainingAttachmentUpdate(Training training, Long trainingId) {
+        List<ProgramTraining> programTrainings =
+            programTrainingRepository.findByTraining_TrainingId(trainingId);
+
+        Set<Long> activeProgramIds = programTrainings.stream()
+            .map(ProgramTraining::getProgram)
+            .filter(program -> program != null && !program.isDeleted())
+            .map(program -> program.getProgramId())
+            .collect(Collectors.toSet());
+
+        if (activeProgramIds.isEmpty()) {
+            return;
+        }
+
+        Set<User> mentees = activeProgramIds.stream()
+            .map(programId -> programEnrollmentRepository
+                .findByProgram_ProgramIdAndStatus(programId, EnrollmentStatus.ACTIVE))
+            .flatMap(List::stream)
+            .map(ProgramEnrollment::getUser)
+            .filter(user -> user.getRole() == Role.USER && !user.isDeleted())
+            .collect(Collectors.toSet());
+
+        mentees.forEach(user -> notificationService.notify(
+            user,
+            NotificationType.TRAINING_ATTACHMENT_ADDED,
+            "교육 자료 업데이트",
+            training.getTitle() + "에 새로운 첨부 파일이 등록되었어요."
+        ));
     }
 }
