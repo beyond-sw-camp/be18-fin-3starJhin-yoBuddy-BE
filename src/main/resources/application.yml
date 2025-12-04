@@ -1,12 +1,21 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+  profiles:
+    active: local
+
+  jackson:
+    time-zone: Asia/Seoul
+  mvc:
+    time-zone: Asia/Seoul
 
   datasource:
-    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:mariadb://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-timezone: Asia/Seoul
 
   data:
     redis:
@@ -21,4 +30,67 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MariaDBDialect
+        jdbc:
+          time_zone: Asia/Seoul
     show-sql: true
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  file:
+    upload-dir: ${SFTP_REMOTE_DIR}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET_BASE64}
+    issuer: yobuddy
+    access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:1209600000}
+
+sftp:
+  host: ${SFTP_HOST}
+  port: ${SFTP_PORT}
+  user: ${SFTP_USER}
+  password: ${SFTP_PASSWORD}
+
+---
+# local
+spring:
+  config:
+    activate:
+      on-profile: local
+
+cookie:
+  secure: false
+  same-site: Lax
+
+---
+# qa
+spring:
+  config:
+    activate:
+      on-profile: qa
+
+cookie:
+  secure: false
+  same-site: Lax
+
+---
+# prod
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+cookie:
+  secure: true
+  same-site: None

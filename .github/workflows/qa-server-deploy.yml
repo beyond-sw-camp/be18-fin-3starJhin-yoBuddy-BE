@@ -1,0 +1,76 @@
+name: QA Deploy
+
+on:
+  pull_request:
+    types: [closed]
+    branches: ["develop"]
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build JAR
+        run: SPRING_PROFILES_ACTIVE=qa ./gradlew clean build -x test
+
+      - name: Generate .env file
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+
+          echo "JWT_SECRET_BASE64=${{ secrets.JWT_SECRET_BASE64 }}" >> .env
+          echo "JWT_ACCESS_EXPIRATION_MS=${{ secrets.JWT_ACCESS_EXPIRATION_MS }}" >> .env
+          echo "JWT_REFRESH_EXPIRATION_MS=${{ secrets.JWT_REFRESH_EXPIRATION_MS }}" >> .env
+
+          echo "CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" >> .env
+
+          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+
+          echo "SFTP_HOST=${{ secrets.SFTP_HOST }}" >> .env
+          echo "SFTP_PORT=${{ secrets.SFTP_PORT }}" >> .env
+          echo "SFTP_USER=${{ secrets.SFTP_USER }}" >> .env
+          echo "SFTP_PASSWORD=${{ secrets.SFTP_PASSWORD }}" >> .env
+          echo "SFTP_REMOTE_DIR=${{ secrets.SFTP_REMOTE_DIR }}" >> .env
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push QA Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: iiijong/yobuddy:qa
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
+      - name: Docker Pull New Image
+        run: docker pull iiijong/yobuddy:qa
+
+      - name: Restart Docker Compose
+        working-directory: C:\Users\Playdata\Desktop
+        run: |
+          docker compose down
+          docker compose up -d
