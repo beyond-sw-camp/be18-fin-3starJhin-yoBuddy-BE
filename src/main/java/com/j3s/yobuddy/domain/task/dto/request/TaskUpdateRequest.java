@@ -13,4 +13,5 @@ public class TaskUpdateRequest {
     private Integer points;
     private List<Long> departmentIds;
     private List<Long> fileIds;
+    private List<Long> removeFileIds;
 }

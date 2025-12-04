@@ -33,6 +33,12 @@ public class KpiCategory {
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
+	@Column(name = "field_name", length = 100)
+	private String fieldName;
+
+	@Column(name = "table_name", length = 100)
+	private String tableName;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
@@ -49,7 +55,7 @@ public class KpiCategory {
 		this.updatedAt = LocalDateTime.now();
 	}
 
-	public void update(String name, String description) {
+	public void update(String name, String description, String fieldName, String tableName) {
 		boolean updated = false;
 		if (name != null && !name.isBlank()) {
 			this.name = name;
@@ -57,6 +63,14 @@ public class KpiCategory {
 		}
 		if (description != null) {
 			this.description = description;
+			updated = true;
+		}
+		if (fieldName != null) {
+			this.fieldName = fieldName;
+			updated = true;
+		}
+		if (tableName != null) {
+			this.tableName = tableName;
 			updated = true;
 		}
 		if (updated) {

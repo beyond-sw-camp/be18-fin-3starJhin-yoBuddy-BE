@@ -1,12 +1,13 @@
 package com.j3s.yobuddy.domain.weeklyReport.service;
 
 
-import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.j3s.yobuddy.domain.weeklyReport.dto.request.WeeklyReportUpdateRequest;
 import com.j3s.yobuddy.domain.weeklyReport.dto.response.WeeklyReportDetailResponse;
 import com.j3s.yobuddy.domain.weeklyReport.dto.response.WeeklyReportSummaryResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
 
 public interface WeeklyReportService {
 

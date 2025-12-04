@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class KpiResultsServiceImpl implements KpiResultsService {
 
     private final KpiResultsRepository kpiResultsRepository;
+    private final KpiScoreCalculator kpiScoreCalculator;
 
     @Override
     @Transactional(readOnly = true)
@@ -43,7 +44,7 @@ public class KpiResultsServiceImpl implements KpiResultsService {
     public void createResult(KpiResultsRequest request) {
         KpiResults r = KpiResults.builder()
             .achievedValue(request.getAchievedValue())
-            .score(request.getScore())
+            .score(kpiScoreCalculator.computeScore(request))
             .evaluatedAt(request.getEvaluatedAt())
             .kpiGoalId(request.getKpiGoalId())
             .userId(request.getUserId())
@@ -73,7 +74,8 @@ public class KpiResultsServiceImpl implements KpiResultsService {
             throw new KpiResultsAlreadyDeletedException(kpiResultId);
         }
 
-        r.update(request.getAchievedValue(), request.getScore(), request.getEvaluatedAt(),
+        // update 시에도 계산기를 통해 score를 재계산
+        r.update(request.getAchievedValue(), kpiScoreCalculator.computeScore(request), request.getEvaluatedAt(),
             request.getKpiGoalId(), request.getUserId(), request.getDepartmentId());
 
         kpiResultsRepository.save(r);

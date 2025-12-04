@@ -35,13 +35,6 @@ public class MentorController {
                              .build();
     }
 
-//    @GetMapping("/{mentorId}/mentees")
-//    public ResponseEntity<List<MenteeListResponse>> getMentees(@PathVariable Long mentorId) {
-//
-//        List<MenteeListResponse> mentees = mentorService.getMentees(mentorId);
-//        return ResponseEntity.ok(mentees);
-//    }
-
     @DeleteMapping("/{mentorId}/mentees/{menteeId}")
     public ResponseEntity<Void> removeMentee(
         @PathVariable Long mentorId,

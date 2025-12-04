@@ -23,7 +23,13 @@ public class AdminTaskDetailResponse {
 
     private List<FileResponse> attachedFiles;
 
+    private String fileName;
+    private String fileUrl;
+
     public static AdminTaskDetailResponse of(OnboardingTask task, List<FileResponse> files) {
+
+        FileResponse first = (files == null || files.isEmpty()) ? null : files.get(0);
+
         return AdminTaskDetailResponse.builder()
             .taskId(task.getId())
             .title(task.getTitle())
@@ -35,6 +41,10 @@ public class AdminTaskDetailResponse {
             )
             .createdAt(task.getCreatedAt())
             .attachedFiles(files)
+
+            .fileName(first != null ? first.getFilename() /* or getFileName() */ : null)
+            .fileUrl(first != null ? first.getUrl()      /* or getDownloadUrl()/getFileUrl() */ : null)
+
             .build();
     }
 }

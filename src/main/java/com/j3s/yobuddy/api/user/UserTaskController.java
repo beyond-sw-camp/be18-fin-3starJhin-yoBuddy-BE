@@ -70,8 +70,8 @@ public class UserTaskController {
     public ResponseEntity<?> submitTask(
         @PathVariable Long userId,
         @PathVariable Long userTaskId,
-        @RequestPart(value = "files", required = false) MultipartFile[] files, // 🔥 먼저
-        @RequestParam(value = "comment", required = false) String comment,     // 🔥 나중에
+        @RequestPart(value = "files", required = false) MultipartFile[] files,
+        @RequestParam(value = "comment", required = false) String comment,
         Authentication authentication
     ) throws Exception {
 

@@ -1,11 +1,13 @@
 package com.j3s.yobuddy.domain.weeklyReport.dto.response;
 
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 import lombok.Builder;
 import lombok.Getter;
 
