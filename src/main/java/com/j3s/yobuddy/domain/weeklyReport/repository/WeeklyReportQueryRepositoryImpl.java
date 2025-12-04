@@ -124,4 +124,18 @@ public class WeeklyReportQueryRepositoryImpl implements WeeklyReportQueryReposit
             )
             .fetch();
     }
+
+    @Override
+    public List<WeeklyReport> findSubmittedReportsWithoutFeedbackBetween(LocalDate startInclusive,
+        LocalDate endExclusive) {
+        return query
+            .selectFrom(wr)
+            .where(
+                wr.status.eq(WeeklyReportStatus.SUBMITTED)
+                    .and(wr.mentorFeedback.isNull())
+                    .and(wr.endDate.goe(startInclusive))
+                    .and(wr.endDate.before(endExclusive))
+            )
+            .fetch();
+    }
 }

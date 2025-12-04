@@ -8,6 +8,9 @@ import com.j3s.yobuddy.domain.task.dto.response.MentorTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.MentorTaskListResponse;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
+import com.j3s.yobuddy.domain.user.entity.Role;
 
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class MentorTaskServiceImpl implements MentorTaskService {
     private final MentorMenteeAssignmentRepository assignmentRepository;
     private final UserTaskRepository userTaskRepository;
     private final FileRepository fileRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -147,6 +151,15 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         }
 
         ut.grade(request.getGrade(), request.getFeedback());
+
+        if (!ut.getUser().isDeleted() && ut.getUser().getRole() == Role.USER) {
+            notificationService.notify(
+                ut.getUser(),
+                NotificationType.TASK_GRADED,
+                "과제 채점 완료",
+                "제출한 과제 채점이 완료되었어요."
+            );
+        }
     }
 }
 
