@@ -10,6 +10,7 @@ import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import com.j3s.yobuddy.domain.kpi.goals.repository.KpiGoalsRepository;
 import com.j3s.yobuddy.domain.kpi.results.dto.request.KpiResultsRequest;
 import com.j3s.yobuddy.domain.task.service.UserTaskQueryService;
+import com.j3s.yobuddy.domain.training.dto.response.UserTrainingsResponse;
 import com.j3s.yobuddy.domain.training.service.UserTrainingService;
 import com.j3s.yobuddy.domain.weeklyReport.service.WeeklyReportService;
 import com.j3s.yobuddy.domain.weeklyReport.dto.response.WeeklyReportSummaryResponse;
@@ -43,7 +44,6 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
         for (KpiGoals kpiGoals : kpiGoalList) {
             Long userId = request.getUserId();
             int target = kpiGoals.getTargetValue();
-            BigDecimal weight = kpiGoals.getWeight();
             switch (kpiGoals.getKpiCategoryId().intValue()) {
                 case 3: // 교육이수율
                     if (userId != null) {
@@ -86,10 +86,18 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                     if (userId != null) {
                         List<WeeklyReportSummaryResponse> weeklyReports = weeklyReportService.getWeeklyReports(userId, null, null).toList();
                         long totalReports = weeklyReports.size();
-                        long submittedReports = weeklyReports.stream().filter(r -> {
-                            WeeklyReportStatus s = r.getStatus();
-                            return s != null && s == WeeklyReportStatus.SUBMITTED || s == WeeklyReportStatus.REVIEWED || s == WeeklyReportStatus.FEEDBACK_OVERDUE;
-                        }).count();
+                        long submittedReports = weeklyReports.stream()
+                            .filter(r -> {
+                                WeeklyReportStatus s = r.getStatus();
+                                // 상태가 제출/검토/피드백 지연이고 제출시간(submittedAt)이 endDate를 넘었는지 확인
+                                boolean statusOk = s != null && (s == WeeklyReportStatus.SUBMITTED
+                                    || s == WeeklyReportStatus.REVIEWED
+                                    || s == WeeklyReportStatus.FEEDBACK_OVERDUE);
+                                if (!statusOk) return false;
+                                if (r.getSubmittedAt() == null || r.getEndDate() == null) return false;
+                                return r.getSubmittedAt().toLocalDate().isAfter(r.getEndDate());
+                            })
+                            .count();
                         if (totalReports == 0) {
                             return BigDecimal.ZERO;
                         }
@@ -101,12 +109,23 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                     break;
                 case 7: // 출석률
                     if (userId != null) {
-                        // TODO: implement attendance rate calculation
+                       UserTrainingsResponse UserTrainingOffline = userTrainingService.getUserTrainings(userId, null, "OFFLINE");
+                          long totalOffline = UserTrainingOffline.getTrainings().size();
+                            long attendedOffline = UserTrainingOffline.getTrainings().stream()
+                                .filter(t -> "COMPLITED".equals(t.getStatus()))
+                                .count();
+                            if (totalOffline == 0) {
+                                return BigDecimal.ZERO;
+                            }
+                            BigDecimal result = BigDecimal.valueOf(attendedOffline)
+                                .divide(BigDecimal.valueOf(totalOffline), 2, java.math.RoundingMode.HALF_UP)
+                                .multiply(BigDecimal.valueOf(100));
+                            return result;
                     }
                     break;
                 case 8: // 팀 고유 평가
                     if (userId != null) {
-                        // TODO: implement team-specific evaluation
+                        return BigDecimal.valueOf(0);
                     }
                     break;    
                 default:
