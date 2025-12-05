@@ -175,6 +175,9 @@
 
 </details>
 
-## <a id="requirements"></a>3. UI/UX 단위 테스트 결과서(스프레드시트)
+## <a id="requirements"></a>[3. UI/UX 단위 테스트 결과서(스프레드시트)](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
 <details>
+  <img width="1525" height="712" alt="image" src="https://github.com/user-attachments/assets/e7f34999-b6b8-4e68-8efb-e7ead9239be7" />
+  <img width="1525" height="712" alt="image" src="https://github.com/user-attachments/assets/afb63969-673a-49d7-823b-28971f42a71e" />
+  <img width="1525" height="712" alt="image" src="https://github.com/user-attachments/assets/af18fbeb-9335-42c4-baaa-bf6e27467bd2" />
 </details>
