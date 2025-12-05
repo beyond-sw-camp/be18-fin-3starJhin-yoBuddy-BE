@@ -28,6 +28,7 @@ public class WeeklyReportSummaryResponse {
     private Long mentorId;
     private Long menteeId;
     private LocalDateTime createdAt;
+    private LocalDateTime submittedAt;
     private LocalDateTime updatedAt;
 
     public static WeeklyReportSummaryResponse from(WeeklyReport report) {
@@ -40,6 +41,7 @@ public class WeeklyReportSummaryResponse {
             .mentorId(report.getMentorId())
             .menteeId(report.getMenteeId())
             .createdAt(report.getCreatedAt())
+            .submittedAt(report.getSubmittedAt())
             .updatedAt(report.getUpdatedAt())
             .build();
     }
