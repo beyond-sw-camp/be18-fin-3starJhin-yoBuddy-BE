@@ -40,7 +40,7 @@
 
 ## [🎯API 명세서](https://www.notion.so/playdatacademy/API-ver-2a2d943bcac28000994de975fb626d1e?source=copy_link)
 
-## <a id="requirements"></a>2. UI/UX 단위 테스트 결과서(.gif)
+## <a id="requirements"></a> UI/UX 단위 테스트 결과서(.gif)
 
 <details>
   <summary><b>공용</b></summary>
@@ -175,7 +175,12 @@
 
 </details>
 
-## <a id="requirements"></a>[3. UI/UX 단위 테스트 결과서(스프레드시트)](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
+## <a id="requirements"></a>[UI/UX 단위 테스트 결과서(스프레드시트)](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
+<details>
+  <img width="1815" height="648" alt="image" src="https://github.com/user-attachments/assets/0b69a880-bc9f-4e8e-a898-31d96f33f995" />
+</details>
+
+## <a id="requirements"></a>[백엔드 단위 테스트 결과서(스프레드시트)](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
 <details>
   <img width="1525" height="712" alt="image" src="https://github.com/user-attachments/assets/e7f34999-b6b8-4e68-8efb-e7ead9239be7" />
   <img width="1525" height="712" alt="image" src="https://github.com/user-attachments/assets/afb63969-673a-49d7-823b-28971f42a71e" />
