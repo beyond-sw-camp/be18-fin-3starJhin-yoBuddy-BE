@@ -65,6 +65,12 @@
   <b>📌 프로필 조회, 수정</b>
   ![프로필 수정](https://github.com/user-attachments/assets/2eec8e1f-180f-4b7a-9177-971d4bde17c3)
   <br>  
+
+  <b>📌 챗봇</b>
+
+  
+  ![챗봇](https://github.com/user-attachments/assets/0ea6714e-0e3c-4243-8ad4-8e40dd6039a6)
+  <br>  
 </details>
 
 <details>
