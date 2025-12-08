@@ -2,10 +2,10 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build-and-push:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,8 +39,14 @@ jobs:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          BACK_REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/yobuddy-back-repo
+          REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/yobuddy-back-repo
 
-          docker build -t back-repo .
-          docker tag back-repo:latest $BACK_REPO:latest
-          docker push $BACK_REPO:latest
+          docker build -t yobuddy-backend .
+          docker tag yobuddy-backend:latest $REPO:latest
+          docker push $REPO:latest
+
+      - name: Start ASG Instance Refresh
+        run: |
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
+            --preferences '{"MinHealthyPercentage": 90, "InstanceWarmup": 60}'
