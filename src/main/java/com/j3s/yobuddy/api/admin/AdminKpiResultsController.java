@@ -7,9 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsListResponse;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsResponse;
 import com.j3s.yobuddy.domain.kpi.results.service.KpiResultsService;
@@ -17,6 +19,7 @@ import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyRepor
 import com.j3s.yobuddy.domain.mentor.weeklyReport.service.MentorWeeklyReportService;
 
 import lombok.RequiredArgsConstructor;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -35,6 +38,12 @@ public class AdminKpiResultsController {
         List<KpiResultsListResponse> list = kpiResultsService.getResults(kpiGoalId, userId, departmentId);
         return ResponseEntity.ok(list);
     }
+    @PostMapping("/calculator")
+    public String calculateKpiResults() {
+        kpiResultsService.culculateKpiResults();
+        return "계산이 시작되었습니다.";
+    }
+    
 
     @GetMapping("/{kpiResultId}")
     public ResponseEntity<KpiResultsResponse> getResultById(@PathVariable("kpiResultId") Long kpiResultId) {
