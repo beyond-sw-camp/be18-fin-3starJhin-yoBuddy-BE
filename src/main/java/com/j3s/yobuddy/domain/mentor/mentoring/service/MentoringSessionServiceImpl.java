@@ -1,5 +1,13 @@
 package com.j3s.yobuddy.domain.mentor.mentoring.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
@@ -22,12 +30,6 @@ import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
     private final MentoringSessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final ProgramEnrollmentRepository enrollmentRepository;
+    private final com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository onboardingProgramRepository;
     private final NotificationService notificationService;
     private final FileRepository fileRepository;
 
@@ -107,6 +110,20 @@ public class MentoringSessionServiceImpl implements MentoringSessionService {
         return sessionRepository
             .findByProgram_ProgramIdAndDeletedFalse(programId, pageable)
             .map(this::toResponse);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<MentoringSessionResponse> getByDepartment(Long departmentId) {
+        // 1) onboarding programs for department
+        var programs = onboardingProgramRepository.findByDepartment_DepartmentIdAndDeletedFalse(departmentId);
+        if (programs == null || programs.isEmpty()) {
+            return java.util.List.of();
+        }
+        var programIds = programs.stream().map(p -> p.getProgramId()).toList();
+
+        // 2) mentoring sessions whose program is in the found programIds
+        var sessions = sessionRepository.findByProgram_ProgramIdInAndDeletedFalse(programIds);
+        return sessions.stream().map(this::toResponse).toList();
     }
 
 

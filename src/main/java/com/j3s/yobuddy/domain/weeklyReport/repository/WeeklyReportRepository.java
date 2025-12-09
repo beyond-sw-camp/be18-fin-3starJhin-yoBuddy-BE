@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WeeklyReportRepository extends JpaRepository<WeeklyReport, Long>,

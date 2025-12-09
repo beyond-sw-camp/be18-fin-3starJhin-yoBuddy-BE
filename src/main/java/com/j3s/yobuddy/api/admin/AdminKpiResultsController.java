@@ -18,6 +18,8 @@ import com.j3s.yobuddy.domain.kpi.results.dto.request.KpiResultsRequest;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsListResponse;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsResponse;
 import com.j3s.yobuddy.domain.kpi.results.service.KpiResultsService;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportDetailResponse;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.service.MentorWeeklyReportService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminKpiResultsController {
 
     private final KpiResultsService kpiResultsService;
+    private final MentorWeeklyReportService mentorWeeklyReportService;
 
     @GetMapping
     public ResponseEntity<List<KpiResultsListResponse>> getResults(
@@ -62,5 +65,10 @@ public class AdminKpiResultsController {
     public ResponseEntity<String> deleteResult(@PathVariable("kpiResultId") Long kpiResultId) {
         // Not implemented: could soft-delete via service
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("삭제는 추후 구현됩니다.");
+    }
+    @GetMapping("/weeklyreports/user/{userId}")
+    public ResponseEntity<List<MentorWeeklyReportDetailResponse>> getweeklyreport(@PathVariable String userId) {
+        List<MentorWeeklyReportDetailResponse> resp = mentorWeeklyReportService.getWeeklyReportsByUserId(userId);
+        return ResponseEntity.ok(resp);
     }
 }
