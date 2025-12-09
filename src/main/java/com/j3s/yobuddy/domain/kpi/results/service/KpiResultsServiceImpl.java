@@ -69,7 +69,7 @@ public class KpiResultsServiceImpl implements KpiResultsService {
         return KpiResultsResponse.from(r);
     }
     @Override
-    @Transactional
+    //@Transactional
     public void culculateKpiResults() {
         List<User> users = userRepository.findAllByIsDeletedFalse();
 
