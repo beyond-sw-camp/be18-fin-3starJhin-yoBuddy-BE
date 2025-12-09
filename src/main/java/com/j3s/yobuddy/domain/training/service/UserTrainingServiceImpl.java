@@ -59,10 +59,6 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         List<UserTrainingItemResponse> trainings =
             userTrainingQueryRepository.findUserTrainings(userId, userTrainingStatus, trainingType);
 
-        if (trainings.isEmpty()) {
-            throw new UserTrainingsNotFoundException(userId);
-        }
-
         return new UserTrainingsResponse(userId, trainings, trainings.size());
     }
 
