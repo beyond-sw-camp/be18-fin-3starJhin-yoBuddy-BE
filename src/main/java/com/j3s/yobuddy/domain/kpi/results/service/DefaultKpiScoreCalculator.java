@@ -42,12 +42,12 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
         int category = kpiGoals.getKpiCategoryId().intValue();
 
         return switch (category) {
-            case 1 -> computeTrainingCompletionScore(userId, target);    // 교육 이수율
-            case 2 -> computeTaskSubmissionScore(userId, target);        // 과제 제출률
-            case 3 -> computeTaskQualityScore(userId, target);           // 과제 품질
-            case 4 -> computeWeeklyReportScore(userId);                  // 주간보고 제때 제출률
-            case 5 -> computeAttendanceScore(userId);                    // 교육 출석률
-            case 6 -> computeTeamCustomScore(userId, departmentId, kpiGoals); // 팀 고유 평가(임시 0)
+            case 1 -> percentageOfTarget(userTrainingService.calculateCompletionRate(userId), target);
+            case 2 -> percentageOfTarget(userTaskQueryService.calculateCompletionRate(userId), target);
+            case 3 -> userTaskQueryService.calculateTaskScore(userId); // 품질 점수 그대로
+            case 4 -> computeWeeklyReportScore(userId);
+            case 5 -> computeAttendanceScore(userId);
+            case 6 -> BigDecimal.ZERO;
             default -> BigDecimal.ZERO;
         };
     }
@@ -110,9 +110,8 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
      * 일단 과제 품질도 completionRate 기반으로, 동일하게 '목표 대비'로 계산.
      * 나중에 별도 품질 지표가 생기면 이 메서드만 교체하면 됨.
      */
-    private BigDecimal computeTaskQualityScore(Long userId, int target) {
-        BigDecimal qualityScore = userTaskQueryService.calculateCompletionRate(userId); // 0~100 가정
-        return percentageOfTarget(qualityScore, target);
+    private BigDecimal computeTaskQualityScore(Long userId) {
+        return userTaskQueryService.calculateTaskScore(userId);
     }
 
     /**
@@ -129,26 +128,14 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
             return BigDecimal.ZERO;
         }
 
-        long submittedOnTime = weeklyReports.stream()
-            .filter(r -> {
-                WeeklyReportStatus s = r.getStatus();
-                boolean statusOk = s == WeeklyReportStatus.SUBMITTED
-                    || s == WeeklyReportStatus.REVIEWED
-                    || s == WeeklyReportStatus.FEEDBACK_OVERDUE;
-
-                if (!statusOk) return false;
-                if (r.getSubmittedAt() == null || r.getEndDate() == null) return false;
-
-                // 마감일 이전/당일 제출
-                return !r.getSubmittedAt().toLocalDate().isAfter(r.getEndDate());
-            })
+        long submitted = weeklyReports.stream()
+            .filter(r -> r.getSubmittedAt() != null) // 제출 여부만 판단
             .count();
 
-        BigDecimal ratio = BigDecimal.valueOf(submittedOnTime)
-            .divide(BigDecimal.valueOf(totalReports), SCALE + 2, RoundingMode.HALF_UP)
-            .multiply(HUNDRED);
-
-        return clampPercent(ratio);
+        return BigDecimal.valueOf(submitted)
+            .divide(BigDecimal.valueOf(totalReports), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
