@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import com.j3s.yobuddy.domain.kpi.goals.repository.KpiGoalsRepository;
-import com.j3s.yobuddy.domain.kpi.results.dto.request.KpiResultsRequest;
 import com.j3s.yobuddy.domain.task.service.UserTaskQueryService;
 import com.j3s.yobuddy.domain.training.dto.response.UserTrainingsResponse;
 import com.j3s.yobuddy.domain.training.service.UserTrainingService;
@@ -29,20 +28,13 @@ import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatu
 public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
 
     @Autowired
-    private KpiGoalsRepository kpiGoalsRepository;
-    @Autowired
     private UserTrainingService userTrainingService; // 교육이수율 계산용 서비스
     @Autowired
     private UserTaskQueryService userTaskQueryService; // 과제 제출률 계산용 서비스
     @Autowired
     private WeeklyReportService weeklyReportService; // 주간보고 계산용 서비스
     @Override
-    public BigDecimal computeScore(KpiResultsRequest request) {
-        List<KpiGoals> kpiGoalList = request.getDepartmentId() != null
-            ? kpiGoalsRepository.findByDepartmentIdAndIsDeletedFalse(request.getDepartmentId())
-            : List.of();
-        for (KpiGoals kpiGoals : kpiGoalList) {
-            Long userId = request.getUserId();
+    public BigDecimal computeScore(Long userId, Long departmentId, KpiGoals kpiGoals) {
             int target = kpiGoals.getTargetValue();
             switch (kpiGoals.getKpiCategoryId().intValue()) {
                 case 3: // 교육이수율
@@ -131,7 +123,6 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                 default:
                     break;
             }
-        }
         return BigDecimal.ZERO;
     }
 }
