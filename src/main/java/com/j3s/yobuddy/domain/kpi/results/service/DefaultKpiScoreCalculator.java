@@ -1,5 +1,9 @@
 package com.j3s.yobuddy.domain.kpi.results.service;
 
+import com.j3s.yobuddy.domain.training.entity.TrainingType;
+import com.j3s.yobuddy.domain.training.entity.UserTraining;
+import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
+import com.j3s.yobuddy.domain.training.repository.UserTrainingRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -27,6 +31,8 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
     private UserTaskQueryService userTaskQueryService;    // 과제 제출률/품질
     @Autowired
     private WeeklyReportService weeklyReportService;      // 주간보고
+    @Autowired
+    private UserTrainingRepository userTrainingRepository;
 
     @Override
     public BigDecimal computeScore(Long userId, Long departmentId, KpiGoals kpiGoals) {
@@ -143,28 +149,25 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
      * - OFFLINE 교육 전체 중 status == COMPLETED 인 비율
      */
     private BigDecimal computeAttendanceScore(Long userId) {
-        UserTrainingsResponse offlineTrainings =
-            userTrainingService.getUserTrainings(userId, null, "OFFLINE");
 
-        if (offlineTrainings == null || offlineTrainings.getTrainings() == null) {
+        // 모든 유저 교육 중 OFFLINE 교육만 필터링
+        List<UserTraining> offlineTrainings = userTrainingRepository.findByUser_UserId(userId)
+            .stream()
+            .filter(ut -> ut.getProgramTraining().getTraining().getType() == TrainingType.OFFLINE)
+            .toList();
+
+        long total = offlineTrainings.size();
+        if (total == 0) {
             return BigDecimal.ZERO;
         }
 
-        long totalOffline = offlineTrainings.getTrainings().size();
-        if (totalOffline == 0) {
-            return BigDecimal.ZERO;
-        }
-
-        long attendedOffline = offlineTrainings.getTrainings().stream()
-            .filter(t -> {
-                String status = t.getStatus();
-                return status != null && "COMPLETED".equalsIgnoreCase(status.trim());
-            })
+        long completed = offlineTrainings.stream()
+            .filter(ut -> ut.getStatus() == UserTrainingStatus.COMPLETED)
             .count();
 
-        BigDecimal ratio = BigDecimal.valueOf(attendedOffline)
-            .divide(BigDecimal.valueOf(totalOffline), SCALE + 2, RoundingMode.HALF_UP)
-            .multiply(HUNDRED);
+        BigDecimal ratio = BigDecimal.valueOf(completed)
+            .divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100));
 
         return clampPercent(ratio);
     }
