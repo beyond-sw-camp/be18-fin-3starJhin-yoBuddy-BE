@@ -37,7 +37,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
     public BigDecimal computeScore(Long userId, Long departmentId, KpiGoals kpiGoals) {
             int target = kpiGoals.getTargetValue();
             switch (kpiGoals.getKpiCategoryId().intValue()) {
-                case 3: // 교육이수율
+                case 1: // 교육이수율
                     if (userId != null) {
                         // score 계산 로직 예시: 교육이수율 * 가중치
                         BigDecimal score = userTrainingService.calculateCompletionRate(userId);
@@ -50,7 +50,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                         return result;
                     }
                     break;
-                case 4: // 과제 제출률 
+                case 2: // 과제 제출률
                     if (userId != null) {
                         // score 계산 로직 예시: 과제제출 * 가중치
                         BigDecimal score = userTaskQueryService.calculateCompletionRate(userId);
@@ -63,7 +63,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                         return result;
                     }
                     break;
-                case 5: // 과제 품질
+                case 3: // 과제 품질
                     if (userId != null) {
                         BigDecimal score = userTaskQueryService.calculateCompletionRate(userId);
                         if (target == 0) {
@@ -74,7 +74,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                         return result;
                     }
                     break;
-                case 6: // 주간보고
+                case 4: // 주간보고
                     if (userId != null) {
                         List<WeeklyReportSummaryResponse> weeklyReports = weeklyReportService.getWeeklyReports(userId, null, null).toList();
                         long totalReports = weeklyReports.size();
@@ -99,7 +99,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                         return result;
                     }
                     break;
-                case 7: // 출석률
+                case 5: // 출석률
                     if (userId != null) {
                        UserTrainingsResponse UserTrainingOffline = userTrainingService.getUserTrainings(userId, null, "OFFLINE");
                           long totalOffline = UserTrainingOffline.getTrainings().size();
@@ -115,7 +115,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
                             return result;
                     }
                     break;
-                case 8: // 팀 고유 평가
+                case 6: // 팀 고유 평가
                     if (userId != null) {
                         return BigDecimal.valueOf(0);
                     }
