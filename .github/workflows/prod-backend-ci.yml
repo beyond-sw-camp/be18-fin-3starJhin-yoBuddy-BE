@@ -3,6 +3,16 @@ name: Backend CI/CD
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: "Choose deployment environment"
+        required: true
+        default: "green"
+        type: choice
+        options:
+          - blue
+          - green
 
 jobs:
   build-push-deploy:
@@ -38,12 +48,20 @@ jobs:
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          DEPLOY_ENV: ${{ github.event.inputs.deploy_env || 'green' }}
         run: |
+          echo "Deploy environment: $DEPLOY_ENV"
+
           REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/yobuddy-back-repo
 
+          echo "Building Docker image..."
           docker build -t yobuddy-backend .
-          docker tag yobuddy-backend:latest $REPO:latest
-          docker push $REPO:latest
+
+          echo "Tagging image with $DEPLOY_ENV"
+          docker tag yobuddy-backend:latest $REPO:$DEPLOY_ENV
+
+          echo "Pushing image to ECR..."
+          docker push $REPO:$DEPLOY_ENV
 
       - name: Start ASG Instance Refresh
         run: |
