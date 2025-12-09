@@ -1,17 +1,23 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.j3s.yobuddy.common.dto.FileResponse;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.task.dto.response.AdminTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.TaskListResponse;
+import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse;
 import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
+import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.OnboardingTaskRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +26,7 @@ public class TaskQueryServiceImpl implements TaskQueryService {
 
     private final OnboardingTaskRepository onboardingTaskRepository;
     private final FileRepository fileRepository;
+    private final UserTaskRepository userTaskRepository;
 
     @Override
     public TaskListResponse getTaskList() {
@@ -70,5 +77,35 @@ public class TaskQueryServiceImpl implements TaskQueryService {
                 .toList();
 
         return AdminTaskDetailResponse.of(task, files);
+    }
+    @Override
+    public UserTaskListResponse getUserTaskList(Long userId){
+        List<UserTask> tasks = userTaskRepository.findByUser_UserId(userId);
+
+        LocalDateTime now = LocalDateTime.now();
+        for (UserTask ut : tasks) {
+            ut.refreshMissingStatus(now);
+        }
+
+        userTaskRepository.saveAll(tasks);
+
+        var list = tasks.stream()
+            .map(ut -> UserTaskListResponse.TaskInfo.builder()
+                .userTaskId(ut.getId())
+                .taskId(ut.getProgramTask().getOnboardingTask().getId())
+                .title(ut.getProgramTask().getOnboardingTask().getTitle())
+                .dueDate(ut.getProgramTask().getDueDate().toLocalDate())
+                .status(ut.getStatus().name())
+                .grade(ut.getGrade())
+                .submittedAt(ut.getSubmittedAt())
+                .feedback(ut.getFeedback())
+                .build())
+            .toList();
+
+
+        return UserTaskListResponse.builder()
+            .userId(userId)
+            .tasks(list)
+            .build();
     }
 }

@@ -1,11 +1,14 @@
 package com.j3s.yobuddy.domain.mentor.weeklyReport.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.request.MentorWeeklyReportFeedbackRequest;
 import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportDetailResponse;
 import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportSummaryResponse;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface MentorWeeklyReportService {
 
@@ -23,4 +26,5 @@ public interface MentorWeeklyReportService {
         Long menteeId,
         Long weeklyReportId,
         MentorWeeklyReportFeedbackRequest request);
+    List<MentorWeeklyReportDetailResponse> getWeeklyReportsByUserId(String userId);
 }

@@ -1,9 +1,7 @@
 package com.j3s.yobuddy.api.admin;
 
-import com.j3s.yobuddy.domain.mentor.mentoring.dto.response.MentoringSessionResponse;
-import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
-import com.j3s.yobuddy.domain.mentor.mentoring.service.MentoringSessionService;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +12,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.j3s.yobuddy.domain.mentor.mentoring.dto.response.MentoringSessionResponse;
+import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
+import com.j3s.yobuddy.domain.mentor.mentoring.service.MentoringSessionService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/admin/mentoring/sessions")
@@ -46,5 +50,12 @@ public class AdminMentoringSessionController {
         @PathVariable Long sessionId
     ) {
         return ResponseEntity.ok(service.get(sessionId));
+    }
+
+    @GetMapping("/department/{departmentId}")
+    public ResponseEntity<List<MentoringSessionResponse>> getByDepartment(
+        @PathVariable Long departmentId
+    ) {
+        return ResponseEntity.ok(service.getByDepartment(departmentId));
     }
 }

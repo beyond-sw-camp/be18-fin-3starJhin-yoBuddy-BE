@@ -1,17 +1,7 @@
 package com.j3s.yobuddy.api.admin;
 
-import com.j3s.yobuddy.domain.file.service.FileService;
-import com.j3s.yobuddy.domain.training.dto.request.TrainingCreateRequest;
-import com.j3s.yobuddy.domain.training.dto.request.TrainingUpdateRequest;
-import com.j3s.yobuddy.domain.training.dto.response.TrainingDeleteResponse;
-import com.j3s.yobuddy.domain.training.dto.response.TrainingDetailResponse;
-import com.j3s.yobuddy.domain.training.dto.response.TrainingListItemResponse;
-import com.j3s.yobuddy.domain.training.entity.TrainingType;
-import com.j3s.yobuddy.domain.training.service.TrainingAdminService;
-import com.j3s.yobuddy.domain.training.dto.response.TrainingResponse;
-import jakarta.validation.Valid;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,13 +13,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.j3s.yobuddy.domain.file.service.FileService;
+import com.j3s.yobuddy.domain.training.dto.response.TrainingDeleteResponse;
+import com.j3s.yobuddy.domain.training.dto.response.TrainingDetailResponse;
+import com.j3s.yobuddy.domain.training.dto.response.TrainingListItemResponse;
+import com.j3s.yobuddy.domain.training.dto.response.TrainingResponse;
+import com.j3s.yobuddy.domain.training.dto.response.UserTrainingsResponse;
+import com.j3s.yobuddy.domain.training.entity.TrainingType;
+import com.j3s.yobuddy.domain.training.service.TrainingAdminService;
+import com.j3s.yobuddy.domain.training.service.UserTrainingService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/admin/trainings")
@@ -38,6 +39,7 @@ public class AdminTrainingController {
 
     private final TrainingAdminService trainingAdminService;
     private final FileService fileService;
+    private final UserTrainingService userTrainingService;
 
     @GetMapping
     public Page<TrainingListItemResponse> getTrainings(
@@ -92,4 +94,14 @@ public class AdminTrainingController {
     public ResponseEntity<TrainingDeleteResponse> deleteTraining(@PathVariable Long trainingId) {
         return ResponseEntity.ok(trainingAdminService.deleteTraining(trainingId));
     }
+
+    @GetMapping("/user/{userId}")
+    public UserTrainingsResponse getUserTrainings(
+        @PathVariable("userId") Long userId,
+        @RequestParam(value = "status", required = false) String status,
+        @RequestParam(value = "type", required = false) String type
+    ) {
+        return userTrainingService.getUserTrainings(userId, status, type);
+    }
+    
 }

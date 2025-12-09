@@ -1,7 +1,9 @@
 package com.j3s.yobuddy.domain.mentor.mentoring.dto.response;
 
-import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
 import java.time.LocalDateTime;
+
+import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,4 +31,5 @@ public class MentoringSessionResponse {
     private final String feedback;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final String departmentId;
 }

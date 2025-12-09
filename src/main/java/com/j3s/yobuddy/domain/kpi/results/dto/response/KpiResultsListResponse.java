@@ -2,7 +2,6 @@ package com.j3s.yobuddy.domain.kpi.results.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.j3s.yobuddy.domain.kpi.results.entity.KpiResults;
 

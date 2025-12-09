@@ -1,26 +1,31 @@
 package com.j3s.yobuddy.domain.mentor.weeklyReport.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.j3s.yobuddy.domain.mentor.menteeAssignment.repository.MentorMenteeAssignmentRepository;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.request.MentorWeeklyReportFeedbackRequest;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportDetailResponse;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportSummaryResponse;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.exception.MentorWeeklyReportAccessDeniedException;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.exception.WeeklyReportFeedbackNotAllowedException;
 import com.j3s.yobuddy.domain.notification.entity.NotificationType;
 import com.j3s.yobuddy.domain.notification.service.NotificationService;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
-import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.request.MentorWeeklyReportFeedbackRequest;
-import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportDetailResponse;
-import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportSummaryResponse;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
-import com.j3s.yobuddy.domain.mentor.weeklyReport.exception.MentorWeeklyReportAccessDeniedException;
-import com.j3s.yobuddy.domain.mentor.weeklyReport.exception.WeeklyReportFeedbackNotAllowedException;
 import com.j3s.yobuddy.domain.weeklyReport.exception.WeeklyReportNotFoundException;
 import com.j3s.yobuddy.domain.weeklyReport.repository.WeeklyReportRepository;
-import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -114,5 +119,25 @@ public class MentorWeeklyReportServiceImpl implements MentorWeeklyReportService 
         String menteeName = mentee != null ? mentee.getName() : null;
 
         return MentorWeeklyReportDetailResponse.from(report, menteeName);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<MentorWeeklyReportDetailResponse> getWeeklyReportsByUserId(String userId) {
+        try {
+            Long menteeId = Long.parseLong(userId);
+
+            String menteeName = userRepository.findByUserIdAndIsDeletedFalse(menteeId)
+                .map(User::getName)
+                .orElse(null);
+
+            var page = weeklyReportRepository.findByMenteeId(menteeId, Pageable.unpaged());
+            List<MentorWeeklyReportDetailResponse> result = new ArrayList<>();
+            for (WeeklyReport report : page.getContent()) {
+                result.add(MentorWeeklyReportDetailResponse.from(report, menteeName));
+            }
+            return result;
+        } catch (NumberFormatException ex) {
+            return new ArrayList<>();
+        }
     }
 }
