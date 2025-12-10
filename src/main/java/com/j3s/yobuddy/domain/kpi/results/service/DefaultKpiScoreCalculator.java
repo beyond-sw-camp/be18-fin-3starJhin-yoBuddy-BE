@@ -1,9 +1,5 @@
 package com.j3s.yobuddy.domain.kpi.results.service;
 
-import com.j3s.yobuddy.domain.training.entity.TrainingType;
-import com.j3s.yobuddy.domain.training.entity.UserTraining;
-import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
-import com.j3s.yobuddy.domain.training.repository.UserTrainingRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -13,11 +9,13 @@ import org.springframework.stereotype.Component;
 
 import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import com.j3s.yobuddy.domain.task.service.UserTaskQueryService;
-import com.j3s.yobuddy.domain.training.dto.response.UserTrainingsResponse;
+import com.j3s.yobuddy.domain.training.entity.TrainingType;
+import com.j3s.yobuddy.domain.training.entity.UserTraining;
+import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
+import com.j3s.yobuddy.domain.training.repository.UserTrainingRepository;
 import com.j3s.yobuddy.domain.training.service.UserTrainingService;
-import com.j3s.yobuddy.domain.weeklyReport.dto.response.WeeklyReportSummaryResponse;
-import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
-import com.j3s.yobuddy.domain.weeklyReport.service.WeeklyReportService;
+import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport;
+import com.j3s.yobuddy.domain.weeklyReport.repository.WeeklyReportRepository;
 
 @Component
 public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
@@ -30,7 +28,7 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
     @Autowired
     private UserTaskQueryService userTaskQueryService;    // 과제 제출률/품질
     @Autowired
-    private WeeklyReportService weeklyReportService;      // 주간보고
+    private WeeklyReportRepository weeklyReportRepository;      // 주간보고
     @Autowired
     private UserTrainingRepository userTrainingRepository;
 
@@ -126,8 +124,8 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
      * - status: SUBMITTED / REVIEWED / FEEDBACK_OVERDUE 만 유효로 간주
      */
     private BigDecimal computeWeeklyReportScore(Long userId) {
-        List<WeeklyReportSummaryResponse> weeklyReports =
-            weeklyReportService.getWeeklyReports(userId, null, null).toList();
+        List<WeeklyReport> weeklyReports =
+            weeklyReportRepository.getByMenteeId(userId);
 
         long totalReports = weeklyReports.size();
         if (totalReports == 0) {

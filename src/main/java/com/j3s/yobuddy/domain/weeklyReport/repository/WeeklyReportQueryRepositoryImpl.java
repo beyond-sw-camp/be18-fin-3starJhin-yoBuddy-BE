@@ -1,20 +1,21 @@
 package com.j3s.yobuddy.domain.weeklyReport.repository;
 
-import static com.j3s.yobuddy.domain.weeklyReport.entity.QWeeklyReport.weeklyReport;
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 import com.j3s.yobuddy.domain.weeklyReport.entity.QWeeklyReport;
+import static com.j3s.yobuddy.domain.weeklyReport.entity.QWeeklyReport.weeklyReport;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport;
 import com.j3s.yobuddy.domain.weeklyReport.entity.WeeklyReport.WeeklyReportStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDate;
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
 
