@@ -34,7 +34,9 @@
 <img width="1853" height="647" alt="image" src="https://github.com/user-attachments/assets/0ef2a92d-ac31-4908-965b-30e8436658e4" />
 
 ## 🔧시스템 아키텍쳐
-<img width="1256" height="611" alt="image" src="https://github.com/user-attachments/assets/ee0793d2-cc7a-4e06-a036-1e1ee91a5f58" />
+<img width="6263" height="3087" alt="image" src="https://github.com/user-attachments/assets/337538a5-4ecb-486b-b14c-6a0564668e8d" />
+
+
 
 ## [화면 설계서](https://www.figma.com/design/pGnHO9qPyDx64xwkiXwLjx/Wireframe?node-id=0-1&t=yPTFtFJGBj23rCRX-1)
 
@@ -193,3 +195,11 @@
   <img width="1525" height="712" alt="image" src="https://github.com/user-attachments/assets/af18fbeb-9335-42c4-baaa-bf6e27467bd2" />
 </details>
 
+## <a id="requirements"></a>[통합 테스트 결과서(스프레드시트)](https://docs.google.com/spreadsheets/d/1K8YuXIA0x8a8Y9f4kMTgq1r6MV3WvJSXAwilLHGkxHs/edit?usp=sharing)
+<details>
+  <img width="911" height="706" alt="image" src="https://github.com/user-attachments/assets/9f5c2793-0849-47b7-9f08-f7a45f4a9ca4" />
+  <img width="854" height="756" alt="image" src="https://github.com/user-attachments/assets/082a55df-0b09-4a6f-9c79-cfdd7965194c" />
+  <img width="853" height="467" alt="image" src="https://github.com/user-attachments/assets/0a21630c-90c9-4a0d-859b-05dfa0a4ffaa" />
+</details>
+
+## <a id="requirements"></a>[CI/CD 계획서](https://www.notion.so/playdatacademy/CI-CD-2c5d943bcac2801db3aee8d7995e5f1f)
