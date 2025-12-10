@@ -1,24 +1,15 @@
-name: Backend CI/CD
+name: Backend CI/CD (Auto Blue-Green)
 
 on:
   push:
     branches: ["main"]
 
 jobs:
-  deploy-idle:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Determine Idle Environment
-        run: |
-          echo "IDLE=${{ secrets.IDLE_ENV }}"
-          if [ "${{ secrets.IDLE_ENV }}" = "blue" ]; then
-            echo "DEPLOY_ENV=blue" >> $GITHUB_ENV
-          else
-            echo "DEPLOY_ENV=green" >> $GITHUB_ENV
-          fi
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -36,22 +27,43 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Determine ACTIVE / IDLE by checking ALB listener
+        id: detect
+        run: |
+          HTTPS_LISTENER="${{ secrets.ALB_LISTENER_ARN }}"
+
+          ACTIVE_TG=$(aws elbv2 describe-listeners \
+            --listener-arn $HTTPS_LISTENER \
+            --query 'Listeners[0].DefaultActions[0].TargetGroupArn' \
+            --output text)
+
+          echo "ACTIVE_TG=$ACTIVE_TG"
+
+          if [[ "$ACTIVE_TG" == *"blue"* ]]; then
+            echo "IDLE_ENV=green" >> $GITHUB_ENV
+          else
+            echo "IDLE_ENV=blue" >> $GITHUB_ENV
+          fi
+
+          echo "Deploying to IDLE: $IDLE_ENV"
+
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Push Docker image to IDLE env
+      - name: Build & Push Docker image to IDLE ECR Tag
         run: |
-          REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/yobuddy-back-repo
-          docker build -t yobuddy-backend .
-          docker tag yobuddy-backend:latest $REPO:${{ env.DEPLOY_ENV }}
-          docker push $REPO:${{ env.DEPLOY_ENV }}
+          REPO="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/yobuddy-back-repo"
 
-      - name: Refresh Idle ASG
+          docker build -t yobuddy-backend .
+          docker tag yobuddy-backend:latest $REPO:${{ env.IDLE_ENV }}
+          docker push $REPO:${{ env.IDLE_ENV }}
+
+      - name: Refresh IDLE AutoScalingGroup
         run: |
-          if [ "${{ env.DEPLOY_ENV }}" = "blue" ]; then
+          if [ "${{ env.IDLE_ENV }}" = "blue" ]; then
             ASG="${{ secrets.ASG_BLUE_NAME }}"
           else
-            ASG="${{ secrets.ASG_NAME }}"
+            ASG="${{ secrets.ASG_GREEN_NAME }}"
           fi
 
           aws autoscaling start-instance-refresh \
