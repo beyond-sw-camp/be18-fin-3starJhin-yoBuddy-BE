@@ -23,8 +23,49 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     @Override
     public ChatbotResponse ask(ChatbotAskRequest request) {
-        log.info(">>> [TEST] ChatbotServiceImpl.ask() called. question={}", request.getQuestion());
+        try {
+            String url = chatbotBaseUrl + "/api/faq/ask";
 
-        return new ChatbotResponse("테스트 응답입니다. 백엔드는 정상적으로 응답하고 있어요!");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<ChatbotAskRequest> entity = new HttpEntity<>(request, headers);
+
+            log.info("Calling chatbot server: {}", url);
+            ResponseEntity<ChatbotInternalResponse> response =
+                restTemplate.exchange(url, HttpMethod.POST, entity, ChatbotInternalResponse.class);
+
+            ChatbotInternalResponse body = response.getBody();
+            log.info("Chatbot raw response: status={}, body={}", response.getStatusCode(), body);
+
+            if (body == null || body.getAnswer() == null) {
+                // 응답이 비정상일 때는 기존 서버 오류 문구 사용
+                return new ChatbotResponse("죄송합니다. 챗봇 서버 응답이 올바르지 않습니다.");
+            }
+
+            // 정상 응답
+            return new ChatbotResponse(body.getAnswer());
+
+        } catch (HttpStatusCodeException e) {
+            int statusCode = e.getStatusCode().value();
+            String responseBody = e.getResponseBodyAsString();
+
+            log.error("Chatbot server returned error. status={}, body={}", statusCode, responseBody, e);
+
+            if (statusCode == 500) {
+                return new ChatbotResponse(
+                    "현재 분당 사용량 제한을 초과했습니다.\n잠시 뒤에 다시 시도해 주세요."
+                );
+            }
+
+            return new ChatbotResponse(
+                "죄송합니다. 챗봇 서버 호출 중 오류가 발생했습니다."
+            );
+
+        } catch (Exception e) {
+            log.error("Error while calling chatbot server", e);
+            return new ChatbotResponse(
+                "죄송합니다. 챗봇 서버 호출 중 오류가 발생했습니다."
+            );
+        }
     }
 }
