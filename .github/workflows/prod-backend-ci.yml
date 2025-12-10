@@ -61,11 +61,13 @@ jobs:
       - name: Refresh IDLE AutoScalingGroup
         run: |
           if [ "${{ env.IDLE_ENV }}" = "blue" ]; then
-            ASG="${{ secrets.ASG_BLUE_NAME }}"
+            ASG="asg-yobuddy-api"
           else
-            ASG="${{ secrets.ASG_GREEN_NAME }}"
+            ASG="asg-yobuddy-api-green"
           fi
 
+          echo "Refreshing ASG: $ASG"
+
           aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name $ASG \
+            --auto-scaling-group-name "$ASG" \
             --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 60}'
