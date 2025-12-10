@@ -133,7 +133,8 @@ public class DefaultKpiScoreCalculator implements KpiScoreCalculator {
         }
 
         long submitted = weeklyReports.stream()
-            .filter(r -> r.getSubmittedAt() != null) // 제출 여부만 판단
+            .filter(wr -> wr.getStatus() == WeeklyReport.WeeklyReportStatus.SUBMITTED
+                || wr.getStatus() == WeeklyReport.WeeklyReportStatus.REVIEWED)
             .count();
 
         return BigDecimal.valueOf(submitted)
