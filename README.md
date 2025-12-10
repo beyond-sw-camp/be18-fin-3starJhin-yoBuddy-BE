@@ -34,7 +34,9 @@
 <img width="1853" height="647" alt="image" src="https://github.com/user-attachments/assets/0ef2a92d-ac31-4908-965b-30e8436658e4" />
 
 ## 🔧시스템 아키텍쳐
-<img width="1256" height="611" alt="image" src="https://github.com/user-attachments/assets/ee0793d2-cc7a-4e06-a036-1e1ee91a5f58" />
+<img width="6263" height="3087" alt="image" src="https://github.com/user-attachments/assets/337538a5-4ecb-486b-b14c-6a0564668e8d" />
+
+
 
 ## [화면 설계서](https://www.figma.com/design/pGnHO9qPyDx64xwkiXwLjx/Wireframe?node-id=0-1&t=yPTFtFJGBj23rCRX-1)
 
