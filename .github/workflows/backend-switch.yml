@@ -25,23 +25,39 @@ jobs:
 
       - name: Apply Blue/Green Switch
         run: |
-          LISTENER_ARN="${{ secrets.ALB_LISTENER_ARN }}"
+          HTTPS_LISTENER="${{ secrets.ALB_LISTENER_ARN }}"
+          HTTP_LISTENER="${{ secrets.ALB_LISTENER_HTTP_ARN }}"
           BLUE_TG="${{ secrets.TG_BLUE_ARN }}"
           GREEN_TG="${{ secrets.TG_GREEN_ARN }}"
           ACTION="${{ github.event.inputs.action }}"
 
           if [ "$ACTION" = "switch-to-blue" ]; then
             echo "Switching traffic to BLUE..."
+
+            echo "Updating HTTPS listener..."
             aws elbv2 modify-listener \
-              --listener-arn $LISTENER_ARN \
+              --listener-arn $HTTPS_LISTENER \
               --default-actions Type=forward,TargetGroupArn=$BLUE_TG
-            echo "Traffic successfully switched to BLUE"
+
+            echo "Updating HTTP listener..."
+            aws elbv2 modify-listener \
+              --listener-arn $HTTP_LISTENER \
+              --default-actions Type=forward,TargetGroupArn=$BLUE_TG
+
+            echo "Traffic successfully switched to BLUE!"
 
           elif [ "$ACTION" = "rollback-to-green" ]; then
-            echo "ROLLBACK to GREEN..."
-            aws elbv2 modify-listener \
-              --listener-arn $LISTENER_ARN \
-              --default-actions Type=forward,TargetGroupArn=$GREEN_TG
-            echo "Traffic successfully switched to GREEN"
-          fi
+            echo "Rolling back to GREEN..."
 
+            echo "Updating HTTPS listener..."
+            aws elbv2 modify-listener \
+              --listener-arn $HTTPS_LISTENER \
+              --default-actions Type=forward,TargetGroupArn=$GREEN_TG
+
+            echo "Updating HTTP listener..."
+            aws elbv2 modify-listener \
+              --listener-arn $HTTP_LISTENER \
+              --default-actions Type=forward,TargetGroupArn=$GREEN_TG
+
+            echo "Traffic successfully switched back to GREEN!"
+          fi
