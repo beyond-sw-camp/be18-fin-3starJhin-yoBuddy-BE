@@ -2,6 +2,7 @@ package com.j3s.yobuddy.domain.kpi.results.service;
 
 import java.math.BigDecimal;
 
+import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import com.j3s.yobuddy.domain.kpi.results.dto.request.KpiResultsRequest;
 
 /**
@@ -18,5 +19,5 @@ public interface KpiScoreCalculator {
      * @param relatedGoals departmentId로 조회한 KPI 목표 목록(없을 수 있음)
      * @return 계산된 score 또는 null
      */
-    BigDecimal computeScore(KpiResultsRequest request);
+    BigDecimal computeScore(Long userId, Long departmentId, KpiGoals kpiGoals);
 }

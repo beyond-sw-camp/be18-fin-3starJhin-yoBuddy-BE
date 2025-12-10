@@ -1,6 +1,7 @@
 package com.j3s.yobuddy.domain.training.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -57,10 +58,6 @@ public class UserTrainingServiceImpl implements UserTrainingService {
 
         List<UserTrainingItemResponse> trainings =
             userTrainingQueryRepository.findUserTrainings(userId, userTrainingStatus, trainingType);
-
-        if (trainings.isEmpty()) {
-            throw new UserTrainingsNotFoundException(userId);
-        }
 
         return new UserTrainingsResponse(userId, trainings, trainings.size());
     }
@@ -138,6 +135,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     public BigDecimal calculateCompletionRate(Long userId) {
         var resp = getUserTrainings(userId, null, null);
         var trainings = resp.getTrainings();
+
         long total = trainings.size();
         long completed = trainings.stream()
             .filter(t -> UserTrainingStatus.COMPLETED.name().equals(t.getStatus()))
@@ -147,7 +145,9 @@ public class UserTrainingServiceImpl implements UserTrainingService {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal rate = BigDecimal.valueOf((completed / total)* 100.0);
-        return rate;
-}
+        return BigDecimal.valueOf(completed)
+            .divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
+    }
 }

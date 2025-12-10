@@ -1,6 +1,7 @@
 package com.j3s.yobuddy.domain.task.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -128,13 +129,16 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
     public BigDecimal calculateCompletionRate(Long userId) {
         var resp = getUserTaskList(userId);
         var tasks = resp.getTasks();
+
         long total = tasks.size();
         long completed = tasks.stream()
             .filter(t -> {
-            String s = t.getStatus();
-            return s != null && (s.equals(UserTaskStatus.GRADED.name())
-                || s.equals(UserTaskStatus.LATE.name())
-                || s.equals(UserTaskStatus.SUBMITTED.name()));
+                String s = t.getStatus();
+                return s != null && (
+                    s.equals(UserTaskStatus.GRADED.name()) ||
+                        s.equals(UserTaskStatus.SUBMITTED.name()) ||
+                        s.equals(UserTaskStatus.LATE.name())
+                );
             })
             .count();
 
@@ -142,18 +146,18 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal rate = BigDecimal.valueOf((completed / total)* 100.0);
-        return rate;
+        return BigDecimal.valueOf(completed)
+            .divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
     }
     @Override
     public BigDecimal calculateTaskScore(Long userId) {
         var resp = getUserTaskList(userId);
         var tasks = resp.getTasks();
+
         var gradedGrades = tasks.stream()
-            .filter(t -> {
-            String s = t.getStatus();
-            return s != null && s.equals(UserTaskStatus.GRADED.name()) && t.getGrade() != null;
-            })
+            .filter(t -> UserTaskStatus.GRADED.name().equals(t.getStatus()) && t.getGrade() != null)
             .map(t -> t.getGrade())
             .toList();
 
@@ -161,13 +165,9 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             return BigDecimal.ZERO;
         }
 
-        int sum = gradedGrades.stream()
-            .mapToInt(Integer::intValue)
-            .sum();
-
-        BigDecimal divisor = BigDecimal.valueOf(gradedGrades.size());
-        BigDecimal score = BigDecimal.valueOf(sum).divide(divisor, 2, java.math.RoundingMode.HALF_UP);
-        return score;
+        int sum = gradedGrades.stream().mapToInt(Integer::intValue).sum();
+        return BigDecimal.valueOf(sum)
+            .divide(BigDecimal.valueOf(gradedGrades.size()), 2, RoundingMode.HALF_UP);
     }
 }
 

@@ -1,11 +1,14 @@
 package com.j3s.yobuddy.domain.mentor.mentoring.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.j3s.yobuddy.domain.mentor.mentoring.dto.request.MentoringSessionCreateRequest;
 import com.j3s.yobuddy.domain.mentor.mentoring.dto.request.MentoringSessionUpdateRequest;
 import com.j3s.yobuddy.domain.mentor.mentoring.dto.response.MentoringSessionResponse;
 import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface MentoringSessionService {
     MentoringSessionResponse create(MentoringSessionCreateRequest request);
@@ -17,6 +20,8 @@ public interface MentoringSessionService {
     Page<MentoringSessionResponse> getByMentee(Long menteeId, Pageable pageable);
 
     Page<MentoringSessionResponse> getByProgram(Long programId, Pageable pageable);
+    
+    List<MentoringSessionResponse> getByDepartment(Long departmentId);
 
     Page<MentoringSessionResponse> getAll(Pageable pageable);
 

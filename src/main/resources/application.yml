@@ -47,7 +47,7 @@ spring:
       mail.smtp.starttls.enable: true
 
   file:
-    upload-dir: ${SFTP_REMOTE_DIR}
+    upload-dir: ${SFTP_REMOTE_DIR:/tmp/yobuddy-uploads}
 
 app:
   jwt:
@@ -57,10 +57,12 @@ app:
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:1209600000}
 
 sftp:
-  host: ${SFTP_HOST}
-  port: ${SFTP_PORT}
-  user: ${SFTP_USER}
-  password: ${SFTP_PASSWORD}
+  # enable SFTP only when SFTP_ENABLED=true (default false for local dev)
+  enabled: ${SFTP_ENABLED:false}
+  host: ${SFTP_HOST:}
+  port: ${SFTP_PORT:22}
+  user: ${SFTP_USER:}
+  password: ${SFTP_PASSWORD:}
 
 chatbot:
   base-url: http://3.37.130.110:8000

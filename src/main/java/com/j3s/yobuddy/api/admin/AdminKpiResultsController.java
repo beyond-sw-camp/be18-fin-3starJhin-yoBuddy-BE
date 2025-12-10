@@ -6,20 +6,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.j3s.yobuddy.domain.kpi.results.dto.request.KpiResultsRequest;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsListResponse;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsResponse;
 import com.j3s.yobuddy.domain.kpi.results.service.KpiResultsService;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.dto.response.MentorWeeklyReportDetailResponse;
+import com.j3s.yobuddy.domain.mentor.weeklyReport.service.MentorWeeklyReportService;
 
 import lombok.RequiredArgsConstructor;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminKpiResultsController {
 
     private final KpiResultsService kpiResultsService;
+    private final MentorWeeklyReportService mentorWeeklyReportService;
 
     @GetMapping
     public ResponseEntity<List<KpiResultsListResponse>> getResults(
@@ -37,6 +38,12 @@ public class AdminKpiResultsController {
         List<KpiResultsListResponse> list = kpiResultsService.getResults(kpiGoalId, userId, departmentId);
         return ResponseEntity.ok(list);
     }
+    @PostMapping("/calculator")
+    public String calculateKpiResults() {
+        kpiResultsService.culculateKpiResults();
+        return "계산이 시작되었습니다.";
+    }
+    
 
     @GetMapping("/{kpiResultId}")
     public ResponseEntity<KpiResultsResponse> getResultById(@PathVariable("kpiResultId") Long kpiResultId) {
@@ -44,23 +51,14 @@ public class AdminKpiResultsController {
         return ResponseEntity.ok(resp);
     }
 
-    @PostMapping
-    public ResponseEntity<String> createResult(@RequestBody KpiResultsRequest request) {
-        kpiResultsService.createResult(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body("KPI 결과가 생성되었습니다.");
-    }
-
-    // optional endpoints for completeness
-    @PatchMapping("/{kpiResultId}")
-    public ResponseEntity<String> updateResult(@PathVariable("kpiResultId") Long kpiResultId,
-        @RequestBody KpiResultsRequest request) {
-        kpiResultsService.updateResult(kpiResultId, request);
-        return ResponseEntity.ok("KPI 결과가 수정되었습니다.");
-    }
-
     @DeleteMapping("/{kpiResultId}")
     public ResponseEntity<String> deleteResult(@PathVariable("kpiResultId") Long kpiResultId) {
         // Not implemented: could soft-delete via service
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("삭제는 추후 구현됩니다.");
+    }
+    @GetMapping("/weeklyreports/user/{userId}")
+    public ResponseEntity<List<MentorWeeklyReportDetailResponse>> getweeklyreport(@PathVariable String userId) {
+        List<MentorWeeklyReportDetailResponse> resp = mentorWeeklyReportService.getWeeklyReportsByUserId(userId);
+        return ResponseEntity.ok(resp);
     }
 }

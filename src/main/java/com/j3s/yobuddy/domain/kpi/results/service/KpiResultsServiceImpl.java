@@ -1,26 +1,31 @@
 package com.j3s.yobuddy.domain.kpi.results.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.j3s.yobuddy.domain.kpi.results.dto.request.KpiResultsRequest;
+import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
+import com.j3s.yobuddy.domain.kpi.goals.repository.KpiGoalsRepository;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsListResponse;
 import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsResponse;
 import com.j3s.yobuddy.domain.kpi.results.entity.KpiResults;
-import com.j3s.yobuddy.domain.kpi.results.exception.KpiResultsAlreadyDeletedException;
 import com.j3s.yobuddy.domain.kpi.results.exception.KpiResultsNotFoundException;
 import com.j3s.yobuddy.domain.kpi.results.repository.KpiResultsRepository;
+import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class KpiResultsServiceImpl implements KpiResultsService {
+    private final KpiScoreCalculator kpiScoreCalculator;
 
     private final KpiResultsRepository kpiResultsRepository;
-    private final KpiScoreCalculator kpiScoreCalculator;
+    private final UserRepository userRepository;
+    private final KpiGoalsRepository kpiGoalsRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -41,14 +46,14 @@ public class KpiResultsServiceImpl implements KpiResultsService {
 
     @Override
     @Transactional
-    public void createResult(KpiResultsRequest request) {
+    public void createResult(Long userId, Long departmentId, KpiGoals kpiGoals) {
         KpiResults r = KpiResults.builder()
-            .achievedValue(request.getAchievedValue())
-            .score(kpiScoreCalculator.computeScore(request))
-            .evaluatedAt(request.getEvaluatedAt())
-            .kpiGoalId(request.getKpiGoalId())
-            .userId(request.getUserId())
-            .departmentId(request.getDepartmentId())
+            .achievedValue(null)
+            .score(kpiScoreCalculator.computeScore(userId,departmentId,kpiGoals))
+            .evaluatedAt(LocalDateTime.now())
+            .kpiGoalId(kpiGoals.getKpiGoalId())
+            .userId(userId)
+            .departmentId(departmentId)
             .isDeleted(false)
             .build();
 
@@ -63,33 +68,34 @@ public class KpiResultsServiceImpl implements KpiResultsService {
 
         return KpiResultsResponse.from(r);
     }
-
     @Override
-    @Transactional
-    public KpiResultsListResponse updateResult(Long kpiResultId, KpiResultsRequest request) {
-        KpiResults r = kpiResultsRepository.findByKpiResultIdAndIsDeletedFalse(kpiResultId)
-            .orElseThrow(() -> new KpiResultsNotFoundException(kpiResultId));
+    //@Transactional
+    public void culculateKpiResults() {
+        List<User> users = userRepository.findAllByIsDeletedFalse();
 
-        if (r.getIsDeleted()) {
-            throw new KpiResultsAlreadyDeletedException(kpiResultId);
+        for (User user : users) {
+            try {
+                if (user == null || user.getDepartment() == null) {
+                    continue;
+                }
+
+                Long userId = user.getUserId();
+                Long departmentId = user.getDepartment().getDepartmentId();
+
+                List<KpiGoals> kpiGoals = kpiGoalsRepository.findByDepartmentIdAndIsDeletedFalse(departmentId);
+                if (kpiGoals == null || kpiGoals.isEmpty()) {
+                    continue;
+                }
+
+                for (KpiGoals kpiGoal : kpiGoals) {
+                    try {
+                        createResult(userId, departmentId, kpiGoal);
+                    } catch (Exception e) {
+                    }
+                }
+
+            } catch (Exception ex) {
+            }
         }
-
-        // update 시에도 계산기를 통해 score를 재계산
-        r.update(request.getAchievedValue(), kpiScoreCalculator.computeScore(request), request.getEvaluatedAt(),
-            request.getKpiGoalId(), request.getUserId(), request.getDepartmentId());
-
-        kpiResultsRepository.save(r);
-
-        return KpiResultsListResponse.builder()
-            .kpiResultId(r.getKpiResultId())
-            .achievedValue(r.getAchievedValue())
-            .score(r.getScore())
-            .evaluatedAt(r.getEvaluatedAt())
-            .kpiGoalId(r.getKpiGoalId())
-            .userId(r.getUserId())
-            .departmentId(r.getDepartmentId())
-            .createdAt(r.getCreatedAt())
-            .updatedAt(r.getUpdatedAt())
-            .build();
     }
 }

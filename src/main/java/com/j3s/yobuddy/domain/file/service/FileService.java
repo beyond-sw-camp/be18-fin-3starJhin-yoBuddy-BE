@@ -1,25 +1,28 @@
 package com.j3s.yobuddy.domain.file.service;
 
-import com.j3s.yobuddy.domain.file.entity.FileEntity;
-import com.j3s.yobuddy.domain.file.entity.FileType;
-import com.j3s.yobuddy.domain.file.entity.RefType;
-import com.j3s.yobuddy.domain.file.repository.FileRepository;
-import lombok.RequiredArgsConstructor;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.time.LocalDateTime;
+import com.j3s.yobuddy.domain.file.entity.FileEntity;
+import com.j3s.yobuddy.domain.file.entity.FileType;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
 
-    private final SftpRemoteFileTemplate sftpTemplate;
+    @Autowired(required = false)
+    private SftpRemoteFileTemplate sftpTemplate;
     private final FileRepository fileRepository;
 
     @Value("${spring.file.upload-dir}")
@@ -29,6 +32,8 @@ public class FileService {
      * 1) 임시 업로드 (refType/refId 없음)
      */
     public FileEntity uploadTempFile(MultipartFile file, FileType fileType) throws Exception {
+
+        ensureSftpEnabled();
 
         File tmp = new File(System.getProperty("java.io.tmpdir"), file.getOriginalFilename());
         try (FileOutputStream fos = new FileOutputStream(tmp)) {
@@ -83,6 +88,7 @@ public class FileService {
     }
 
     public byte[] downloadFile(Long fileId) throws Exception {
+        ensureSftpEnabled();
         FileEntity file = getFileEntity(fileId);
         return sftpTemplate.execute(session -> {
             try (var baos = new java.io.ByteArrayOutputStream()) {
@@ -93,6 +99,7 @@ public class FileService {
     }
 
     public void deleteFile(Long fileId) {
+        ensureSftpEnabled();
         FileEntity file = fileRepository.findById(fileId)
             .orElse(null);
 
@@ -110,5 +117,11 @@ public class FileService {
 
         // 2) DB 삭제
         fileRepository.delete(file);
+    }
+
+    private void ensureSftpEnabled() {
+        if (this.sftpTemplate == null) {
+            throw new IllegalStateException("SFTP is not enabled. Set 'sftp.enabled=true' and provide SFTP properties to enable file operations.");
+        }
     }
 }

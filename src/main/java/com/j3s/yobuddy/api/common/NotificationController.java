@@ -1,8 +1,11 @@
 package com.j3s.yobuddy.api.common;
 
+import com.j3s.yobuddy.common.security.JwtTokenProvider;
 import com.j3s.yobuddy.domain.notification.dto.NotificationPayload;
 import com.j3s.yobuddy.domain.notification.service.NotificationQueryService;
 import com.j3s.yobuddy.domain.notification.sse.SseEmitterManager;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -21,6 +24,7 @@ public class NotificationController {
 
     private final SseEmitterManager sseManager;
     private final NotificationQueryService queryService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     private Long extractUserId(Authentication auth) {
         if (auth == null || auth.getPrincipal() == null)
@@ -30,8 +34,15 @@ public class NotificationController {
     }
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(Authentication auth) {
-        Long userId = extractUserId(auth);
+    public SseEmitter stream(HttpServletRequest request, HttpServletResponse response) {
+
+        Long userId = jwtTokenProvider.getUserIdFromRequest(request);
+
+        if (userId == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return null;
+        }
+
         return sseManager.connect(userId);
     }
 

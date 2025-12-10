@@ -1,5 +1,7 @@
 package com.j3s.yobuddy.common.security;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.time.Instant;
 import java.util.Collection;
@@ -21,6 +23,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.util.StringUtils;
 
 @Component
 public class JwtTokenProvider {
@@ -90,5 +93,27 @@ public class JwtTokenProvider {
             new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role)
         );
         return new UsernamePasswordAuthenticationToken(body.getSubject(), token, authorities);
+    }
+
+
+    public String extractTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+        for (Cookie cookie : request.getCookies()) {
+            if ("ACCESS_TOKEN".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    public Long getUserIdFromRequest(HttpServletRequest request) {
+        String token = extractTokenFromCookie(request);
+        if (!StringUtils.hasText(token) || !validate(token)) return null;
+
+        try {
+            return getUserIdFromToken(token);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

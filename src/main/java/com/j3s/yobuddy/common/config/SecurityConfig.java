@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/wiki/**").permitAll()
                 .requestMatchers("/api/v1/health/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/notifications/stream").permitAll()
                 .requestMatchers("/api/v1/account/me").authenticated()
                 .requestMatchers("/api/v1/users/**").hasRole("USER")
@@ -59,7 +60,7 @@ public class SecurityConfig {
 
         String[] origins = allowedOrigins.split(",");
 
-        config.setAllowedOriginPatterns(Arrays.asList(origins));
+        config.setAllowedOrigins(Arrays.asList(origins));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("*"));

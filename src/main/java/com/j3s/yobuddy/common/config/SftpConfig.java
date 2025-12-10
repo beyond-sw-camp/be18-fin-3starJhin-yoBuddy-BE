@@ -1,12 +1,14 @@
 package com.j3s.yobuddy.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 @Configuration
+@ConditionalOnProperty(prefix = "sftp", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class SftpConfig {
 
     @Value("${sftp.host}")
