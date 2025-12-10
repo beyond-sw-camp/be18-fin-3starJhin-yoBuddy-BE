@@ -1,0 +1,47 @@
+name: Backend Blue/Green Switch
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose Action"
+        required: true
+        type: choice
+        options:
+          - switch-to-blue
+          - rollback-to-green
+
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Apply Blue/Green Switch
+        run: |
+          LISTENER_ARN="${{ secrets.ALB_LISTENER_ARN }}"
+          BLUE_TG="${{ secrets.TG_BLUE_ARN }}"
+          GREEN_TG="${{ secrets.TG_GREEN_ARN }}"
+          ACTION="${{ github.event.inputs.action }}"
+
+          if [ "$ACTION" = "switch-to-blue" ]; then
+            echo "Switching traffic to BLUE..."
+            aws elbv2 modify-listener \
+              --listener-arn $LISTENER_ARN \
+              --default-actions Type=forward,TargetGroupArn=$BLUE_TG
+            echo "Traffic successfully switched to BLUE"
+
+          elif [ "$ACTION" = "rollback-to-green" ]; then
+            echo "ROLLBACK to GREEN..."
+            aws elbv2 modify-listener \
+              --listener-arn $LISTENER_ARN \
+              --default-actions Type=forward,TargetGroupArn=$GREEN_TG
+            echo "Traffic successfully switched to GREEN"
+          fi
+

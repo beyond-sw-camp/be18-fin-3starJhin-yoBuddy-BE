@@ -3,19 +3,9 @@ name: Backend CI/CD
 on:
   push:
     branches: ["main"]
-  workflow_dispatch:
-    inputs:
-      deploy_env:
-        description: "Choose deployment environment"
-        required: true
-        default: "green"
-        type: choice
-        options:
-          - blue
-          - green
 
 jobs:
-  build-push-deploy:
+  deploy-blue:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,27 +34,19 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build and Push Docker Image to Blue
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          DEPLOY_ENV: ${{ github.event.inputs.deploy_env || 'green' }}
         run: |
-          echo "Deploy environment: $DEPLOY_ENV"
-
           REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/yobuddy-back-repo
 
-          echo "Building Docker image..."
           docker build -t yobuddy-backend .
+          docker tag yobuddy-backend:latest $REPO:blue
+          docker push $REPO:blue
 
-          echo "Tagging image with $DEPLOY_ENV"
-          docker tag yobuddy-backend:latest $REPO:$DEPLOY_ENV
-
-          echo "Pushing image to ECR..."
-          docker push $REPO:$DEPLOY_ENV
-
-      - name: Start ASG Instance Refresh
+      - name: Refresh Blue ASG
         run: |
           aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
-            --preferences '{"MinHealthyPercentage": 90, "InstanceWarmup": 60}'
+            --auto-scaling-group-name ${{ secrets.ASG_BLUE_NAME }} \
+            --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 60}'
