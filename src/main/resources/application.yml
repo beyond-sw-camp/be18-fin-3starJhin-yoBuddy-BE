@@ -63,7 +63,7 @@ sftp:
   password: ${SFTP_PASSWORD}
 
 chatbot:
-  base-url: http://3.37.130.110:8080/
+  base-url: http://10.0.5.166:8080/
 
 ---
 # local
