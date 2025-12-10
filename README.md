@@ -201,3 +201,5 @@
   <img width="854" height="756" alt="image" src="https://github.com/user-attachments/assets/082a55df-0b09-4a6f-9c79-cfdd7965194c" />
   <img width="853" height="467" alt="image" src="https://github.com/user-attachments/assets/0a21630c-90c9-4a0d-859b-05dfa0a4ffaa" />
 </details>
+
+## <a id="requirements"></a>[CI/CD 계획서](https://www.notion.so/playdatacademy/CI-CD-2c5d943bcac2801db3aee8d7995e5f1f)
