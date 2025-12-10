@@ -51,7 +51,7 @@ jobs:
           if [ "${{ env.DEPLOY_ENV }}" = "blue" ]; then
             ASG="${{ secrets.ASG_BLUE_NAME }}"
           else
-            ASG="${{ secrets.ASG_GREEN_NAME }}"
+            ASG="${{ secrets.ASG_NAME }}"
           fi
 
           aws autoscaling start-instance-refresh \
