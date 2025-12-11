@@ -64,7 +64,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         } catch (Exception e) {
             log.error("Error while calling chatbot server", e);
             return new ChatbotResponse(
-                "죄송합니다. 챗봇 서버 호출 중 오류가 발생했습니다ㅠㅠ."
+                "죄송합니다. 챗봇 서버 호출 중 오류가 발생했습니다."
             );
         }
     }
