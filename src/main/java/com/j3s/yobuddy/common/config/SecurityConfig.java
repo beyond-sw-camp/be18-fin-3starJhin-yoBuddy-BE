@@ -2,7 +2,6 @@ package com.j3s.yobuddy.common.config;
 
 import com.j3s.yobuddy.common.security.JwtAuthenticationFilter;
 import com.j3s.yobuddy.common.security.JwtTokenProvider;
-import com.j3s.yobuddy.common.security.WebhookApiKeyFilter;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +25,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final WebhookApiKeyFilter webhookApiKeyFilter;
 
     @Value("${spring.cors.allowed-origins}")
     private String allowedOrigins;
@@ -39,7 +37,6 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/admin/trainings/results").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/wiki/**").permitAll()
                 .requestMatchers("/api/v1/health/**").permitAll()
@@ -54,8 +51,6 @@ public class SecurityConfig {
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                 UsernamePasswordAuthenticationFilter.class);
-
-        http.addFilterBefore(webhookApiKeyFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
