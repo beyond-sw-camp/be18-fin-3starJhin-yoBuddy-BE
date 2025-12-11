@@ -35,4 +35,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         Pageable pageable);
 
     List<User> findByDepartment_DepartmentIdAndRole(Long departmentId, Role role);
+
+    List<User> findByDepartment_DepartmentIdAndIsDeletedFalse(Long departmentId);
 }

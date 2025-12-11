@@ -1,5 +1,7 @@
 package com.j3s.yobuddy.api.admin;
 
+import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.KpiDashboardResponse;
+import com.j3s.yobuddy.domain.kpi.results.service.KpiDashboardService;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ public class AdminKpiResultsController {
 
     private final KpiResultsService kpiResultsService;
     private final MentorWeeklyReportService mentorWeeklyReportService;
+    private final KpiDashboardService kpiDashboardService;
 
     @GetMapping
     public ResponseEntity<List<KpiResultsListResponse>> getResults(
@@ -59,6 +62,16 @@ public class AdminKpiResultsController {
     @GetMapping("/weeklyreports/user/{userId}")
     public ResponseEntity<List<MentorWeeklyReportDetailResponse>> getweeklyreport(@PathVariable String userId) {
         List<MentorWeeklyReportDetailResponse> resp = mentorWeeklyReportService.getWeeklyReportsByUserId(userId);
+        return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<KpiDashboardResponse> getDashboard(
+        @RequestParam Long departmentId) {
+
+        KpiDashboardResponse resp =
+            kpiDashboardService.getDashboard(departmentId);
+
         return ResponseEntity.ok(resp);
     }
 }
