@@ -89,10 +89,20 @@ cookie:
 
 ---
 # prod
+# prod
 spring:
   config:
     activate:
       on-profile: prod
+
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 3
+      idle-timeout: 300000        # 5분
+      max-lifetime: 1800000       # 30분
+      connection-timeout: 30000   # 30초
+      leak-detection-threshold: 2000
 
 cookie:
   secure: true
