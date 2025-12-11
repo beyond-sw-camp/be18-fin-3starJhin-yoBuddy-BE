@@ -81,7 +81,6 @@ public class KpiDashboardService {
             .totalUsers(users.size())
             .build();
 
-        // ⭐ 멘토링 통계(수정 후)
         MentoringSummaryDto mentoring = buildMentoringSummary(departmentId);
 
         // KPI 차트 구성
@@ -98,9 +97,6 @@ public class KpiDashboardService {
             .build();
     }
 
-    /** -----------------------------
-     *   1) 유저 KPI 총점 계산
-     * ----------------------------- */
     private BigDecimal calcTotal(List<KpiResults> results, Map<Long, BigDecimal> weightMap) {
         BigDecimal total = BigDecimal.ZERO;
 
@@ -114,9 +110,6 @@ public class KpiDashboardService {
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
-    /** -----------------------------
-     *   2) 멘토링 요약 (완전 정상 버전)
-     * ----------------------------- */
     private MentoringSummaryDto buildMentoringSummary(Long deptId) {
 
         var programs = onboardingProgramRepository
@@ -151,9 +144,6 @@ public class KpiDashboardService {
             .build();
     }
 
-    /** -----------------------------
-     *   3) 차트 생성 (연도별 + 레이더)
-     * ----------------------------- */
     private DashboardChartDto buildCharts(
         List<KpiResults> results,
         Map<Long, BigDecimal> weightMap,
