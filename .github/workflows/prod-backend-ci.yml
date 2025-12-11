@@ -1,0 +1,71 @@
+name: Backend CI/CD (Auto Blue-Green)
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build JAR
+        run: ./gradlew clean build -x test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Determine ACTIVE / IDLE by checking ALB listener
+        id: detect
+        run: |
+          HTTPS_LISTENER="${{ secrets.ALB_LISTENER_ARN }}"
+
+          ACTIVE_TG=$(aws elbv2 describe-listeners \
+            --listener-arn $HTTPS_LISTENER \
+            --query 'Listeners[0].DefaultActions[0].TargetGroupArn' \
+            --output text)
+
+          echo "ACTIVE_TG=$ACTIVE_TG"
+
+          if [[ "$ACTIVE_TG" == *"blue"* ]]; then
+            echo "IDLE_ENV=green" >> $GITHUB_ENV
+          else
+            echo "IDLE_ENV=blue" >> $GITHUB_ENV
+          fi
+
+          echo "Deploying to IDLE: $IDLE_ENV"
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push Docker image to IDLE ECR Tag
+        run: |
+          REPO="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/yobuddy-back-repo"
+
+          docker build -t yobuddy-backend .
+          docker tag yobuddy-backend:latest $REPO:${{ env.IDLE_ENV }}
+          docker push $REPO:${{ env.IDLE_ENV }}
+
+      - name: Refresh IDLE AutoScalingGroup
+        run: |
+          if [ "${{ env.IDLE_ENV }}" = "blue" ]; then
+            ASG="${{ secrets.ASG_BLUE_NAME }}"
+          else
+            ASG="${{ secrets.ASG_NAME }}"
+          fi
+
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name $ASG \
+            --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 60}'

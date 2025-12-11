@@ -1,24 +1,23 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse;
-import com.j3s.yobuddy.domain.task.dto.response.UserTaskListResponse.TaskInfo;
 import com.j3s.yobuddy.domain.task.dto.response.UserTaskScoreResponse;
-import com.j3s.yobuddy.domain.task.entity.ProgramTask;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.entity.UserTaskStatus;
-import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,13 +28,22 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
     private final FileRepository fileRepository;
 
     @Override
+    @Transactional
     public UserTaskListResponse getUserTaskList(Long userId) {
 
         List<UserTask> tasks = userTaskRepository.findByUser_UserId(userId);
 
+        LocalDateTime now = LocalDateTime.now();
+        for (UserTask ut : tasks) {
+            ut.refreshMissingStatus(now);
+        }
+
+        userTaskRepository.saveAll(tasks);
+
         var list = tasks.stream()
             .map(ut -> UserTaskListResponse.TaskInfo.builder()
-                .taskId(ut.getId())  // userTaskId
+                .userTaskId(ut.getId())
+                .taskId(ut.getProgramTask().getOnboardingTask().getId())
                 .title(ut.getProgramTask().getOnboardingTask().getTitle())
                 .dueDate(ut.getProgramTask().getDueDate().toLocalDate())
                 .status(ut.getStatus().name())
@@ -44,6 +52,7 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
                 .feedback(ut.getFeedback())
                 .build())
             .toList();
+
 
         return UserTaskListResponse.builder()
             .userId(userId)
@@ -94,6 +103,7 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             .submittedAt(ut.getSubmittedAt())
             .updatedAt(ut.getUpdatedAt())
             .feedback(ut.getFeedback())
+            .comment(ut.getComment())
             .taskFiles(taskFiles)
             .submittedFiles(submittedFiles)
             .build();
@@ -114,6 +124,50 @@ public class UserTaskQueryServiceImpl implements UserTaskQueryService {
             .feedback(ut.getFeedback())
             .updatedAt(ut.getUpdatedAt())
             .build();
+    }
+    @Override
+    public BigDecimal calculateCompletionRate(Long userId) {
+        var resp = getUserTaskList(userId);
+        var tasks = resp.getTasks();
+
+        long total = tasks.size();
+        long completed = tasks.stream()
+            .filter(t -> {
+                String s = t.getStatus();
+                return s != null && (
+                    s.equals(UserTaskStatus.GRADED.name()) ||
+                        s.equals(UserTaskStatus.SUBMITTED.name()) ||
+                        s.equals(UserTaskStatus.LATE.name())
+                );
+            })
+            .count();
+
+        if (total == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return BigDecimal.valueOf(completed)
+            .divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
+    }
+    @Override
+    public BigDecimal calculateTaskScore(Long userId) {
+        var resp = getUserTaskList(userId);
+        var tasks = resp.getTasks();
+
+        var gradedGrades = tasks.stream()
+            .filter(t -> UserTaskStatus.GRADED.name().equals(t.getStatus()) && t.getGrade() != null)
+            .map(t -> t.getGrade())
+            .toList();
+
+        if (gradedGrades.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int sum = gradedGrades.stream().mapToInt(Integer::intValue).sum();
+        return BigDecimal.valueOf(sum)
+            .divide(BigDecimal.valueOf(gradedGrades.size()), 2, RoundingMode.HALF_UP);
     }
 }
 

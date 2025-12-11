@@ -39,16 +39,15 @@ public class AdminUserController {
     @GetMapping
     public ResponseEntity<Page<UserResponse>> getAllUsers(
         @ModelAttribute UserSearchRequest searchRequest,
-        @PageableDefault(size = 10, sort = "userId", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<User> page = userService.getAllUsers(searchRequest, pageable);
-        Page<UserResponse> dtoPage = page.map(UserResponse::from);
-        return ResponseEntity.ok(dtoPage);
+        @PageableDefault(size = 10, sort = "userId", direction = Sort.Direction.DESC)
+        Pageable pageable
+    ) {
+        return ResponseEntity.ok(userService.getAllUsers(searchRequest, pageable));
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
-        User user = userService.getUserById(userId);
-        return ResponseEntity.ok(UserResponse.from(user));
+        return ResponseEntity.ok(userService.getUserById(userId));
     }
 
     @PostMapping

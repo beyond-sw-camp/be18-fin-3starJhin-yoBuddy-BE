@@ -4,22 +4,21 @@ import com.j3s.yobuddy.domain.file.entity.FileEntity;
 import com.j3s.yobuddy.domain.file.entity.FileType;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
 
     private final SftpRemoteFileTemplate sftpTemplate;
+
     private final FileRepository fileRepository;
 
     @Value("${spring.file.upload-dir}")
@@ -29,7 +28,6 @@ public class FileService {
      * 1) 임시 업로드 (refType/refId 없음)
      */
     public FileEntity uploadTempFile(MultipartFile file, FileType fileType) throws Exception {
-
         File tmp = new File(System.getProperty("java.io.tmpdir"), file.getOriginalFilename());
         try (FileOutputStream fos = new FileOutputStream(tmp)) {
             fos.write(file.getBytes());
@@ -90,5 +88,25 @@ public class FileService {
                 return baos.toByteArray();
             }
         });
+    }
+
+    public void deleteFile(Long fileId) {
+        FileEntity file = fileRepository.findById(fileId)
+            .orElse(null);
+
+        if (file == null) return;
+
+        // 1) SFTP 파일 삭제
+        try {
+            sftpTemplate.execute(session -> {
+                session.remove(file.getFilepath());
+                return null;
+            });
+        } catch (Exception ignored) {
+            // 파일이 없어도 무시
+        }
+
+        // 2) DB 삭제
+        fileRepository.delete(file);
     }
 }

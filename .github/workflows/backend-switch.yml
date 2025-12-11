@@ -1,0 +1,74 @@
+name: Backend Blue/Green Switch
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose Action"
+        required: true
+        type: choice
+        options:
+          - promote-idle
+          - rollback-active
+
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Determine ACTIVE & IDLE
+        id: detect
+        run: |
+          HTTPS_LISTENER="${{ secrets.ALB_LISTENER_ARN }}"
+
+          ACTIVE_TG=$(aws elbv2 describe-listeners \
+            --listener-arn $HTTPS_LISTENER \
+            --query 'Listeners[0].DefaultActions[0].TargetGroupArn' \
+            --output text)
+
+          if [[ "$ACTIVE_TG" == *"blue"* ]]; then
+            echo "ACTIVE_ENV=blue" >> $GITHUB_ENV
+            echo "IDLE_ENV=green" >> $GITHUB_ENV
+          else
+            echo "ACTIVE_ENV=green" >> $GITHUB_ENV
+            echo "IDLE_ENV=blue" >> $GITHUB_ENV
+          fi
+
+          echo "ACTIVE = $ACTIVE_ENV"
+          echo "IDLE = $IDLE_ENV"
+
+      - name: Switch ALB listener to IDLE or rollback
+        run: |
+          HTTPS_LISTENER="${{ secrets.ALB_LISTENER_ARN }}"
+          HTTP_LISTENER="${{ secrets.ALB_LISTENER_HTTP_ARN }}"
+
+          if [[ "${{ github.event.inputs.action }}" = "promote-idle" ]]; then
+            echo "Promoting IDLE: $IDLE_ENV"
+
+            if [ "$IDLE_ENV" = "blue" ]; then
+              TG="${{ secrets.TG_BLUE_ARN }}"
+            else
+              TG="${{ secrets.TG_GREEN_ARN }}"
+            fi
+          else
+            echo "Rollback to ACTIVE: $ACTIVE_ENV"
+
+            if [ "$ACTIVE_ENV" = "blue" ]; then
+              TG="${{ secrets.TG_BLUE_ARN }}"
+            else
+              TG="${{ secrets.TG_GREEN_ARN }}"
+            fi
+          fi
+
+          aws elbv2 modify-listener --listener-arn $HTTPS_LISTENER \
+            --default-actions Type=forward,TargetGroupArn=$TG
+
+          aws elbv2 modify-listener --listener-arn $HTTP_LISTENER \
+            --default-actions Type=forward,TargetGroupArn=$TG

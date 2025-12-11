@@ -37,6 +37,9 @@ public class UserTask {
     @JoinColumn(name = "program_task_id", nullable = false)
     private ProgramTask programTask;
 
+    @Column(columnDefinition = "TEXT")
+    private String comment;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
@@ -61,11 +64,20 @@ public class UserTask {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 💡 도메인 메서드 (행위)
-    public void submit() {
-        this.status = UserTaskStatus.SUBMITTED;
+    // 도메인 메서드 (행위)
+    public void submit(String comment) {
         this.submittedAt = LocalDateTime.now();
         this.grade = null;
+        this.comment = comment;
+
+        LocalDateTime due = this.programTask.getDueDate();
+
+        if (due != null && this.submittedAt.isAfter(due)) {
+            this.status = UserTaskStatus.LATE;
+        } else {
+            this.status = UserTaskStatus.SUBMITTED;
+        }
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void grade(Integer grade, String feedback) {
@@ -75,4 +87,21 @@ public class UserTask {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void refreshMissingStatus(LocalDateTime now) {
+        if (this.status != UserTaskStatus.PENDING) {
+            return;
+        }
+        if (this.submittedAt != null) {
+            return;
+        }
+        if (this.programTask == null || this.programTask.getDueDate() == null) {
+            return;
+        }
+
+        LocalDateTime due = this.programTask.getDueDate();
+
+        if (now.isAfter(due)) {
+            this.status = UserTaskStatus.MISSING;
+        }
+    }
 }

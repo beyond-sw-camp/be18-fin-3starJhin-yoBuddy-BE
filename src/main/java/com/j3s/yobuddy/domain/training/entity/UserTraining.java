@@ -11,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -48,10 +47,6 @@ public class UserTraining {
     @Column(name = "result")
     private FormResultStatus result;
 
-    @Lob
-    @Column(name = "feedback")
-    private String feedback;
-
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
@@ -81,5 +76,16 @@ public class UserTraining {
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void completeTraining() {
+        this.status = UserTrainingStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void markMissed() {
+        if (this.status != UserTrainingStatus.COMPLETED) {
+            this.status = UserTrainingStatus.MISSED;
+        }
     }
 }

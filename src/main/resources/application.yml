@@ -4,14 +4,18 @@ spring:
   profiles:
     active: local
 
-  cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  jackson:
+    time-zone: Asia/Seoul
+  mvc:
+    time-zone: Asia/Seoul
 
   datasource:
     url: jdbc:mariadb://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-timezone: Asia/Seoul
 
   data:
     redis:
@@ -26,7 +30,12 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MariaDBDialect
+        jdbc:
+          time_zone: Asia/Seoul
     show-sql: true
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
   mail:
     host: ${MAIL_HOST}
@@ -53,8 +62,11 @@ sftp:
   user: ${SFTP_USER}
   password: ${SFTP_PASSWORD}
 
+chatbot:
+  base-url: http://10.0.5.166:8080/
+
 ---
-# local (개발)
+# local
 spring:
   config:
     activate:
@@ -65,7 +77,7 @@ cookie:
   same-site: Lax
 
 ---
-# QA (HTTP 환경)
+# qa
 spring:
   config:
     activate:
@@ -76,11 +88,21 @@ cookie:
   same-site: Lax
 
 ---
-# prod (HTTPS)
+# prod
+# prod
 spring:
   config:
     activate:
       on-profile: prod
+
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 3
+      idle-timeout: 300000        # 5분
+      max-lifetime: 1800000       # 30분
+      connection-timeout: 30000   # 30초
+      leak-detection-threshold: 2000
 
 cookie:
   secure: true

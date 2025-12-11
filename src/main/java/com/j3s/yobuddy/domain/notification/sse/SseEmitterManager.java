@@ -19,53 +19,76 @@ public class SseEmitterManager {
 
     private final RedisOfflineQueueService offlineQueue;
 
-    // 단일 SSE 연결 유지
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+
     private final Map<Long, ScheduledFuture<?>> heartbeatTasks = new ConcurrentHashMap<>();
+
+    private final Map<Long, Integer> heartbeatFails = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public SseEmitter connect(Long userId) {
 
-        // 기존 연결 제거
-        cleanup(userId);
+        forceCleanup(userId);
 
-        SseEmitter emitter = new SseEmitter(0L); // timeout 없음
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.put(userId, emitter);
 
-        log.info("Created SSE emitter for user {}", userId);
+        log.info("SSE connected for user {}", userId);
 
-        // heartbeat (표준 SSE ping 방식)
         ScheduledFuture<?> hb = scheduler.scheduleAtFixedRate(() -> {
             try {
-                emitter.send(":\n\n");   // SSE ping
+                emitter.send(SseEmitter.event().name("ping").data("keep-alive"));
+                heartbeatFails.put(userId, 0); // reset fail count
+
             } catch (IOException e) {
-                log.warn("Heartbeat failed for user {}. Disconnecting.", userId);
-                cleanup(userId);
+
+                int count = heartbeatFails.getOrDefault(userId, 0) + 1;
+                heartbeatFails.put(userId, count);
+
+                log.warn("Heartbeat failed {} times for user {}", count, userId);
+
+                if (count >= 3) {  // 3회 실패 시 끊기
+                    log.warn("Heartbeat threshold reached → disconnecting user {}", userId);
+                    forceCleanup(userId);
+                }
             }
         }, 10, 10, TimeUnit.SECONDS);
 
         heartbeatTasks.put(userId, hb);
 
-        emitter.onCompletion(() -> cleanup(userId));
-        emitter.onTimeout(() -> cleanup(userId));
-        emitter.onError((e) -> cleanup(userId));
+        emitter.onCompletion(() -> forceCleanup(userId));
+        emitter.onTimeout(() -> forceCleanup(userId));
+        emitter.onError(e -> forceCleanup(userId));
 
-        // 재연결 시 redis queue flush
         flushOfflineQueue(userId);
 
         return emitter;
     }
 
+    private void forceCleanup(Long userId) {
+
+        SseEmitter emitter = emitters.remove(userId);
+        if (emitter != null) {
+            try { emitter.complete(); } catch (Exception ignored) {}
+        }
+
+        ScheduledFuture<?> hb = heartbeatTasks.remove(userId);
+        if (hb != null) hb.cancel(true);
+
+        heartbeatFails.remove(userId);
+
+        log.info("[CLEANUP] SSE emitter cleared for user {}", userId);
+    }
 
     private void flushOfflineQueue(Long userId) {
-        List<Object> items = offlineQueue.popAll(userId);
-        if (items == null || items.isEmpty()) return;
+        List<Object> list = offlineQueue.popAll(userId);
+        if (list == null || list.isEmpty()) return;
 
         SseEmitter emitter = emitters.get(userId);
         if (emitter == null) return;
 
-        for (Object obj : items) {
+        for (Object obj : list) {
             try {
                 NotificationPayload payload = (NotificationPayload) obj;
 
@@ -74,18 +97,18 @@ public class SseEmitterManager {
                         .name(payload.getType())
                         .data(payload)
                 );
+
             } catch (Exception ignored) {}
         }
 
-        log.info("Flushed {} offline notifications for user {}", items.size(), userId);
+        log.info("Flushed {} offline notifications for user {}", list.size(), userId);
     }
 
-
     public void send(Long userId, NotificationPayload payload) {
+
         SseEmitter emitter = emitters.get(userId);
 
         if (emitter == null) {
-            log.info("User {} offline → queueing notification", userId);
             offlineQueue.push(userId, payload);
             return;
         }
@@ -96,27 +119,28 @@ public class SseEmitterManager {
                     .name(payload.getType())
                     .data(payload)
             );
+
         } catch (Exception e) {
-            log.warn("User {} SSE failed → queueing", userId);
-            cleanup(userId);
-            offlineQueue.push(userId, payload);
+            log.warn("Send failed for user {} → retry", userId);
+
+            try {
+                emitter.send(
+                    SseEmitter.event()
+                        .name(payload.getType())
+                        .data(payload)
+                );
+                return;
+
+            } catch (Exception ex) {
+                log.warn("Retry failed → offline store & cleanup for user {}", userId);
+                forceCleanup(userId);
+                offlineQueue.push(userId, payload);
+            }
         }
-    }
-
-
-    private void cleanup(Long userId) {
-        SseEmitter emitter = emitters.remove(userId);
-        if (emitter != null) {
-            try { emitter.complete(); } catch (Exception ignored) {}
-        }
-
-        ScheduledFuture<?> hb = heartbeatTasks.remove(userId);
-        if (hb != null) hb.cancel(true);
-
-        log.info("Cleaned SSE emitter for user {}", userId);
     }
 
     public void disconnect(Long userId) {
-        cleanup(userId);
+        forceCleanup(userId);
     }
 }
+

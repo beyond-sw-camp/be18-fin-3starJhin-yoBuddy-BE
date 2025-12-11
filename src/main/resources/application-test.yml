@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:yobuddy;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+    show-sql: false
+
+cookie:
+  secure: false
+  same-site: Lax
+
+  spring:
+    main:
+      allow-bean-definition-overriding: true
+    data:
+      redis:
+        host: localhost
+        port: 6379
+        password:
+    task:
+      scheduling:
+        enabled: false

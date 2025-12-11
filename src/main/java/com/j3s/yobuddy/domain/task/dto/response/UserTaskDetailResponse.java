@@ -23,7 +23,7 @@ public class UserTaskDetailResponse {
     private Integer grade;
     private LocalDateTime submittedAt;
     private String feedback;
-
+    private String comment;
     private List<FileInfo> taskFiles;
     private List<FileInfo> submittedFiles;
 

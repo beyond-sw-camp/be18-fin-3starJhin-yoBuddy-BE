@@ -1,5 +1,13 @@
 package com.j3s.yobuddy.domain.programenrollment.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.dto.request.ProgramEnrollmentRequest;
@@ -10,14 +18,16 @@ import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.Enrollm
 import com.j3s.yobuddy.domain.programenrollment.exception.DuplicateEnrollmentException;
 import com.j3s.yobuddy.domain.programenrollment.exception.EnrollmentNotFoundException;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
+import com.j3s.yobuddy.domain.task.entity.ProgramTask;
+import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
+import com.j3s.yobuddy.domain.task.service.UserTaskAssignmentService;
+import com.j3s.yobuddy.domain.training.entity.ProgramTraining;
+import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
+import com.j3s.yobuddy.domain.training.service.UserTrainingAssignmentService;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,17 +36,51 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
     private final ProgramEnrollmentRepository enrollmentRepository;
     private final OnboardingProgramRepository programRepository;
     private final UserRepository userRepository;
+    private final ProgramTrainingRepository programTrainingRepository;
+    private final ProgramTaskRepository programTaskRepository;
+    private final UserTrainingAssignmentService userTrainingAssignmentService;
+    private final UserTaskAssignmentService userTaskAssignmentService;
 
     @Override
     @Transactional
     public List<ProgramEnrollmentResponse> enroll(Long programId, ProgramEnrollmentRequest request) {
 
+        List<ProgramTraining> trainings =
+            programTrainingRepository.findByProgram_ProgramId(programId);
+
+        List<ProgramTask> tasks =
+            programTaskRepository.findByOnboardingProgram_ProgramId(programId);
+
         List<ProgramEnrollmentResponse> result = new ArrayList<>();
 
         for (Long userId : request.getUserIds()) {
 
-            if (enrollmentRepository.existsByUser_UserIdAndProgram_ProgramId(userId, programId)) {
-                throw new DuplicateEnrollmentException(userId, programId);
+            Optional<ProgramEnrollment> existingOpt =
+                enrollmentRepository.findByUser_UserIdAndProgram_ProgramId(userId, programId);
+
+            if (existingOpt.isPresent()) {
+                ProgramEnrollment existing = existingOpt.get();
+                if (existing.getStatus() == EnrollmentStatus.WITHDRAWN) {
+                    existing.updateStatus(EnrollmentStatus.ACTIVE);
+                    enrollmentRepository.save(existing);
+
+                    User user = existing.getUser();
+                    userTrainingAssignmentService.assignForUser(user, trainings);
+                    userTaskAssignmentService.assignForUser(user, tasks);
+
+                    result.add(
+                        ProgramEnrollmentResponse.builder()
+                            .enrollmentId(existing.getEnrollmentId())
+                            .programId(programId)
+                            .userId(user.getUserId())
+                            .status(existing.getStatus())
+                            .enrolledAt(existing.getEnrolledAt())
+                            .build()
+                    );
+                    continue;
+                } else {
+                    throw new DuplicateEnrollmentException(userId, programId);
+                }
             }
 
             User user = userRepository.findById(userId)
@@ -52,6 +96,10 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
                 .build();
 
             enrollmentRepository.save(enrollment);
+
+            userTrainingAssignmentService.assignForUser(user, trainings);
+
+            userTaskAssignmentService.assignForUser(user, tasks);
 
             result.add(
                 ProgramEnrollmentResponse.builder()
@@ -118,9 +166,14 @@ public class ProgramEnrollmentServiceImpl implements ProgramEnrollmentService {
 
     @Override
     @Transactional
-    public void withdraw(Long id) {
-        ProgramEnrollment enrollment = enrollmentRepository.findById(id)
-            .orElseThrow(() -> new EnrollmentNotFoundException(id));
-        enrollment.updateStatus(EnrollmentStatus.WITHDRAWN);
-        enrollmentRepository.save(enrollment); }
+    public void withdraw(Long programId, Long enrollmentId) {
+        ProgramEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
+            .orElseThrow(() -> new EnrollmentNotFoundException(enrollmentId));
+
+        if (!enrollment.getProgram().getProgramId().equals(programId)) {
+            throw new EnrollmentNotFoundException(enrollmentId);
+        }
+
+        enrollmentRepository.delete(enrollment);
+    }
 }

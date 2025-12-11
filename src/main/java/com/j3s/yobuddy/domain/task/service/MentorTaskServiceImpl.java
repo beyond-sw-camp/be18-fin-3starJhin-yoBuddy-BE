@@ -2,15 +2,17 @@ package com.j3s.yobuddy.domain.task.service;
 
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
-import com.j3s.yobuddy.domain.mentor.repository.MentorMenteeAssignmentRepository;
+import com.j3s.yobuddy.domain.mentor.menteeAssignment.repository.MentorMenteeAssignmentRepository;
 import com.j3s.yobuddy.domain.task.dto.request.TaskGradeRequest;
 import com.j3s.yobuddy.domain.task.dto.response.MentorTaskDetailResponse;
 import com.j3s.yobuddy.domain.task.dto.response.MentorTaskListResponse;
-import com.j3s.yobuddy.domain.task.entity.ProgramTask;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
-import com.j3s.yobuddy.domain.user.entity.User;
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
+import com.j3s.yobuddy.domain.user.entity.Role;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,9 +28,10 @@ public class MentorTaskServiceImpl implements MentorTaskService {
     private final MentorMenteeAssignmentRepository assignmentRepository;
     private final UserTaskRepository userTaskRepository;
     private final FileRepository fileRepository;
+    private final NotificationService notificationService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public MentorTaskListResponse getAllMenteeTasks(Long mentorId) {
 
         List<Long> menteeIds = assignmentRepository.findMenteeIdsByMentorUserId(mentorId);
@@ -41,6 +44,13 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         }
 
         List<UserTask> menteeTasks = userTaskRepository.findByUser_UserIdIn(menteeIds);
+
+        LocalDateTime now = LocalDateTime.now();
+        for (UserTask ut : menteeTasks) {
+            ut.refreshMissingStatus(now);
+        }
+
+        userTaskRepository.saveAll(menteeTasks);
 
         List<MentorTaskListResponse.MenteeTaskInfo> taskInfos =
             menteeTasks.stream().map(ut -> {
@@ -141,6 +151,15 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         }
 
         ut.grade(request.getGrade(), request.getFeedback());
+
+        if (!ut.getUser().isDeleted() && ut.getUser().getRole() == Role.USER) {
+            notificationService.notify(
+                ut.getUser(),
+                NotificationType.TASK_GRADED,
+                "과제 채점 완료",
+                "제출한 과제 채점이 완료되었어요."
+            );
+        }
     }
 }
 

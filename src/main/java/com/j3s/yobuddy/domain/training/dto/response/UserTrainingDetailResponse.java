@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserTrainingDetailResponse {
 
+    private Long userTrainingId;
     private Long userId;
     private Long trainingId;
 
@@ -38,9 +39,15 @@ public class UserTrainingDetailResponse {
     private FormResultStatus result;
     private LocalDateTime submittedAt;
 
-    private List<FileResponse> attachedFiles;
+    private List<FileResponse> trainingFiles;
 
-    public void setAttachedFiles(List<FileResponse> attachedFiles) {
-        this.attachedFiles = attachedFiles;
+    private List<FileResponse> certificateFiles;
+
+    public void setTrainingFiles(List<FileResponse> trainingFiles) {
+        this.trainingFiles = trainingFiles;
+    }
+
+    public void setCertificateFiles(List<FileResponse> certificateFiles) {
+        this.certificateFiles = certificateFiles;
     }
 }

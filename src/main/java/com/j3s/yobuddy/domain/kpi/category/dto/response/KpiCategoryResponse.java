@@ -14,6 +14,8 @@ public class KpiCategoryResponse {
     private final Long kpiCategoryId;
     private final String name;
     private final String description;
+    private final String fieldName;
+    private final String tableName;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -22,6 +24,8 @@ public class KpiCategoryResponse {
             .kpiCategoryId(category.getKpiCategoryId())
             .name(category.getName())
             .description(category.getDescription())
+            .fieldName(category.getFieldName())
+            .tableName(category.getTableName())
             .createdAt(category.getCreatedAt())
             .updatedAt(category.getUpdatedAt())
             .build();

@@ -7,11 +7,14 @@ import com.j3s.yobuddy.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -22,22 +25,30 @@ public class AccountController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getMyProfile(Authentication authentication) {
-
         Long userId = Long.valueOf((String) authentication.getPrincipal());
-
         UserProfileResponse profile = userService.getUserProfile(userId);
-
         return ResponseEntity.ok(profile);
     }
 
-    @PatchMapping("/me")
+    @PatchMapping(
+        value = "/me",
+        consumes = {"multipart/form-data"}
+    )
     public ResponseEntity<?> updateMyProfile(
         Authentication authentication,
-        @RequestBody UpdateProfileRequest req
+        @RequestPart(value = "data") UpdateProfileRequest req,
+        @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
         Long userId = Long.valueOf((String) authentication.getPrincipal());
+        userService.updateMyAccount(userId, req, profileImage);
+        return ResponseEntity.noContent().build();
+    }
 
-        userService.updateMyAccount(userId, req);
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<?> deleteProfileImage(Authentication authentication) {
+
+        Long userId = Long.valueOf((String) authentication.getPrincipal());
+        userService.deleteProfileImage(userId);
 
         return ResponseEntity.noContent().build();
     }

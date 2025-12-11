@@ -1,7 +1,14 @@
 package com.j3s.yobuddy.domain.user.service;
 
+import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.file.entity.FileEntity;
+import com.j3s.yobuddy.domain.file.entity.FileType;
+import com.j3s.yobuddy.domain.file.entity.RefType;
+import com.j3s.yobuddy.domain.file.repository.FileRepository;
+import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.user.dto.request.UpdateProfileRequest;
 import com.j3s.yobuddy.domain.user.dto.response.UserProfileResponse;
+import com.j3s.yobuddy.domain.user.dto.response.UserResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +40,7 @@ import com.j3s.yobuddy.domain.user.exception.UserPhoneAlreadyExistsException;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -41,44 +49,80 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
+    private final FileRepository fileRepository;
+    private final FileService fileService;
 
     @Override
     @Transactional(readOnly = true)
-    public Page<User> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
-        return userRepository.searchUsers(
+    public Page<UserResponse> getAllUsers(UserSearchRequest searchRequest, Pageable pageable) {
+
+        Page<User> page = userRepository.searchUsers(
             searchRequest.getName(),
             searchRequest.getEmail(),
             searchRequest.getRole(),
             pageable
         );
+
+        return page.map(u -> {
+            // 프로필 이미지 조회
+            List<FileEntity> files =
+                fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, u.getUserId());
+
+            String profileImageUrl = files.isEmpty()
+                ? null
+                : FileResponse.from(files.get(0)).getUrl();
+
+            return UserResponse.from(u, profileImageUrl);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
+    public UserResponse getUserById(Long userId) {
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
+
+        List<FileEntity> files =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+        String profileImageUrl = files.isEmpty()
+            ? null
+            : FileResponse.from(files.get(0)).getUrl();
+
+        return UserResponse.from(user, profileImageUrl);
     }
 
     @Override
     public UserProfileResponse getUserProfile(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // 프로필 이미지 조회
+        List<FileEntity> files =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+        FileResponse profile = files.isEmpty()
+            ? null
+            : FileResponse.from(files.get(0));
+
         return UserProfileResponse.builder()
             .userId(user.getUserId())
             .name(user.getName())
             .email(user.getEmail())
             .role(user.getRole().name())
+            .departmentId(user.getDepartment().getDepartmentId())
+            .departmentName(user.getDepartment().getName())
             .joinedAt(user.getJoinedAt().toString())
             .createdAt(user.getCreatedAt().toString())
             .updatedAt(user.getUpdatedAt().toString())
-            .departmentId(user.getDepartment().getDepartmentId())
-            .departmentName(user.getDepartment().getName())
+            .profileImageUrl(profile != null ? profile.getUrl() : null)
             .build();
     }
 
     @Override
     @Transactional
-    public void updateMyAccount(Long userId, UpdateProfileRequest req) {
+    public void updateMyAccount(Long userId, UpdateProfileRequest req, MultipartFile profileImage) {
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
@@ -111,12 +155,27 @@ public class UserServiceImpl implements UserService {
             if (!currentProvided || !newProvided) {
                 throw new InvalidUserRequestException("비밀번호 변경 시 현재/새 비밀번호 모두 필요합니다.");
             }
-
             if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
                 throw new UserPasswordMismatchException();
             }
-
             user.changePassword(passwordEncoder.encode(req.getNewPassword()));
+        }
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+
+            List<FileEntity> oldFiles =
+                fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+            for (FileEntity old : oldFiles) {
+                fileService.deleteFile(old.getFileId());
+            }
+
+            try {
+                FileEntity uploaded = fileService.uploadTempFile(profileImage, FileType.USER_PROFILE);
+                fileService.bindFile(uploaded.getFileId(), RefType.USER_PROFILE, userId);
+            } catch (Exception e) {
+                throw new RuntimeException("프로필 이미지 업로드 중 오류 발생", e);
+            }
         }
     }
 
@@ -268,5 +327,28 @@ public class UserServiceImpl implements UserService {
             .joinedAt(req.getJoinedAt())
             .department(department)
             .build();
+    }
+
+    @Transactional
+    public void deleteProfileImage(Long userId) {
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        List<FileEntity> files =
+            fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId);
+
+        for (FileEntity file : files) {
+            fileService.deleteFile(file.getFileId());
+        }
+    }
+
+    private String getProfileImageUrl(Long userId) {
+        return fileRepository.findByRefTypeAndRefId(RefType.USER_PROFILE, userId)
+            .stream()
+            .findFirst()
+            .map(FileResponse::from)
+            .map(FileResponse::getUrl)
+            .orElse(null);
     }
 }

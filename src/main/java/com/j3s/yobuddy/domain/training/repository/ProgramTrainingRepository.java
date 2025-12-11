@@ -1,6 +1,8 @@
 package com.j3s.yobuddy.domain.training.repository;
 
 import com.j3s.yobuddy.domain.training.entity.ProgramTraining;
+import com.j3s.yobuddy.domain.training.entity.TrainingType;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +19,12 @@ public interface ProgramTrainingRepository extends JpaRepository<ProgramTraining
     boolean existsByProgram_ProgramIdAndTraining_TrainingId(Long programId, Long trainingId);
 
     Optional<ProgramTraining> findByProgram_ProgramIdAndTraining_TrainingId(Long programId, Long trainingId);
+
+    List<ProgramTraining> findByProgram_ProgramId(Long programId);
+
+    List<ProgramTraining> findByTraining_TypeAndScheduledAtBetweenAndProgram_DeletedFalse(
+        TrainingType type,
+        LocalDateTime start,
+        LocalDateTime end
+    );
 }
