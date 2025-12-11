@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.kpi.results.dto.dashboard;
 
+import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,7 +13,7 @@ public class UserDashboardDto {
 
     private Long userId;
     private String name;
-    private String position;
+    private Role role;
 
     private BigDecimal totalScore;
     private boolean pass;
@@ -23,6 +24,7 @@ public class UserDashboardDto {
         return UserDashboardDto.builder()
             .userId(u.getUserId())
             .name(u.getName())
+            .role(u.getRole())
             .totalScore(totalScore)
             .pass(pass)
             .results(resultDtos)
