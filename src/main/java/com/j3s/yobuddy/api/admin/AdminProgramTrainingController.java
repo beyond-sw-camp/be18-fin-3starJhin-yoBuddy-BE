@@ -1,14 +1,18 @@
 package com.j3s.yobuddy.api.admin;
 
 import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingAssignRequest;
+import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingUpdateRequest;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingAssignResponse;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingUnassignResponse;
+import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingUpdateResponse;
 import com.j3s.yobuddy.domain.training.dto.response.ProgramTrainingsResponse;
 import com.j3s.yobuddy.domain.training.service.TrainingAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +46,17 @@ public class AdminProgramTrainingController {
         @RequestBody(required = false) ProgramTrainingAssignRequest request
     ) {
         return trainingAdminService.assignTrainingToProgram(programId, trainingId, request);
+    }
+
+    @PatchMapping("/{programId}/trainings/{trainingId}")
+    public ResponseEntity<ProgramTrainingUpdateResponse> updateProgramTraining(
+        @PathVariable("programId") Long programId,
+        @PathVariable("trainingId") Long trainingId,
+        @RequestBody ProgramTrainingUpdateRequest request
+    ) {
+        ProgramTrainingUpdateResponse result = trainingAdminService.updateProgramTraining(programId,
+            trainingId, request);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{programId}/trainings/{trainingId}")

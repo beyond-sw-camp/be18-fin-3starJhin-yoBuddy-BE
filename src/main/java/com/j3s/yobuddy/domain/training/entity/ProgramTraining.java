@@ -1,6 +1,7 @@
 package com.j3s.yobuddy.domain.training.entity;
 
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
+import com.j3s.yobuddy.domain.training.dto.request.ProgramTrainingUpdateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
@@ -55,4 +55,16 @@ public class ProgramTraining {
 
     @Column(name = "assigned_at")
     private LocalDateTime assignedAt;
+
+    public ProgramTraining update(ProgramTrainingUpdateRequest req) {
+        return ProgramTraining.builder()
+            .programTrainingId(this.programTrainingId)  // PK 유지
+            .program(this.program)                      // FK 유지
+            .training(this.training)                    // FK 유지
+            .scheduledAt(req.getScheduledAt() != null ? req.getScheduledAt() : this.scheduledAt)
+            .startDate(req.getStartDate() != null ? req.getStartDate() : this.startDate)
+            .endDate(req.getEndDate() != null ? req.getEndDate() : this.endDate)
+            .assignedAt(this.assignedAt)
+            .build();
+    }
 }
