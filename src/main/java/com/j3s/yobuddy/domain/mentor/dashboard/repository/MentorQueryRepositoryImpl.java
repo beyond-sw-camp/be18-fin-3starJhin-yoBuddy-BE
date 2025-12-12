@@ -1,7 +1,7 @@
-// file: src/main/java/com/j3s/yobuddy/domain/mentor/dashboard/repository/MentorQueryRepositoryImpl.java
 package com.j3s.yobuddy.domain.mentor.dashboard.repository;
 
 import com.j3s.yobuddy.common.dto.FileResponse;
+import com.j3s.yobuddy.domain.department.entity.QDepartment;
 import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import com.j3s.yobuddy.domain.mentor.dashboard.response.MenteeListResponse;
@@ -11,7 +11,7 @@ import com.j3s.yobuddy.domain.mentor.mentoring.entity.QMentoringSession;
 import com.j3s.yobuddy.domain.training.entity.QUserTraining;
 import com.j3s.yobuddy.domain.training.entity.UserTrainingStatus;
 import com.j3s.yobuddy.domain.user.entity.QUser;
-import com.j3s.yobuddy.domain.department.entity.QDepartment;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import com.querydsl.core.Tuple;
 
 @Repository
 @RequiredArgsConstructor
@@ -72,6 +71,7 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
             .join(ma).on(ma.mentee.userId.eq(user.userId))
             .where(
                 ma.mentor.userId.eq(mentorId),
+                ma.deleted.isFalse(),
                 ut.status.eq(UserTrainingStatus.PENDING)
             )
             .fetchOne();
@@ -100,20 +100,22 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
             .join(ma.mentee, user)
             .leftJoin(user.department, dept)
             .leftJoin(ut).on(ut.user.userId.eq(user.userId))
-            .where(ma.mentor.userId.eq(mentorId))
+            .where(
+                ma.mentor.userId.eq(mentorId),
+                ma.deleted.isFalse()
+            )
             .fetch();
 
-        // Group by menteeId
         Map<Long, MenteeListResponse.MenteeItem> result = rows.stream()
             .collect(Collectors.groupingBy(
                 r -> r.get(user.userId),
                 Collectors.collectingAndThen(Collectors.toList(), items -> {
 
-                    // Basic fields
                     Long menteeId = items.get(0).get(user.userId);
                     String name = items.get(0).get(user.name);
                     String email = items.get(0).get(user.email);
                     String phoneNumber = items.get(0).get(user.phoneNumber);
+
                     String profileImageUrl = fileRepository
                         .findByRefTypeAndRefId(RefType.USER_PROFILE, menteeId)
                         .stream()
@@ -121,9 +123,9 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
                         .map(FileResponse::from)
                         .map(FileResponse::getUrl)
                         .orElse(null);
+
                     String departmentName = items.get(0).get(dept.name);
 
-                    // Count trainings by status
                     int completed = (int) items.stream()
                         .filter(i -> i.get(ut.status) == UserTrainingStatus.COMPLETED)
                         .count();
