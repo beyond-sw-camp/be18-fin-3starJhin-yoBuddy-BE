@@ -47,7 +47,7 @@ public class UserTaskCommandServiceImpl implements UserTaskCommandService {
         userTask.submit(request.getComment());
         userTaskRepository.save(userTask);
 
-        mentorMenteeAssignmentRepository.findByMenteeUserIdAndDeletedFalse(userId)
+        mentorMenteeAssignmentRepository.findByMenteeUserId(userId)
             .map(assignment -> assignment.getMentor())
             .filter(mentor -> !mentor.isDeleted() && mentor.getRole() == Role.MENTOR)
             .ifPresent(mentor -> notificationService.notify(

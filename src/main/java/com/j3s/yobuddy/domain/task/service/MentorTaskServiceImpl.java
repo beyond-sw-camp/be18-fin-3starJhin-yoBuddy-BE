@@ -89,7 +89,7 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         Long menteeId = ut.getUser().getUserId();
 
         boolean assigned = assignmentRepository
-            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
+            .existsByMentorUserIdAndMenteeUserId(mentorId, menteeId);
 
         if (!assigned) {
             throw new IllegalStateException("You are not assigned to this mentee.");
@@ -144,7 +144,7 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         Long menteeId = ut.getUser().getUserId();
 
         boolean assigned = assignmentRepository
-            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
+            .existsByMentorUserIdAndMenteeUserId(mentorId, menteeId);
 
         if (!assigned) {
             throw new IllegalStateException("You are not assigned to this mentee.");

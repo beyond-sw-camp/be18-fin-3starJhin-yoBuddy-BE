@@ -40,11 +40,4 @@ public class MentorMenteeAssignment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentee_user_id", nullable = false)
     private User mentee;
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false;
-
-    public void softDelete() {
-        this.deleted = true;
-    }
 }

@@ -45,7 +45,7 @@ public class MentorWeeklyReportServiceImpl implements MentorWeeklyReportService 
         Pageable pageable) {
 
         boolean assigned = mentorMenteeAssignmentRepository
-            .existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(mentorId, menteeId);
+            .existsByMentorUserIdAndMenteeUserId(mentorId, menteeId);
 
         if (!assigned) {
             throw new MentorWeeklyReportAccessDeniedException(mentorId, menteeId);

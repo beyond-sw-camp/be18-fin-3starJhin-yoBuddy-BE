@@ -10,19 +10,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MentorMenteeAssignmentRepository extends JpaRepository<MentorMenteeAssignment, Long> {
 
-    boolean existsByMenteeUserIdAndDeletedFalse(Long menteeId);
+    boolean existsByMenteeUserId(Long menteeId);
 
-    Optional<MentorMenteeAssignment> findByMenteeUserIdAndDeletedFalse(Long menteeId);
+    Optional<MentorMenteeAssignment> findByMenteeUserId(Long menteeId);
 
-    List<MentorMenteeAssignment> findByMentorUserIdAndDeletedFalse(Long mentorId);
+    List<MentorMenteeAssignment> findByMentorUserId(Long mentorId);
 
-    boolean existsByMentorUserIdAndMenteeUserIdAndDeletedFalse(Long mentorId, Long menteeId);
+    boolean existsByMentorUserIdAndMenteeUserId(Long mentorId, Long menteeId);
 
     @Query("""
         select m.mentee.userId 
         from MentorMenteeAssignment m 
         where m.mentor.userId = :mentorId 
-          and m.deleted = false
     """)
     List<Long> findMenteeIdsByMentorUserId(Long mentorId);
 }

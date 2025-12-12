@@ -54,14 +54,13 @@ public class MentorServiceImpl implements MentorService {
                 throw new UnauthorizedMenteeAccessException(mentorId, menteeId);
             }
 
-            if (assignmentRepository.existsByMenteeUserIdAndDeletedFalse(mentee.getUserId())) {
+            if (assignmentRepository.existsByMenteeUserId(mentee.getUserId())) {
                 throw new MenteeAlreadyAssignedException(mentee.getUserId());
             }
 
             MentorMenteeAssignment assignment = MentorMenteeAssignment.builder()
                 .mentor(mentor)
                 .mentee(mentee)
-                .deleted(false)
                 .build();
 
             assignmentRepository.save(assignment);
@@ -73,14 +72,14 @@ public class MentorServiceImpl implements MentorService {
     public void removeMentee(Long mentorId, Long menteeId) {
 
         MentorMenteeAssignment assignment = assignmentRepository
-            .findByMenteeUserIdAndDeletedFalse(menteeId)
+            .findByMenteeUserId(menteeId)
             .orElseThrow(() -> new AssignmentNotFoundException(menteeId));
 
         if (!assignment.getMentor().getUserId().equals(mentorId)) {
             throw new UnauthorizedMenteeAccessException(mentorId, menteeId);
         }
 
-        assignment.softDelete();
+        assignmentRepository.delete(assignment);
     }
 
     @Override
@@ -88,7 +87,7 @@ public class MentorServiceImpl implements MentorService {
     public List<MenteeListResponse> getMentees(Long mentorId) {
 
         List<MentorMenteeAssignment> assignments =
-            assignmentRepository.findByMentorUserIdAndDeletedFalse(mentorId);
+            assignmentRepository.findByMentorUserId(mentorId);
 
         return assignments.stream()
             .map(a -> {
@@ -129,6 +128,7 @@ public class MentorServiceImpl implements MentorService {
             userRepository.findByDepartment_DepartmentIdAndRole(deptId, Role.USER);
 
         return newbies.stream()
+            .filter(u -> !assignmentRepository.existsByMenteeUserId(u.getUserId()))
             .map(u -> new MenteeCandidateResponse(
                 u.getUserId(),
                 u.getName(),
@@ -143,7 +143,7 @@ public class MentorServiceImpl implements MentorService {
     public MenteeDetailResponse getMenteeDetail(Long mentorId, Long menteeId) {
 
         MentorMenteeAssignment assignment = assignmentRepository
-            .findByMenteeUserIdAndDeletedFalse(menteeId)
+            .findByMenteeUserId(menteeId)
             .orElseThrow(() -> new AssignmentNotFoundException(menteeId));
 
         if (!assignment.getMentor().getUserId().equals(mentorId)) {

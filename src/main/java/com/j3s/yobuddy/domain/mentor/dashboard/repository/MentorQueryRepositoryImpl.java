@@ -71,7 +71,6 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
             .join(ma).on(ma.mentee.userId.eq(user.userId))
             .where(
                 ma.mentor.userId.eq(mentorId),
-                ma.deleted.isFalse(),
                 ut.status.eq(UserTrainingStatus.PENDING)
             )
             .fetchOne();
@@ -101,8 +100,7 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
             .leftJoin(user.department, dept)
             .leftJoin(ut).on(ut.user.userId.eq(user.userId))
             .where(
-                ma.mentor.userId.eq(mentorId),
-                ma.deleted.isFalse()
+                ma.mentor.userId.eq(mentorId)
             )
             .fetch();
 

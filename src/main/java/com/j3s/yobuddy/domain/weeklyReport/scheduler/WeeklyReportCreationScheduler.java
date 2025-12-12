@@ -71,7 +71,7 @@ public class WeeklyReportCreationScheduler {
             }
 
             Optional<MentorMenteeAssignment> mentorOpt =
-                mentorMenteeAssignmentRepository.findByMenteeUserIdAndDeletedFalse(menteeId);
+                mentorMenteeAssignmentRepository.findByMenteeUserId(menteeId);
 
             if (mentorOpt.isEmpty()) {
                 log.warn("[WeeklyReportCreationScheduler] Mentor not found - menteeId={}", menteeId);
