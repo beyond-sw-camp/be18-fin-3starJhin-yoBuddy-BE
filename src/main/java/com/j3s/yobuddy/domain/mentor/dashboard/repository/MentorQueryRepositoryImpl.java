@@ -14,6 +14,7 @@ import com.j3s.yobuddy.domain.user.entity.QUser;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -92,6 +93,7 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
                 user.name,
                 user.email,
                 user.phoneNumber,
+                user.joinedAt,
                 dept.name,
                 ut.status
             )
@@ -113,6 +115,8 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
                     String name = items.get(0).get(user.name);
                     String email = items.get(0).get(user.email);
                     String phoneNumber = items.get(0).get(user.phoneNumber);
+
+                    LocalDateTime joinedAt = items.get(0).get(user.joinedAt);
 
                     String profileImageUrl = fileRepository
                         .findByRefTypeAndRefId(RefType.USER_PROFILE, menteeId)
@@ -139,6 +143,7 @@ public class MentorQueryRepositoryImpl implements MentorQueryRepository {
                         phoneNumber,
                         departmentName,
                         profileImageUrl,
+                        joinedAt,
                         completed,
                         pending
                     );
