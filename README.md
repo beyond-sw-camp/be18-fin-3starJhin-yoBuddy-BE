@@ -1,6 +1,8 @@
-# Yobuddy
+# ✨ YOBUDDY – 온보딩 플랫폼
 
-### 👥팀원
+신입 구성원의 온보딩을 돕고, 멘토–멘티 관리 및 KPI 기반 성장을 지원하는 통합 플랫폼입니다.
+
+## 👥팀원
 
 <table>
   <tr align="center">
@@ -18,6 +20,62 @@
     <td><a target="_blank" href="https://github.com/jws020501"><img src="https://github.com/user-attachments/assets/9f840fa6-c594-4c40-86dc-7ef492bed179" style="width:100px; height:100px;"><br>@jws020501</a>  </td>
   </tr>
 </table>
+
+## 기술 스택
+✓ Backend
+
+<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white"> <img src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white"> <img src="https://img.shields.io/badge/spring boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white"> 
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
+![Java 21](https://img.shields.io/badge/Java%2021-007396?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white)
+
+
+<img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white"> <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
+
+
+
+
+✓ Frontend
+
+![Vue.js Badge](https://img.shields.io/badge/Vue.js-4FC08D?logo=vuedotjs&logoColor=fff&style=for-the-badge)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Pinia Badge](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=000&style=for-the-badge)
+![Axios Badge](https://img.shields.io/badge/Axios-5A29E4?logo=axios&logoColor=fff&style=for-the-badge)
+
+
+
+
+✓ DB Server
+
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![RDS](https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white)
+<img src="https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white"> 
+
+
+
+✓ API Test & Tools
+
+<img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white">
+
+✓ Infra
+
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
+![ERDCloud](https://img.shields.io/badge/ERDCloud-0052CC?style=for-the-badge&logo=icloud&logoColor=white)
+
+✓ CI/CD
+
+![GitHub Actions Badge](https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=fff&style=for-the-badge)
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white">
+![ECR](https://img.shields.io/badge/Amazon%20ECR-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge)
+![AWS ALB](https://img.shields.io/badge/AWS%20ALB-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+
+![CloudFront](https://img.shields.io/badge/AWS%20CloudFront-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![S3](https://img.shields.io/badge/AWS%20S3-E34F26?style=for-the-badge&logo=amazonaws&logoColor=white)
+
 
 ## [프로젝트 기획서](https://docs.google.com/document/d/1qUtjyIee_IGMgofJaTO21N7H07kQlf2jFTObtrSxlEw/edit?usp=sharing)
 
