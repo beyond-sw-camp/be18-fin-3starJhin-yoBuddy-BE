@@ -1,5 +1,7 @@
 package com.j3s.yobuddy.domain.task.service;
 
+import com.j3s.yobuddy.domain.notification.entity.NotificationType;
+import com.j3s.yobuddy.domain.notification.service.NotificationService;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
@@ -7,10 +9,10 @@ import com.j3s.yobuddy.domain.task.dto.request.ProgramTaskAssignRequest;
 import com.j3s.yobuddy.domain.task.dto.response.ProgramTaskAssignResponse;
 import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
 import com.j3s.yobuddy.domain.task.entity.ProgramTask;
+import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.OnboardingTaskRepository;
 import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
-import com.j3s.yobuddy.domain.notification.entity.NotificationType;
-import com.j3s.yobuddy.domain.notification.service.NotificationService;
+import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import java.time.LocalDateTime;
@@ -29,13 +31,15 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
     private final OnboardingProgramRepository programRepository;
     private final OnboardingTaskRepository taskRepository;
     private final ProgramTaskRepository programTaskRepository;
+    private final UserTaskRepository userTaskRepository;
 
     private final ProgramEnrollmentRepository enrollmentRepository;
     private final UserTaskAssignmentService userTaskAssignmentService;
     private final NotificationService notificationService;
 
     @Override
-    public ProgramTaskAssignResponse assignTask(Long programId, Long taskId, ProgramTaskAssignRequest request) {
+    public ProgramTaskAssignResponse assignTask(Long programId, Long taskId,
+        ProgramTaskAssignRequest request) {
 
         var program = programRepository.findById(programId)
             .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없습니다."));
@@ -43,7 +47,8 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
         var task = taskRepository.findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("과제를 찾을 수 없습니다."));
 
-        if (programTaskRepository.existsByOnboardingProgram_ProgramIdAndOnboardingTask_Id(programId, taskId)) {
+        if (programTaskRepository.existsByOnboardingProgram_ProgramIdAndOnboardingTask_Id(programId,
+            taskId)) {
             throw new IllegalStateException("이미 해당 프로그램에 등록된 과제입니다.");
         }
 
@@ -72,9 +77,16 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
     @Override
     public void unassignTask(Long programId, Long taskId) {
 
-        var programTask = programTaskRepository
+        ProgramTask programTask = programTaskRepository
             .findByOnboardingProgram_ProgramIdAndOnboardingTask_Id(programId, taskId)
             .orElseThrow(() -> new IllegalArgumentException("프로그램 과제를 찾을 수 없습니다."));
+
+        List<UserTask> userTasks = userTaskRepository
+            .findAllByProgramTaskAndDeletedFalse(programTask);
+
+        if (!userTasks.isEmpty()) {
+            userTaskRepository.deleteAll(userTasks);
+        }
 
         programTaskRepository.delete(programTask);
     }
