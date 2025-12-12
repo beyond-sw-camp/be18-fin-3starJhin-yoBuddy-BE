@@ -31,10 +31,10 @@ public class NotificationQueryServiceImpl implements NotificationQueryService { 
     @Transactional
     public void markNotificationAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new EntityNotFoundException("Notification not found with ID: " + notificationId));
+            .orElseThrow(() -> new EntityNotFoundException("알림을 찾을 수 없습니다. ID: " + notificationId));
 
         if (!notification.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized: Notification does not belong to user.");
+            throw new RuntimeException("본인의 알림만 읽음 처리할 수 있습니다.");
         }
 
         notification.markAsRead();
@@ -45,10 +45,10 @@ public class NotificationQueryServiceImpl implements NotificationQueryService { 
     public void deleteNotification(Long notificationId, Long userId) {
 
         Notification notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new EntityNotFoundException("Notification not found with ID: " + notificationId));
+            .orElseThrow(() -> new EntityNotFoundException("알림을 찾을 수 없습니다. ID: " + notificationId));
 
         if (!notification.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized: Notification does not belong to user.");
+            throw new RuntimeException("본인의 알림만 읽음 처리할 수 있습니다.");
         }
 
         notificationRepository.deleteById(notificationId);

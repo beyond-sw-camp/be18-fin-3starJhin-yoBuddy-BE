@@ -23,7 +23,7 @@ public class ProgramTaskQueryServiceImpl implements ProgramTaskQueryService {
     public ProgramTaskListResponse getProgramTaskList(Long programId) {
 
         var program = programRepository.findById(programId)
-            .orElseThrow(() -> new IllegalArgumentException("Program not found"));
+            .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없습니다."));
 
         var programTasks = programTaskRepository.findByOnboardingProgram_ProgramId(programId);
 

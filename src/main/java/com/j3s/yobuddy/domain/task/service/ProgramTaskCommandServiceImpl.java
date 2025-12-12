@@ -38,13 +38,13 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
     public ProgramTaskAssignResponse assignTask(Long programId, Long taskId, ProgramTaskAssignRequest request) {
 
         var program = programRepository.findById(programId)
-            .orElseThrow(() -> new IllegalArgumentException("Program not found"));
+            .orElseThrow(() -> new IllegalArgumentException("프로그램을 찾을 수 없습니다."));
 
         var task = taskRepository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+            .orElseThrow(() -> new IllegalArgumentException("과제를 찾을 수 없습니다."));
 
         if (programTaskRepository.existsByOnboardingProgram_ProgramIdAndOnboardingTask_Id(programId, taskId)) {
-            throw new IllegalStateException("Task already assigned to this program");
+            throw new IllegalStateException("이미 해당 프로그램에 등록된 과제입니다.");
         }
 
         LocalDateTime dueDateTime = request.getDueDate().atTime(23, 59, 59);
@@ -74,7 +74,7 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
 
         var programTask = programTaskRepository
             .findByOnboardingProgram_ProgramIdAndOnboardingTask_Id(programId, taskId)
-            .orElseThrow(() -> new IllegalArgumentException("ProgramTask not found"));
+            .orElseThrow(() -> new IllegalArgumentException("프로그램 과제를 찾을 수 없습니다."));
 
         programTaskRepository.delete(programTask);
     }
