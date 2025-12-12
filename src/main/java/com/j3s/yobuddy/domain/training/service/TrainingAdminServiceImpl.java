@@ -36,6 +36,7 @@ import com.j3s.yobuddy.domain.training.exception.TrainingNotFoundException;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingQueryRepository;
 import com.j3s.yobuddy.domain.training.repository.ProgramTrainingRepository;
 import com.j3s.yobuddy.domain.training.repository.TrainingRepository;
+import com.j3s.yobuddy.domain.training.repository.UserTrainingRepository;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import java.time.LocalDateTime;
@@ -59,6 +60,7 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
     private final ProgramTrainingRepository programTrainingRepository;
     private final OnboardingProgramRepository onboardingProgramRepository;
     private final ProgramTrainingQueryRepository programTrainingQueryRepository;
+    private final UserTrainingRepository userTrainingRepository;
     private final FileRepository fileRepository;
     private final FileService fileService;
     private final ProgramEnrollmentRepository programEnrollmentRepository;
@@ -343,6 +345,8 @@ public class TrainingAdminServiceImpl implements TrainingAdminService {
             .orElseThrow(() -> new TrainingNotFoundException(trainingId));
 
         String title = programTraining.getTraining().getTitle();
+
+        userTrainingRepository.deleteByProgramTraining(programTraining);
 
         programTrainingRepository.delete(programTraining);
 
