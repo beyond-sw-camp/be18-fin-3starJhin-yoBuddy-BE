@@ -1,6 +1,7 @@
 package com.j3s.yobuddy.domain.onboarding.entity;
 
 import com.j3s.yobuddy.domain.department.entity.Department;
+import com.j3s.yobuddy.domain.onboarding.exception.ProgramStatusChangeNotAllowedException;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -84,12 +85,30 @@ public class OnboardingProgram {
         }
     }
 
-    public void update(String name, String description, LocalDate startDate, LocalDate endDate) {
+    public void update(
+        String name,
+        String description,
+        LocalDate startDate,
+        LocalDate endDate,
+        ProgramStatus status
+    ) {
         if (name != null && !name.isBlank()) this.name = name;
         if (description != null) this.description = description;
         if (startDate != null) this.startDate = startDate;
         if (endDate != null) this.endDate = endDate;
+
+        if (status != null && status != this.status) {
+            validateStatusChange(status);
+            this.status = status;
+        }
+
         this.updatedAt = LocalDateTime.now();
+    }
+
+    private void validateStatusChange(ProgramStatus newStatus) {
+        if (this.status == ProgramStatus.COMPLETED) {
+            throw new ProgramStatusChangeNotAllowedException(this.programId);
+        }
     }
 
     public void softDelete() {

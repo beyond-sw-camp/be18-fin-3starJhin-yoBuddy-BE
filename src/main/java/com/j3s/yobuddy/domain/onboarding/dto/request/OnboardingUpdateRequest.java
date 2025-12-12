@@ -1,5 +1,6 @@
 package com.j3s.yobuddy.domain.onboarding.dto.request;
 
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
@@ -18,4 +19,6 @@ public class OnboardingUpdateRequest {
     private final LocalDate startDate;
 
     private final LocalDate endDate;
+
+    private final ProgramStatus status;
 }

@@ -29,18 +29,18 @@ public class OnboardingProgramServiceImpl implements OnboardingProgramService {
     public OnboardingProgram createOnboardingPrograms(OnboardingCreateRequest request) {
 
         Department department = departmentRepository.findByDepartmentIdAndIsDeletedFalse(
-                                                         request.getDepartmentId())
-                                                     .orElseThrow(
-                                                         () -> new DepartmentNotFoundException(
-                                                             request.getDepartmentId()));
+                request.getDepartmentId())
+            .orElseThrow(
+                () -> new DepartmentNotFoundException(
+                    request.getDepartmentId()));
 
         OnboardingProgram program = OnboardingProgram.builder()
-                                                     .name(request.getName())
-                                                     .description(request.getDescription())
-                                                     .startDate(request.getStartDate())
-                                                     .endDate(request.getEndDate())
-                                                     .department(department)
-                                                     .build();
+            .name(request.getName())
+            .description(request.getDescription())
+            .startDate(request.getStartDate())
+            .endDate(request.getEndDate())
+            .department(department)
+            .build();
 
         return onboardingProgramRepository.save(program);
     }
@@ -48,6 +48,7 @@ public class OnboardingProgramServiceImpl implements OnboardingProgramService {
     @Override
     @Transactional(readOnly = true)
     public List<OnboardingProgramListResponse> getAllPrograms() {
+
         return onboardingProgramQueryRepository.findProgramList();
     }
 
@@ -56,47 +57,51 @@ public class OnboardingProgramServiceImpl implements OnboardingProgramService {
     public OnboardingProgramResponse getProgramById(Long programId) {
 
         OnboardingProgram program = onboardingProgramRepository.findByProgramIdAndDeletedFalse(
-                                                                   programId)
-                                                               .orElseThrow(
-                                                                   () -> new ProgramNotFoundException(
-                                                                       programId));
+                programId)
+            .orElseThrow(
+                () -> new ProgramNotFoundException(
+                    programId));
 
         return OnboardingProgramResponse.builder()
-                                        .programId(program.getProgramId())
-                                        .name(program.getName())
-                                        .description(program.getDescription())
-                                        .startDate(program.getStartDate())
-                                        .endDate(program.getEndDate())
-                                        .createdAt(program.getCreatedAt())
-                                        .updatedAt(program.getUpdatedAt())
-                                        .build();
+            .programId(program.getProgramId())
+            .name(program.getName())
+            .status(program.getStatus())
+            .description(program.getDescription())
+            .startDate(program.getStartDate())
+            .endDate(program.getEndDate())
+            .createdAt(program.getCreatedAt())
+            .updatedAt(program.getUpdatedAt())
+            .build();
     }
 
     @Override
     @Transactional
-    public OnboardingProgramResponse updateProgram(Long programId,
-        OnboardingUpdateRequest request) {
+    public OnboardingProgramResponse updateProgram(
+        Long programId,
+        OnboardingUpdateRequest request
+    ) {
 
-        OnboardingProgram program = onboardingProgramRepository.findByProgramIdAndDeletedFalse(
-                                                                   programId)
-                                                               .orElseThrow(
-                                                                   () -> new ProgramNotFoundException(
-                                                                       programId));
+        OnboardingProgram program =
+            onboardingProgramRepository.findByProgramIdAndDeletedFalse(programId)
+                .orElseThrow(() -> new ProgramNotFoundException(programId));
 
-        program.update(request.getName(), request.getDescription(), request.getStartDate(),
-            request.getEndDate());
-
-        onboardingProgramRepository.save(program);
+        program.update(
+            request.getName(),
+            request.getDescription(),
+            request.getStartDate(),
+            request.getEndDate(),
+            request.getStatus()
+        );
 
         return OnboardingProgramResponse.builder()
-                                        .programId(program.getProgramId())
-                                        .name(program.getName())
-                                        .description(program.getDescription())
-                                        .startDate(program.getStartDate())
-                                        .endDate(program.getEndDate())
-                                        .createdAt(program.getCreatedAt())
-                                        .updatedAt(program.getUpdatedAt())
-                                        .build();
+            .programId(program.getProgramId())
+            .name(program.getName())
+            .description(program.getDescription())
+            .startDate(program.getStartDate())
+            .endDate(program.getEndDate())
+            .createdAt(program.getCreatedAt())
+            .updatedAt(program.getUpdatedAt())
+            .build();
     }
 
     @Override
@@ -104,10 +109,10 @@ public class OnboardingProgramServiceImpl implements OnboardingProgramService {
     public void softDeleteProgram(Long programId) {
 
         OnboardingProgram program = onboardingProgramRepository.findByProgramIdAndDeletedFalse(
-                                                                   programId)
-                                                               .orElseThrow(
-                                                                   () -> new ProgramNotFoundException(
-                                                                       programId));
+                programId)
+            .orElseThrow(
+                () -> new ProgramNotFoundException(
+                    programId));
         if (program.isDeleted()) {
             throw new ProgramAlreadyDeletedException(programId);
         }
