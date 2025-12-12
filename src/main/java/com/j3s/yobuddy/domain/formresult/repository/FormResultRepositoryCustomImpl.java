@@ -40,17 +40,27 @@ public class FormResultRepositoryCustomImpl implements FormResultRepositoryCusto
         builder.and(formResult.isDeleted.eq(false));
 
         // 교육명 검색
-        if (StringUtils.hasText(trainingName)) {
-            builder.and(training.title.containsIgnoreCase(trainingName));
-        }
+        if (StringUtils.hasText(userName) &&
+            StringUtils.hasText(trainingName) &&
+            StringUtils.hasText(onboardingName)) {
 
-        // 온보딩 프로그램명 검색
-        if (StringUtils.hasText(onboardingName)) {
-            builder.and(onboardingProgram.name.containsIgnoreCase(onboardingName));
-        }
+            BooleanBuilder orBuilder = new BooleanBuilder();
 
-        if (StringUtils.hasText(userName)) {
-            builder.and(user.name.containsIgnoreCase(userName));
+            orBuilder.or(user.name.containsIgnoreCase(userName));
+            orBuilder.or(training.title.containsIgnoreCase(trainingName));
+            orBuilder.or(onboardingProgram.name.containsIgnoreCase(onboardingName));
+
+            builder.and(orBuilder);
+        } else {
+            if (StringUtils.hasText(userName)) {
+                builder.and(user.name.containsIgnoreCase(userName));
+            }
+            if (StringUtils.hasText(trainingName)) {
+                builder.and(training.title.containsIgnoreCase(trainingName));
+            }
+            if (StringUtils.hasText(onboardingName)) {
+                builder.and(onboardingProgram.name.containsIgnoreCase(onboardingName));
+            }
         }
 
         // 기본 조회 쿼리
