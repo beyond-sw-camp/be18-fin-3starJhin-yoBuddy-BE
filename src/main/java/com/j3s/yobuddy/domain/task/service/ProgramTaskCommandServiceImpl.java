@@ -2,17 +2,23 @@ package com.j3s.yobuddy.domain.task.service;
 
 import com.j3s.yobuddy.domain.notification.entity.NotificationType;
 import com.j3s.yobuddy.domain.notification.service.NotificationService;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram.ProgramStatus;
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
 import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.task.dto.request.ProgramTaskAssignRequest;
+import com.j3s.yobuddy.domain.task.dto.request.ProgramTaskUpdateRequest;
 import com.j3s.yobuddy.domain.task.dto.response.ProgramTaskAssignResponse;
+import com.j3s.yobuddy.domain.task.dto.response.ProgramTaskUpdateResponse;
 import com.j3s.yobuddy.domain.task.entity.OnboardingTask;
 import com.j3s.yobuddy.domain.task.entity.ProgramTask;
 import com.j3s.yobuddy.domain.task.entity.UserTask;
 import com.j3s.yobuddy.domain.task.repository.OnboardingTaskRepository;
 import com.j3s.yobuddy.domain.task.repository.ProgramTaskRepository;
 import com.j3s.yobuddy.domain.task.repository.UserTaskRepository;
+import com.j3s.yobuddy.domain.training.exception.InvalidTrainingDataException;
+import com.j3s.yobuddy.domain.training.exception.ProgramAlreadyCompletedException;
 import com.j3s.yobuddy.domain.user.entity.Role;
 import com.j3s.yobuddy.domain.user.entity.User;
 import java.time.LocalDateTime;
@@ -51,12 +57,13 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
             taskId)) {
             throw new IllegalStateException("이미 해당 프로그램에 등록된 과제입니다.");
         }
-
+        LocalDateTime assignedAt = request.getAssignedAt();
         LocalDateTime dueDateTime = request.getDueDate().atTime(23, 59, 59);
 
         ProgramTask programTask = ProgramTask.builder()
             .onboardingProgram(program)
             .onboardingTask(task)
+            .assignedAt(assignedAt)
             .dueDate(dueDateTime)
             .build();
 
@@ -108,5 +115,30 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
             "새로운 과제 등록",
             message
         ));
+    }
+
+    @Override
+    @Transactional
+    public ProgramTaskUpdateResponse updateTask(Long programId, Long taskId,
+        ProgramTaskUpdateRequest request) {
+
+        OnboardingProgram program = programRepository.findById(programId)
+            .orElseThrow(() -> new InvalidTrainingDataException(
+                "프로그램을 찾을 수 없습니다. programId=" + programId
+            ));
+
+        if (program.getStatus() == ProgramStatus.COMPLETED) {
+            throw new ProgramAlreadyCompletedException(programId);
+        }
+
+        ProgramTask programTask = programTaskRepository.findByOnboardingProgram_ProgramIdAndOnboardingTask_Id(
+                programId, taskId)
+            .orElseThrow(() -> new IllegalArgumentException("프로그램 과제를 찾을 수 없습니다."));
+
+        ProgramTask updated = programTask.update(request);
+
+        updated = programTaskRepository.save(updated);
+
+        return ProgramTaskUpdateResponse.from(updated);
     }
 }

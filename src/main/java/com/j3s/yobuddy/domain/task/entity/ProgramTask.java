@@ -1,16 +1,29 @@
 package com.j3s.yobuddy.domain.task.entity;
 
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
-import jakarta.persistence.*;
-import java.time.LocalDate;
+import com.j3s.yobuddy.domain.task.dto.request.ProgramTaskUpdateRequest;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@AllArgsConstructor
+@Builder
 @Table(
     name = "program_tasks",
     uniqueConstraints = {
@@ -60,6 +73,16 @@ public class ProgramTask {
         this.onboardingTask = onboardingTask;
         this.dueDate = dueDate;
         this.assignedAt = LocalDateTime.now();
+    }
+
+    public ProgramTask update(ProgramTaskUpdateRequest req) {
+        return ProgramTask.builder()
+            .id(this.id)
+            .onboardingProgram(this.onboardingProgram)
+            .onboardingTask(this.onboardingTask)
+            .dueDate(req.getDueDate() != null ? req.getDueDate() : this.dueDate)
+            .assignedAt(this.assignedAt)
+            .build();
     }
 
     public void updateDueDate(LocalDateTime dueDate) {
