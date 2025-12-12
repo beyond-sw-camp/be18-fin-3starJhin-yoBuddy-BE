@@ -126,11 +126,14 @@ public class FormResultServiceImpl implements FormResultService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FormResultListResponse> getFormResultList(Pageable pageable) {
+    public Page<FormResultListResponse> getFormResultList(String trainingName,
+        String onboardingName, String userName, Pageable pageable) {
 
         Page<FormResult> result;
 
-        result = formResultRepository.findAllByIsDeletedFalse(pageable);
+        result =
+            formResultRepository.searchFormResults(trainingName, onboardingName, userName,
+                pageable);
 
         return result.map(FormResultListResponse::from);
     }

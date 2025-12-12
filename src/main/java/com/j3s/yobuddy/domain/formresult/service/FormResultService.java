@@ -13,5 +13,7 @@ public interface FormResultService {
 
     void deleteFormResult(Long formResultId);
 
-    Page<FormResultListResponse> getFormResultList(Pageable pageable);
+    Page<FormResultListResponse> getFormResultList(String trainingName, String onboardingName,
+        String userName,
+        Pageable pageable);
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,9 +32,13 @@ public class AdminFormResultController {
 
     @GetMapping
     public ResponseEntity<Page<FormResultListResponse>> getFormResultList(
+        @RequestParam(required = false) String trainingName,
+        @RequestParam(required = false) String onboardingName,
+        @RequestParam(required = false) String userName,
         @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<FormResultListResponse> formResults = formResultService.getFormResultList(pageable);
+        Page<FormResultListResponse> formResults = formResultService.getFormResultList(trainingName,
+            onboardingName, userName, pageable);
 
         return ResponseEntity.ok(formResults);
     }

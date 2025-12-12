@@ -6,7 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface FormResultRepository extends JpaRepository<FormResult, Long> {
+public interface FormResultRepository extends JpaRepository<FormResult, Long>,
+    FormResultRepositoryCustom {
 
     Optional<FormResult> findByFormResultIdAndIsDeletedFalse(Long formResultId);
 
