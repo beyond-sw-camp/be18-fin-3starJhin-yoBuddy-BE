@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
@@ -22,4 +24,16 @@ public interface OnboardingProgramRepository extends JpaRepository<OnboardingPro
 
     // find programs by department id
     List<OnboardingProgram> findByDepartment_DepartmentIdAndDeletedFalse(Long departmentId);
+
+    @Query("""
+        SELECT p
+        FROM OnboardingProgram p
+        WHERE p.deleted = false
+        AND p.startDate >= :start
+        AND p.endDate <= :end
+    """)
+    List<OnboardingProgram> findProgramsWithinPeriod(
+        @Param("start") LocalDate start,
+        @Param("end") LocalDate end
+    );
 }

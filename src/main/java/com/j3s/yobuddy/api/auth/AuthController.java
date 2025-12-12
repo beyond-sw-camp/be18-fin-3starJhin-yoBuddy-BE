@@ -1,6 +1,8 @@
 package com.j3s.yobuddy.api.auth;
 
 import com.j3s.yobuddy.domain.auth.dto.LoginRequest;
+import com.j3s.yobuddy.domain.auth.dto.PasswordResetConfirmRequest;
+import com.j3s.yobuddy.domain.auth.dto.PasswordResetRequest;
 import com.j3s.yobuddy.domain.auth.dto.TokenResponse;
 import com.j3s.yobuddy.domain.auth.service.AuthService;
 import com.j3s.yobuddy.domain.notification.sse.SseEmitterManager;
@@ -108,5 +110,21 @@ public class AuthController {
             .header(HttpHeaders.SET_COOKIE, clearAccess.toString())
             .header(HttpHeaders.SET_COOKIE, clearRefresh.toString())
             .body("logout success");
+    }
+
+    @PostMapping("/password/reset/request")
+    public ResponseEntity<Void> requestReset(
+        @RequestBody PasswordResetRequest req
+    ) {
+        authService.requestPasswordReset(req.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<Void> reset(
+        @RequestBody PasswordResetConfirmRequest req
+    ) {
+        authService.resetPassword(req.getToken(), req.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 }

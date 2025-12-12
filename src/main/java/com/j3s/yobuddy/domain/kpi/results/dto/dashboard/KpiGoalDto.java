@@ -2,11 +2,15 @@ package com.j3s.yobuddy.domain.kpi.results.dto.dashboard;
 
 import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class KpiGoalDto {
     private Long kpiGoalId;
     private String description;

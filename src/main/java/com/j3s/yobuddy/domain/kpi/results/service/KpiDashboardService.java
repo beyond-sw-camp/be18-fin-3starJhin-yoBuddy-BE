@@ -6,6 +6,7 @@ import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import com.j3s.yobuddy.domain.kpi.goals.repository.KpiGoalsRepository;
 import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.*;
 import com.j3s.yobuddy.domain.kpi.results.entity.KpiResults;
+import com.j3s.yobuddy.domain.kpi.results.repository.KpiDashboardQueryRepository;
 import com.j3s.yobuddy.domain.kpi.results.repository.KpiResultsRepository;
 import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringSession;
 import com.j3s.yobuddy.domain.mentor.mentoring.entity.MentoringStatus;
@@ -13,6 +14,7 @@ import com.j3s.yobuddy.domain.mentor.mentoring.repository.MentoringSessionReposi
 import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +37,14 @@ public class KpiDashboardService {
     private final MentoringSessionRepository mentoringSessionRepository;
     private final OnboardingProgramRepository onboardingProgramRepository;
 
+    private final KpiDashboardQueryRepository dashboardQueryRepository;
+
     private static final BigDecimal PASS_THRESHOLD = BigDecimal.valueOf(60);
+
+    @Transactional(readOnly = true)
+    public DashboardOverviewResponse getOverviewByPeriod(LocalDate start, LocalDate end) {
+        return dashboardQueryRepository.fetchOverviewByPeriod(start, end);
+    }
 
     @Transactional(readOnly = true)
     public KpiDashboardResponse getDashboard(Long departmentId) {
@@ -195,11 +204,12 @@ public class KpiDashboardService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(scores.size()), 2, RoundingMode.HALF_UP);
 
-            return RadarPointDto.builder()
-                .kpiGoalId(g.getKpiGoalId())
-                .label(g.getDescription())
-                .avgScore(avg)
-                .build();
+            return new RadarPointDto(
+                g.getKpiGoalId(),
+                g.getDescription(),
+                avg
+            );
+
         }).toList();
 
         return DashboardChartDto.builder()

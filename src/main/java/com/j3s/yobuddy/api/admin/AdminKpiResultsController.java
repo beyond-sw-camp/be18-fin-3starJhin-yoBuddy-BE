@@ -1,7 +1,9 @@
 package com.j3s.yobuddy.api.admin;
 
+import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.DashboardOverviewResponse;
 import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.KpiDashboardResponse;
 import com.j3s.yobuddy.domain.kpi.results.service.KpiDashboardService;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -73,5 +75,13 @@ public class AdminKpiResultsController {
             kpiDashboardService.getDashboard(departmentId);
 
         return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/dashboard/overview")
+    public ResponseEntity<DashboardOverviewResponse> getOverview(
+        @RequestParam LocalDate start,
+        @RequestParam LocalDate end
+    ) {
+        return ResponseEntity.ok(kpiDashboardService.getOverviewByPeriod(start, end));
     }
 }

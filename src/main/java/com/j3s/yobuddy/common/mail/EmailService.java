@@ -2,12 +2,14 @@ package com.j3s.yobuddy.common.mail;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -18,15 +20,16 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
 
             helper.setTo(to);
+            helper.setFrom("YoBuddy <no-reply@yobuddy.my>");
             helper.setSubject(subject);
-
-            String fullHtml = wrapWithTemplate(contentHtml, subject);
-            helper.setText(fullHtml, true);
+            helper.setText(wrapWithTemplate(contentHtml, subject), true);
 
             mailSender.send(msg);
 
+            log.info("메일 전송 성공: to={}, subject={}", to, subject);
+
         } catch (Exception e) {
-            throw new RuntimeException("이메일 전송 실패", e);
+            log.error("메일 전송 실패: to={}, subject={}", to, subject, e);
         }
     }
 

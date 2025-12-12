@@ -66,11 +66,14 @@ chatbot:
   base-url: http://13.209.18.145:8000
 
 ---
-# local
+---
 spring:
   config:
     activate:
       on-profile: local
+
+app:
+  front-url: http://localhost:8081
 
 cookie:
   secure: false
@@ -83,17 +86,21 @@ spring:
     activate:
       on-profile: qa
 
+app:
+  front-url: http://121.170.161.72:38081
+
 cookie:
   secure: false
   same-site: Lax
 
 ---
 # prod
-# prod
 spring:
   config:
     activate:
       on-profile: prod
+app:
+  front-url: https://yobuddy.my
 
   datasource:
     hikari:
