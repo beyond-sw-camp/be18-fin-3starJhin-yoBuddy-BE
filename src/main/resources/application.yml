@@ -99,8 +99,6 @@ spring:
   config:
     activate:
       on-profile: prod
-app:
-  front-url: https://yobuddy.my
 
   datasource:
     hikari:
@@ -109,7 +107,10 @@ app:
       idle-timeout: 300000        # 5분
       max-lifetime: 1800000       # 30분
       connection-timeout: 30000   # 30초
-      leak-detection-threshold: 2000
+      leak-detection-threshold: 20000
+
+app:
+  front-url: https://yobuddy.my
 
 cookie:
   secure: true
