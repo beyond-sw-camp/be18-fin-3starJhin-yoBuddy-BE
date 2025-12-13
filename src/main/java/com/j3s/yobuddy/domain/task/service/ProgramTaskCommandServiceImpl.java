@@ -57,7 +57,10 @@ public class ProgramTaskCommandServiceImpl implements ProgramTaskCommandService 
             taskId)) {
             throw new IllegalStateException("이미 해당 프로그램에 등록된 과제입니다.");
         }
-        LocalDateTime assignedAt = request.getAssignedAt();
+        LocalDateTime assignedAt = request.getAssignedAt() != null
+            ? request.getAssignedAt()
+            : LocalDateTime.now();
+
         LocalDateTime dueDateTime = request.getDueDate().atTime(23, 59, 59);
 
         ProgramTask programTask = ProgramTask.builder()
