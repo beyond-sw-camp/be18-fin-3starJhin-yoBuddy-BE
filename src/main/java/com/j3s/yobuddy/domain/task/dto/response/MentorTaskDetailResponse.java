@@ -23,6 +23,7 @@ public class MentorTaskDetailResponse {
     private String status;
     private Integer grade;
     private LocalDateTime submittedAt;
+    private String comment;
     private String feedback;
 
     private List<FileInfo> taskFiles;
