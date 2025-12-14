@@ -1,4 +1,3 @@
-// file: domain/kpi/results/repository/KpiAggregationQueryRepositoryImpl.java
 package com.j3s.yobuddy.domain.kpi.results.repository;
 
 import static com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus.ACTIVE;
@@ -29,16 +28,10 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
     private final QUserTask t = QUserTask.userTask;
     private final QWeeklyReport wr = QWeeklyReport.weeklyReport;
 
-    /**
-     * ✅ 안전한 SUM 래퍼
-     * QueryDSL(JPA)에서 caseExpr.sum()이 막히는 버전이 있어서
-     * sum({0}) 템플릿으로 DB aggregate를 직접 호출한다.
-     */
     private NumberExpression<Long> sum(NumberExpression<Long> expr) {
         return Expressions.numberTemplate(Long.class, "sum({0})", expr);
     }
 
-    /** 1️⃣ 교육 이수율: (userId, totalCnt, completedCnt) */
     @Override
     public List<Tuple> aggregateTrainingCompletion(Long programId) {
 
@@ -51,7 +44,6 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
         return query
             .select(
                 ut.user.userId,
-                // ✅ 여기 PK 컬럼명은 프로젝트에 맞게 수정!
                 ut.userTrainingId.count(),
                 sum(completedCase)
             )
@@ -63,7 +55,6 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
             .fetch();
     }
 
-    /** 2️⃣ 과제 제출률: (userId, totalCnt, submittedCnt) */
     @Override
     public List<Tuple> aggregateTaskSubmitRate(Long programId) {
 
@@ -76,7 +67,6 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
         return query
             .select(
                 t.user.userId,
-                // ✅ 여기 PK 컬럼명은 프로젝트에 맞게 수정!
                 t.id.count(),
                 sum(submittedCase)
             )
@@ -89,7 +79,6 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
             .fetch();
     }
 
-    /** 3️⃣ 과제 평균 점수: (userId, avgGrade) */
     @Override
     public List<Tuple> aggregateAvgTaskScore(Long programId) {
         return query
@@ -108,7 +97,6 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
             .fetch();
     }
 
-    /** 4️⃣ 오프라인 참여율: (userId, totalCnt, completedCnt) */
     @Override
     public List<Tuple> aggregateOfflineAttendance(Long programId) {
 
@@ -133,7 +121,6 @@ public class KpiAggregationQueryRepositoryImpl implements KpiAggregationQueryRep
             .fetch();
     }
 
-    /** 5️⃣ 주간보고 제출 수 (기간 기준): (menteeId, distinctWeekCnt) */
     @Override
     public List<Tuple> aggregateWeeklyReportByPeriod(
         Long programId,

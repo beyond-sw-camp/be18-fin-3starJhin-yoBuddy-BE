@@ -1,4 +1,3 @@
-// file: src/main/java/com/j3s/yobuddy/domain/kpi/results/repository/KpiResultsRepository.java
 package com.j3s.yobuddy.domain.kpi.results.repository;
 
 import java.time.LocalDateTime;

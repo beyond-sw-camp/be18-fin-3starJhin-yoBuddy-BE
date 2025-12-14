@@ -21,7 +21,6 @@ public class KpiAggregationService {
     ) {
         KpiAggregatedResult result = new KpiAggregatedResult();
 
-        /* 1️⃣ 교육 이수율 (category = 1) */
         for (Tuple t : repo.aggregateTrainingCompletion(programId)) {
             Long userId = t.get(0, Long.class);
             Long total = t.get(1, Long.class);
@@ -31,7 +30,6 @@ public class KpiAggregationService {
             result.put(userId, 1L, rate);
         }
 
-        /* 2️⃣ 과제 제출률 (category = 2) */
         for (Tuple t : repo.aggregateTaskSubmitRate(programId)) {
             Long userId = t.get(0, Long.class);
             Long total = t.get(1, Long.class);
@@ -41,7 +39,6 @@ public class KpiAggregationService {
             result.put(userId, 2L, rate);
         }
 
-        /* 3️⃣ 과제 평균 점수 (category = 3) */
         for (Tuple t : repo.aggregateAvgTaskScore(programId)) {
             Long userId = t.get(0, Long.class);
             Double avgDouble = t.get(1, Double.class);
@@ -53,7 +50,6 @@ public class KpiAggregationService {
             result.put(userId, 3L, avg);
         }
 
-        /* 4️⃣ 오프라인 참여율 (category = 5) */
         for (Tuple t : repo.aggregateOfflineAttendance(programId)) {
             Long userId = t.get(0, Long.class);
             Long total = t.get(1, Long.class);
@@ -63,7 +59,6 @@ public class KpiAggregationService {
             result.put(userId, 5L, rate);
         }
 
-        /* 5️⃣ 주간보고 제출률 (category = 4) */
         for (Tuple t : repo.aggregateWeeklyReportByPeriod(programId, startDt, endDt)) {
             Long userId = t.get(0, Long.class);
             Number submittedWeeksNum = t.get(1, Number.class);

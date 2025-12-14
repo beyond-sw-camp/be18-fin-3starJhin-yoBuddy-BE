@@ -1,4 +1,3 @@
-// file: src/main/java/com/j3s/yobuddy/domain/kpi/results/service/KpiResultsServiceImpl.java
 package com.j3s.yobuddy.domain.kpi.results.service;
 
 import static com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus.ACTIVE;
@@ -62,9 +61,6 @@ public class KpiResultsServiceImpl implements KpiResultsService {
         return KpiResultsResponse.from(r);
     }
 
-    /**
-     * ✅ 테스트 단계 기본 동작: 과거 프로그램 포함 누락분 백필
-     */
     @Override
     public void culculateKpiResults() {
         calculateKpiResults(true, false);

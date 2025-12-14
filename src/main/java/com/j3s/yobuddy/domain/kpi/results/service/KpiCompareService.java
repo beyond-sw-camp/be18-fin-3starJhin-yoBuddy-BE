@@ -31,11 +31,9 @@ public class KpiCompareService {
 
         Long departmentId = user.getDepartment().getDepartmentId();
 
-        // 1️⃣ 부서 KPI Goal 목록
         List<KpiGoals> goals =
             kpiGoalsRepository.findByDepartmentIdAndIsDeletedFalse(departmentId);
 
-        // 2️⃣ 사용자 KPI (goal별 최신)
         List<KpiResults> userResults =
             kpiResultsRepository.findByUserIdAndIsDeletedFalse(userId);
 
@@ -47,7 +45,6 @@ public class KpiCompareService {
                     (a, b) -> a // 최신 1건만 쓰는 구조라 충돌 없음
                 ));
 
-        // 3️⃣ 부서 평균 KPI
         var deptAvgMap =
             kpiResultsRepository.findDeptAvgKpi(departmentId)
                 .stream()
@@ -56,7 +53,6 @@ public class KpiCompareService {
                     DeptKpiAvgProjection::getAvgScore
                 ));
 
-        // 4️⃣ 비교 아이템 구성
         List<KpiCompareResponse.Item> items =
             goals.stream()
                 .map(goal ->

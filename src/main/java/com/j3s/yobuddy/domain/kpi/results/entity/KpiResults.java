@@ -1,4 +1,3 @@
-// file: src/main/java/com/j3s/yobuddy/domain/kpi/results/entity/KpiResults.java
 package com.j3s.yobuddy.domain.kpi.results.entity;
 
 import java.math.BigDecimal;
