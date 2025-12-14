@@ -88,7 +88,6 @@ public class AuthController {
     public ResponseEntity<String> logout(@AuthenticationPrincipal String userId) {
 
         authService.logout(Long.valueOf(userId));
-        sseEmitterManager.disconnect(Long.valueOf(userId));
 
         ResponseCookie clearAccess = ResponseCookie.from("ACCESS_TOKEN", "")
             .httpOnly(true)

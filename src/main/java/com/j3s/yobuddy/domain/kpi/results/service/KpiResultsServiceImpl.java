@@ -1,10 +1,8 @@
+// file: src/main/java/com/j3s/yobuddy/domain/kpi/results/service/KpiResultsServiceImpl.java
 package com.j3s.yobuddy.domain.kpi.results.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus.ACTIVE;
+import static com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment.EnrollmentStatus.COMPLETED;
 
 import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
 import com.j3s.yobuddy.domain.kpi.goals.repository.KpiGoalsRepository;
@@ -13,19 +11,32 @@ import com.j3s.yobuddy.domain.kpi.results.dto.response.KpiResultsResponse;
 import com.j3s.yobuddy.domain.kpi.results.entity.KpiResults;
 import com.j3s.yobuddy.domain.kpi.results.exception.KpiResultsNotFoundException;
 import com.j3s.yobuddy.domain.kpi.results.repository.KpiResultsRepository;
+import com.j3s.yobuddy.domain.onboarding.entity.OnboardingProgram;
+import com.j3s.yobuddy.domain.onboarding.repository.OnboardingProgramRepository;
+import com.j3s.yobuddy.domain.programenrollment.entity.ProgramEnrollment;
+import com.j3s.yobuddy.domain.programenrollment.repository.ProgramEnrollmentRepository;
 import com.j3s.yobuddy.domain.user.entity.User;
 import com.j3s.yobuddy.domain.user.repository.UserRepository;
-
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class KpiResultsServiceImpl implements KpiResultsService {
-    private final KpiScoreCalculator kpiScoreCalculator;
+
+    private final KpiAggregationService aggregationService;
 
     private final KpiResultsRepository kpiResultsRepository;
     private final UserRepository userRepository;
     private final KpiGoalsRepository kpiGoalsRepository;
+    private final OnboardingProgramRepository onboardingProgramRepository;
+    private final ProgramEnrollmentRepository programEnrollmentRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,24 +51,7 @@ public class KpiResultsServiceImpl implements KpiResultsService {
         } else {
             result = kpiResultsRepository.findAllByIsDeletedFalse();
         }
-
         return result.stream().map(KpiResultsListResponse::from).toList();
-    }
-
-    @Override
-    @Transactional
-    public void createResult(Long userId, Long departmentId, KpiGoals kpiGoals) {
-        KpiResults r = KpiResults.builder()
-            .achievedValue(null)
-            .score(kpiScoreCalculator.computeScore(userId,departmentId,kpiGoals))
-            .evaluatedAt(LocalDateTime.now())
-            .kpiGoalId(kpiGoals.getKpiGoalId())
-            .userId(userId)
-            .departmentId(departmentId)
-            .isDeleted(false)
-            .build();
-
-        kpiResultsRepository.save(r);
     }
 
     @Override
@@ -65,37 +59,82 @@ public class KpiResultsServiceImpl implements KpiResultsService {
     public KpiResultsResponse getResultById(Long kpiResultId) {
         KpiResults r = kpiResultsRepository.findByKpiResultIdAndIsDeletedFalse(kpiResultId)
             .orElseThrow(() -> new KpiResultsNotFoundException(kpiResultId));
-
         return KpiResultsResponse.from(r);
     }
+
+    /**
+     * ✅ 테스트 단계 기본 동작: 과거 프로그램 포함 누락분 백필
+     */
     @Override
-    //@Transactional
     public void culculateKpiResults() {
-        List<User> users = userRepository.findAllByIsDeletedFalse();
+        calculateKpiResults(true, false);
+    }
 
-        for (User user : users) {
-            try {
-                if (user == null || user.getDepartment() == null) {
-                    continue;
-                }
+    @Override
+    @Transactional
+    public void calculateKpiResults(boolean includePastPrograms, boolean forceRecalculate) {
 
-                Long userId = user.getUserId();
-                Long departmentId = user.getDepartment().getDepartmentId();
+        List<OnboardingProgram> programs =
+            onboardingProgramRepository.findByStatusAndDeletedFalse(
+                OnboardingProgram.ProgramStatus.COMPLETED
+            );
 
-                List<KpiGoals> kpiGoals = kpiGoalsRepository.findByDepartmentIdAndIsDeletedFalse(departmentId);
-                if (kpiGoals == null || kpiGoals.isEmpty()) {
-                    continue;
-                }
+        for (OnboardingProgram program : programs) {
+            if (program.isDeleted()) continue;
 
-                for (KpiGoals kpiGoal : kpiGoals) {
-                    try {
-                        createResult(userId, departmentId, kpiGoal);
-                    } catch (Exception e) {
+            Long programId = program.getProgramId();
+            Long departmentId = program.getDepartment().getDepartmentId();
+
+            LocalDateTime startDt = program.getStartDate().atStartOfDay();
+            LocalDateTime endDt = program.getEndDate().atTime(23, 59, 59);
+
+            long expectedWeeks =
+                Math.max(
+                    1,
+                    ChronoUnit.WEEKS.between(
+                        program.getStartDate(),
+                        program.getEndDate()
+                    ) + 1
+                );
+
+            KpiAggregatedResult aggregated =
+                aggregationService.aggregate(programId, startDt, endDt);
+
+            List<KpiGoals> goals =
+                kpiGoalsRepository.findByDepartmentIdAndIsDeletedFalse(departmentId);
+
+            List<ProgramEnrollment> enrollments =
+                programEnrollmentRepository.findByProgram_ProgramIdAndStatusIn(
+                    programId,
+                    List.of(ACTIVE, COMPLETED)
+                );
+
+            List<KpiResults> batch = new ArrayList<>();
+
+            for (ProgramEnrollment e : enrollments) {
+                User user = e.getUser();
+
+                for (KpiGoals goal : goals) {
+                    if (goal.getKpiCategoryId().equals(6L)) {
+                        continue;
                     }
-                }
+                    BigDecimal achieved =
+                        aggregated.get(user.getUserId(), goal.getKpiCategoryId());
 
-            } catch (Exception ex) {
+                    batch.add(
+                        KpiResults.builder()
+                            .userId(user.getUserId())
+                            .departmentId(departmentId)
+                            .kpiGoalId(goal.getKpiGoalId())
+                            .achievedValue(achieved)
+                            .evaluatedAt(endDt)
+                            .isDeleted(false)
+                            .build()
+                    );
+                }
             }
+
+            kpiResultsRepository.saveAll(batch);
         }
     }
 }

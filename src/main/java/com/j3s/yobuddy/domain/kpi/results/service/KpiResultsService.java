@@ -1,5 +1,7 @@
+// file: src/main/java/com/j3s/yobuddy/domain/kpi/results/service/KpiResultsService.java
 package com.j3s.yobuddy.domain.kpi.results.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.j3s.yobuddy.domain.kpi.goals.entity.KpiGoals;
@@ -10,9 +12,9 @@ public interface KpiResultsService {
 
     List<KpiResultsListResponse> getResults(Long kpiGoalId, Long userId, Long departmentId);
 
-    void createResult(Long userId, Long departmentId,KpiGoals kpiGoals);
-
     KpiResultsResponse getResultById(Long kpiResultId);
-    
-    void  culculateKpiResults();
+
+    void culculateKpiResults();
+
+    void calculateKpiResults(boolean includePastPrograms, boolean forceRecalculate);
 }

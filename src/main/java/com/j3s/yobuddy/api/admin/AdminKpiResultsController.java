@@ -2,6 +2,8 @@ package com.j3s.yobuddy.api.admin;
 
 import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.DashboardOverviewResponse;
 import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.KpiDashboardResponse;
+import com.j3s.yobuddy.domain.kpi.results.dto.dashboard.UserKpiDetailResponse;
+//import com.j3s.yobuddy.domain.kpi.results.service.KpiDashboardService;
 import com.j3s.yobuddy.domain.kpi.results.service.KpiDashboardService;
 import java.time.LocalDate;
 import java.util.List;
@@ -44,9 +46,9 @@ public class AdminKpiResultsController {
         return ResponseEntity.ok(list);
     }
     @PostMapping("/calculator")
-    public String calculateKpiResults() {
+    public ResponseEntity<String> calculateKpiResults() {
         kpiResultsService.culculateKpiResults();
-        return "계산이 시작되었습니다.";
+        return ResponseEntity.status(HttpStatus.CREATED).body("계산이 완료했습니다.");
     }
     
 
@@ -56,11 +58,6 @@ public class AdminKpiResultsController {
         return ResponseEntity.ok(resp);
     }
 
-    @DeleteMapping("/{kpiResultId}")
-    public ResponseEntity<String> deleteResult(@PathVariable("kpiResultId") Long kpiResultId) {
-        // Not implemented: could soft-delete via service
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("삭제는 추후 구현됩니다.");
-    }
     @GetMapping("/weeklyreports/user/{userId}")
     public ResponseEntity<List<MentorWeeklyReportDetailResponse>> getweeklyreport(@PathVariable String userId) {
         List<MentorWeeklyReportDetailResponse> resp = mentorWeeklyReportService.getWeeklyReportsByUserId(userId);
@@ -83,5 +80,13 @@ public class AdminKpiResultsController {
         @RequestParam LocalDate end
     ) {
         return ResponseEntity.ok(kpiDashboardService.getOverviewByPeriod(start, end));
+    }
+
+    @GetMapping("/users/{userId}/detail")
+    public UserKpiDetailResponse getUserKpiDetail(
+        @PathVariable Long userId,
+        @RequestParam Long departmentId
+    ) {
+        return kpiDashboardService.getUserDetail(userId, departmentId);
     }
 }

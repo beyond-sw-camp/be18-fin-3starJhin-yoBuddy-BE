@@ -21,7 +21,7 @@ public class UserKpiResultDto {
         return UserKpiResultDto.builder()
             .kpiResultId(r.getKpiResultId())
             .kpiGoalId(r.getKpiGoalId())
-            .score(r.getScore())
+            .score(r.getAchievedValue())
             .evaluatedAt(r.getEvaluatedAt())
             .year(year)
             .build();

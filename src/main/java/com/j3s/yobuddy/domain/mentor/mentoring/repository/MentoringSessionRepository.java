@@ -33,4 +33,18 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
         LocalDateTime end,
         MentoringStatus status
     );
+
+    long countByMentee_UserIdAndProgram_ProgramIdAndDeletedFalse(
+        Long menteeId,
+        Long programId
+    );
+
+    /**
+     * 결석 멘토링 세션 수
+     */
+    long countByMentee_UserIdAndProgram_ProgramIdAndStatusInAndDeletedFalse(
+        Long menteeId,
+        Long programId,
+        List<MentoringStatus> statuses
+    );
 }

@@ -36,4 +36,11 @@ public interface OnboardingProgramRepository extends JpaRepository<OnboardingPro
         @Param("start") LocalDate start,
         @Param("end") LocalDate end
     );
+
+    Optional<OnboardingProgram>
+    findTopByDepartment_DepartmentIdAndDeletedFalseOrderByStartDateDesc(Long departmentId);
+
+    List<OnboardingProgram> findByStatusAndDeletedFalse(
+        OnboardingProgram.ProgramStatus status
+    );
 }

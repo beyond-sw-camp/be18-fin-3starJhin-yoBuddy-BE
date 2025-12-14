@@ -157,7 +157,7 @@ public class MenteePerformanceQueryRepositoryImpl implements MenteePerformanceQu
 
         // 6) KPI 평균 점수 (kpi_results.score 평균)
         Double avgKpiScore = query
-            .select(kpi.score.avg())
+            .select(kpi.achievedValue.avg())
             .from(kpi)
             .where(
                 kpi.userId.eq(menteeId),

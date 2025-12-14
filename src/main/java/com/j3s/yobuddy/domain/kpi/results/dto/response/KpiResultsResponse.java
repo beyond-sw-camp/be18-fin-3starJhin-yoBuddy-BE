@@ -26,7 +26,7 @@ public class KpiResultsResponse {
         return KpiResultsResponse.builder()
             .kpiResultId(r.getKpiResultId())
             .achievedValue(r.getAchievedValue())
-            .score(r.getScore())
+            .score(r.getAchievedValue())
             .evaluatedAt(r.getEvaluatedAt())
             .kpiGoalId(r.getKpiGoalId())
             .userId(r.getUserId())
