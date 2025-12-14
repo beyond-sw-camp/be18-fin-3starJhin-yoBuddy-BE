@@ -128,6 +128,7 @@ public class MentorTaskServiceImpl implements MentorTaskService {
             .status(ut.getStatus().name())
             .grade(ut.getGrade())
             .submittedAt(ut.getSubmittedAt())
+            .comment(ut.getComment())
             .feedback(ut.getFeedback())
             .updatedAt(ut.getUpdatedAt())
             .taskFiles(taskFiles)
@@ -162,4 +163,3 @@ public class MentorTaskServiceImpl implements MentorTaskService {
         }
     }
 }
-
