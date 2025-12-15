@@ -2,7 +2,7 @@
 
   <!-- 로고 -->
   <img
-    src="./assets/yobuddy-logo.png"
+    src="./assets/logo.png"
     alt="YoBuddy Logo"
     width="140"
   />
