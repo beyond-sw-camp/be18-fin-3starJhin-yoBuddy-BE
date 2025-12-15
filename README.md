@@ -1,3 +1,27 @@
+<div align="left" style="display: flex; align-items: center; gap: 24px;">
+
+  <!-- 로고 -->
+  <img
+    src="./assets/yobuddy-logo.png"
+    alt="YoBuddy Logo"
+    width="140"
+  />
+
+  <!-- 텍스트 영역 -->
+  <div>
+    <h1>✨ YOBUDDY – 온보딩 플랫폼</h1>
+    <p>
+      신입 구성원의 온보딩을 돕고, 멘토-멘티 관리 및 KPI 기반 성장을 지원하는 통합 플랫폼입니다.
+    </p>
+  </div>
+
+</div>
+
+<br/>
+
+![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=10&height=200&animation=twinkling)
+
+
 # ✨ YOBUDDY – 온보딩 플랫폼
 
 신입 구성원의 온보딩을 돕고, 멘토–멘티 관리 및 KPI 기반 성장을 지원하는 통합 플랫폼입니다.
