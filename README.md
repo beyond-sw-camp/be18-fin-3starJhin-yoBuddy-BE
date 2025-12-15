@@ -1,23 +1,4 @@
-![header](https://capsule-render.vercel.app/api
-?type=waving
-&height=220
-&color=gradient
-&customColorList=10
-&text=YOBUDDY%20–%20온보딩%20플랫폼
-&fontSize=48
-&fontAlign=50
-&fontAlignY=38
-&desc=신입%20구성원의%20온보딩을%20돕고,%20멘토-멘티%20관리%20및%20KPI%20기반%20성장을%20지원하는%20통합%20플랫폼입니다.
-&descSize=16
-&descAlign=50
-&descAlignY=62
-&animation=twinkling)
-
-
-
-# ✨ YOBUDDY – 온보딩 플랫폼
-
-신입 구성원의 온보딩을 돕고, 멘토–멘티 관리 및 KPI 기반 성장을 지원하는 통합 플랫폼입니다.
+![header](https://capsule-render.vercel.app/api?type=waving&height=260&color=0:294594,100:ffffff&text=✨YOBUDDY%20–%20온보딩%20플랫폼&fontColor=294594&fontSize=42&fontAlign=63&fontAlignY=35&desc=신입%20구성원의%20온보딩을%20돕고,%20멘토-멘티%20관리%20및%20KPI%20기반%20성장을%20지원하는%20통합%20플랫폼입니다.&descColor=4a4a4a&descSize=14&descAlign=63&descAlignY=52)
 
 ## 👥팀원
 
