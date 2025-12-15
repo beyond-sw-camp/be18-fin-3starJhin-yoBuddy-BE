@@ -5,6 +5,8 @@ import com.j3s.yobuddy.domain.file.entity.FileEntity;
 import com.j3s.yobuddy.domain.file.service.FileService;
 import com.j3s.yobuddy.domain.file.entity.FileType;
 import com.j3s.yobuddy.domain.file.entity.RefType;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.OutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -32,15 +34,21 @@ public class FileController {
     }
 
     @GetMapping("/download/{fileId}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) throws Exception {
-
+    public ResponseEntity<Void> downloadFile(@PathVariable Long fileId, HttpServletResponse response) throws Exception {
+        // 파일 엔티티 가져오기
         FileEntity fileEntity = fileService.getFileEntity(fileId);
-        byte[] data = fileService.downloadFile(fileId);
 
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + fileEntity.getFilename() + "\"")
-            .body(new ByteArrayResource(data));
+        // 파일 다운로드 스트리밍 방식으로 처리
+        response.setContentType("application/octet-stream");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getFilename() + "\"");
+
+        // 스트리밍 방식으로 파일 다운로드
+        try (OutputStream outputStream = response.getOutputStream()) {
+            fileService.downloadFileWithStreaming(fileId, outputStream);  // 스트리밍 방식 다운로드
+        } catch (Exception e) {
+            throw new RuntimeException("파일 다운로드 중 오류 발생", e);
+        }
+
+        return ResponseEntity.ok().build();
     }
 }

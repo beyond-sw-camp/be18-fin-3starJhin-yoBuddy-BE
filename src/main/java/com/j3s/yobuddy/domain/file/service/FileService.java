@@ -6,6 +6,8 @@ import com.j3s.yobuddy.domain.file.entity.RefType;
 import com.j3s.yobuddy.domain.file.repository.FileRepository;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +26,6 @@ public class FileService {
     @Value("${spring.file.upload-dir}")
     private String remoteDir;
 
-    /**
-     * 1) 임시 업로드 (refType/refId 없음)
-     */
     public FileEntity uploadTempFile(MultipartFile file, FileType fileType) throws Exception {
         File tmp = new File(System.getProperty("java.io.tmpdir"), file.getOriginalFilename());
         try (FileOutputStream fos = new FileOutputStream(tmp)) {
@@ -65,9 +64,6 @@ public class FileService {
         return fileRepository.save(entity);
     }
 
-    /**
-     * 2) refType/refId 매핑 전용 (기존 uploadFile 역할)
-     */
     public FileEntity bindFile(Long fileId, RefType refType, Long refId) {
         FileEntity entity = getFileEntity(fileId);
         entity.setRefType(refType);
@@ -80,23 +76,32 @@ public class FileService {
             .orElseThrow(() -> new RuntimeException("파일 없음"));
     }
 
-    public byte[] downloadFile(Long fileId) throws Exception {
-        FileEntity file = getFileEntity(fileId);
-        return sftpTemplate.execute(session -> {
-            try (var baos = new java.io.ByteArrayOutputStream()) {
-                session.read(file.getFilepath(), baos);
-                return baos.toByteArray();
+    public void downloadFileWithStreaming(Long fileId, OutputStream outputStream) throws Exception {
+        FileEntity file = getFileEntity(fileId);  // 파일 엔티티 가져오기
+
+        // SFTP에서 파일을 스트리밍 방식으로 다운로드
+        sftpTemplate.execute(session -> {
+            try {
+                // 파일 경로와 출력 스트림을 두 번째 인수로 전달
+                session.read(file.getFilepath(), outputStream);  // 파일 경로와 출력 스트림을 전달
+                outputStream.flush();
+            } catch (Exception e) {
+                throw new RuntimeException("파일 다운로드 중 오류 발생", e);
             }
+            return null;
         });
     }
 
+    public void downloadFile(Long fileId, OutputStream outputStream) throws Exception {
+        downloadFileWithStreaming(fileId, outputStream);  // 스트리밍 다운로드 호출
+    }
+
     public void deleteFile(Long fileId) {
-        FileEntity file = fileRepository.findById(fileId)
-            .orElse(null);
+        FileEntity file = fileRepository.findById(fileId).orElse(null);
 
         if (file == null) return;
 
-        // 1) SFTP 파일 삭제
+        // SFTP에서 파일 삭제
         try {
             sftpTemplate.execute(session -> {
                 session.remove(file.getFilepath());
@@ -106,7 +111,7 @@ public class FileService {
             // 파일이 없어도 무시
         }
 
-        // 2) DB 삭제
+        // DB에서 파일 삭제
         fileRepository.delete(file);
     }
 }
