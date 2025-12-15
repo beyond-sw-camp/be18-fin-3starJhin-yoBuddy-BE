@@ -1,5 +1,5 @@
 <h1>
-  <img src="assets/yobuddy-logo.png" width="36" style="vertical-align: middle;" />
+  <img src="./assets/logo.png" width="36" style="vertical-align: middle;" />
   YOBUDDY – 온보딩 플랫폼
 </h1>
 
